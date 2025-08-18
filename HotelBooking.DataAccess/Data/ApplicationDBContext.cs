@@ -10,6 +10,7 @@ namespace HotelBooking.DataAccess.Data
 
         }
         public DbSet<Customer> Customer { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Customer>().HasData(
