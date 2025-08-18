@@ -20,9 +20,13 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     )
 );
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ISingleRoomRepository, SingleRoomRepository>();
+builder.Services.AddScoped<IDoubleRoomRepository, DoubleRoomRepository>();
+builder.Services.AddScoped<ISuiteRepository,SuiteRepository>();
+
 
 
 
