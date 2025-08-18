@@ -1,4 +1,4 @@
-﻿using HotelBooking.Models;
+﻿using HotelBooking.Models.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.DataAccess.Data
@@ -15,76 +15,137 @@ namespace HotelBooking.DataAccess.Data
             modelBuilder.Entity<Customer>().HasData(
                new Customer
                {
-                   Cust_Id = 1,
-                   Full_Name = "John El Ahmady",
-                   National_ID = "101050607845",
+                   Id = "1",
+                   Name = "John El Ahmady",
+                   IdentificationNumber = "101050607845",
                    Email = "john@gmail.com",
-                   ID_Image_URL = "",
-                   Marriage_status = false,
-                   Mariage_cert_URL = "",
+                   IdentificationAttachment = "",
+                   IsMarried = false,
+                   MarriageCertificateAttachment = "",
                    Nationality = "Egypt",
-                   Phone_Number = 01022289755
+                   PhoneNumber = "01022289755"
                },
                 new Customer
                 {
-                    Cust_Id = 2,
-                    Full_Name = "Sarah Mostafa",
-                    National_ID = "298030512345",
-                    Email = "sarah.mostafa@gmail.com",
-                    ID_Image_URL = "",
-                    Marriage_status = true,
-                    Mariage_cert_URL = "",
+                    Id = "2",
+                    Name = "Sara Mostafa",
+                    IdentificationNumber = "201030405123",
+                    Email = "sara.mostafa@gmail.com",
+                    IdentificationAttachment = "",
+                    IsMarried = true,
+                    MarriageCertificateAttachment = "",
                     Nationality = "Egypt",
-                    Phone_Number = 01015673248
+                    PhoneNumber = "01012345678"
                 },
-                new Customer
-                {
-                    Cust_Id = 3,
-                    Full_Name = "Omar Khaled",
-                    National_ID = "300070923456",
-                    Email = "omar.khaled@yahoo.com",
-                    ID_Image_URL = "",
-                    Marriage_status = false,
-                    Mariage_cert_URL = "",
-                    Nationality = "Brazil",
-                    Phone_Number = 01098765432
-                },
-                new Customer
-                {
-                    Cust_Id = 4,
-                    Full_Name = "Nour El Din Hassan",
-                    National_ID = "295112245678",
-                    Email = "nour.hassan@hotmail.com",
-                    ID_Image_URL = "",
-                    Marriage_status = true,
-                    Mariage_cert_URL = "",
-                    Nationality = "Brazil",
-                    Phone_Number = 01122334455
-                },
-                new Customer
-                {
-                    Cust_Id = 5,
-                    Full_Name = "Mona Adel",
-                    National_ID = "301022334567",
-                    Email = "mona.adel@gmail.com",
-                    ID_Image_URL = "",
-                    Marriage_status = false,
-                    Mariage_cert_URL = "",
-                    Nationality = "Brazil",
-                    Phone_Number = 01033445566
-                },
-                new Customer
-                {
-                    Cust_Id = 6,
-                    Full_Name = "Ahmed Samir",
-                    National_ID = "299041556789",
-                    Email = "ahmed.samir@outlook.com",
-                    ID_Image_URL = "",
-                    Marriage_status = true,
-                    Mariage_cert_URL = "",
-                    Nationality = "Brazil",
-                    Phone_Number = 01255667788
-                }
+new Customer
+{
+    Id = "3",
+    Name = "Omar Khaled",
+    IdentificationNumber = "301020607890",
+    Email = "omar.khaled@yahoo.com",
+    IdentificationAttachment = "",
+    IsMarried = false,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01123456789"
+},
+new Customer
+{
+    Id = "4",
+    Name = "Mona Hassan",
+    IdentificationNumber = "401050607321",
+    Email = "mona.hassan@hotmail.com",
+    IdentificationAttachment = "",
+    IsMarried = true,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01234567890"
+},
+new Customer
+{
+    Id = "5",
+    Name = "Youssef Adel",
+    IdentificationNumber = "501080909876",
+    Email = "youssef.adel@gmail.com",
+    IdentificationAttachment = "",
+    IsMarried = false,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01098765432"
+},
+new Customer
+{
+    Id = "6",
+    Name = "Nourhan Ali",
+    IdentificationNumber = "601020305654",
+    Email = "nourhan.ali@gmail.com",
+    IdentificationAttachment = "",
+    IsMarried = true,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01199887766"
+},
+new Customer
+{
+    Id = "7",
+    Name = "Karim Tarek",
+    IdentificationNumber = "701090807432",
+    Email = "karim.tarek@gmail.com",
+    IdentificationAttachment = "",
+    IsMarried = false,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01211223344"
+},
+new Customer
+{
+    Id = "8",
+    Name = "Laila Samir",
+    IdentificationNumber = "801010203987",
+    Email = "laila.samir@yahoo.com",
+    IdentificationAttachment = "",
+    IsMarried = true,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01055443322"
+},
+new Customer
+{
+    Id = "9",
+    Name = "Ahmed Yassin",
+    IdentificationNumber = "901020304765",
+    Email = "ahmed.yassin@gmail.com",
+    IdentificationAttachment = "",
+    IsMarried = false,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01166778899"
+},
+new Customer
+{
+    Id = "10",
+    Name = "Hana Magdy",
+    IdentificationNumber = "101010203040",
+    Email = "hana.magdy@gmail.com",
+    IdentificationAttachment = "",
+    IsMarried = true,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01244332211"
+},
+new Customer
+{
+    Id = "11",
+    Name = "Mostafa Ibrahim",
+    IdentificationNumber = "111213141516",
+    Email = "mostafa.ibrahim@gmail.com",
+    IdentificationAttachment = "",
+    IsMarried = false,
+    MarriageCertificateAttachment = "",
+    Nationality = "Egypt",
+    PhoneNumber = "01077889966"
+}
+
              );
         }
     }

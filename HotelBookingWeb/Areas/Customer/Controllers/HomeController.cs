@@ -1,6 +1,6 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using HotelBooking.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace HotelBookingWeb.Areas.Customer.Controllers
 {
