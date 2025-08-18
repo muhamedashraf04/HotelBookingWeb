@@ -41,5 +41,9 @@ namespace HotelBooking.DataAccess.Repos
             return query.ToList();
 
         }
+        public void Create(T obj)
+        {
+            _dbContext.Add(obj);
+        }
     }
 }

@@ -6,5 +6,6 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
     {
         public T Get(Expression<Func<T, bool>> Filter, string? IncludeProperties = null);
         IEnumerable<T> GetAll(string? IncludeProperties = null);
+        public void Create(T obj);
     }
 }

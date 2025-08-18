@@ -19,12 +19,6 @@ namespace HotelBookingWeb.Areas.Guest.Controllers
         
         public IActionResult Index()
         {
-            foreach (var customer in _unitOfWork.Customers.GetAll())
-            {
-                Console.WriteLine("Name : "+customer.Name);
-                Console.WriteLine("ID : "+customer.Id);
-
-            }
             return View();
         }
 

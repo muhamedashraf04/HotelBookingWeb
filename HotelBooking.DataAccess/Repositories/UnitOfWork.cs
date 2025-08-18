@@ -26,5 +26,7 @@ namespace HotelBooking.DataAccess.Repositories
         {
             _DBContext.SaveChanges();
         }
+
+
     }
 }
