@@ -8,6 +8,12 @@ namespace HotelBooking.DataAccess.Repositories
         public ICustomerRepository Customers { get; set; }
 
         public IReservationRepository Reservations { get; set; }
+        public ISingleRoomRepository SingleRooms { get; set; }
+        public IDoubleRoomRepository DoubleRooms { get; set; }
+
+        public ISuiteRepository Suites { get; set; }
+
+
 
         private ApplicationDBContext _DBContext;
         public UnitOfWork(ApplicationDBContext dBContext)
