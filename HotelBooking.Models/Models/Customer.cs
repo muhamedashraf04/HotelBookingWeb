@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace HotelBooking.Models.Models;
@@ -12,7 +13,7 @@ public class Customer
 
     [Phone]
     public string PhoneNumber { get; set; }
-
+    [ValidateNever]
     public string Address { get; set; }
 
     public string Nationality { get; set; }

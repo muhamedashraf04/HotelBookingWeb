@@ -17,6 +17,8 @@ public class Reservation
     [ForeignKey("Room")]
     public string RoomId { get; set; }
 
+    public string RoomType { get; set; }
+
     // Dates
     [Required(ErrorMessage = "Check-in date is required.")]
     [DataType(DataType.Date)]

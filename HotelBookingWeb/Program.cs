@@ -1,12 +1,30 @@
 using HotelBooking.DataAccess.Data;
+using HotelBooking.DataAccess.Repos;
+using HotelBooking.Models.Models;
 using Microsoft.EntityFrameworkCore;
+using HotelBooking.DataAccess.Repositories.Interfaces;
+using HotelBooking.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,                
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null          
+        )
+    )
+);
+
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
 
 var app = builder.Build();
 
@@ -27,7 +45,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}")
+    pattern: "{area=Guest}/{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 
