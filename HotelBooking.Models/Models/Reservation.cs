@@ -16,7 +16,7 @@ public class Reservation
     public string CustomerId { get; set; }
 
     [ForeignKey("Room")]
-    public string RoomId { get; set; }
+    public int RoomId { get; set; }
 
     public string RoomType { get; set; }
 
