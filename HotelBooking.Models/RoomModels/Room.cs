@@ -12,7 +12,7 @@ public class Room
     [Required]
     public required string RoomNumber { get; set; }
     public int Floor { get; set; }
-    public int Capacity { get; protected set; }
+    public int Capacity { get; set; }
 
     public bool IsAvailable { get; set; }
 
