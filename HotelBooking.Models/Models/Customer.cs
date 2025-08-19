@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HotelBooking.Models.Models;
 
 public class Customer
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
-    public string Id { get; set; }
+    public int Id { get; set; }
 
     [Required]
     public string Name { get; set; }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250819054644_CustomerModelFixes")]
-    partial class CustomerModelFixes
+    [Migration("20250819063851_Initial_Create")]
+    partial class Initial_Create
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,8 +27,11 @@ namespace HotelBooking.DataAccess.Migrations
 
             modelBuilder.Entity("HotelBooking.Models.Models.Customer", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -87,7 +90,7 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "1",
+                            Id = 1,
                             Address = "Cairo, Egypt",
                             Age = 0,
                             BirthDate = new DateOnly(1995, 3, 12),
@@ -105,7 +108,7 @@ namespace HotelBooking.DataAccess.Migrations
                         },
                         new
                         {
-                            Id = "2",
+                            Id = 2,
                             Address = "Giza, Egypt",
                             Age = 0,
                             BirthDate = new DateOnly(1997, 7, 21),
@@ -123,7 +126,7 @@ namespace HotelBooking.DataAccess.Migrations
                         },
                         new
                         {
-                            Id = "3",
+                            Id = 3,
                             Address = "New York, USA",
                             Age = 0,
                             BirthDate = new DateOnly(1990, 11, 4),
@@ -138,7 +141,7 @@ namespace HotelBooking.DataAccess.Migrations
                         },
                         new
                         {
-                            Id = "4",
+                            Id = 4,
                             Address = "Alexandria, Egypt",
                             Age = 0,
                             BirthDate = new DateOnly(1998, 1, 1),
@@ -153,7 +156,7 @@ namespace HotelBooking.DataAccess.Migrations
                         },
                         new
                         {
-                            Id = "5",
+                            Id = 5,
                             Address = "London, UK",
                             Age = 0,
                             BirthDate = new DateOnly(1988, 5, 30),
@@ -172,8 +175,11 @@ namespace HotelBooking.DataAccess.Migrations
 
             modelBuilder.Entity("HotelBooking.Models.Models.Reservation", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CheckInDate")
                         .HasColumnType("datetime2");

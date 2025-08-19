@@ -45,5 +45,17 @@ namespace HotelBooking.DataAccess.Repos
         {
             _dbContext.Add(obj);
         }
+        public bool Remove(int id)
+        {
+            if ( id == 0 )
+            {
+                return false;
+            }
+            var objToRemove = _dbContext.Set<T>().Find(id);
+            if (objToRemove == null)
+                return false;
+            _dbContext.Set<T>().Remove(objToRemove);
+            return true; 
+        }
     }
 }
