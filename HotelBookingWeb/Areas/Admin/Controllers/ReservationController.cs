@@ -1,9 +1,5 @@
-﻿using HotelBooking.DataAccess;
-using HotelBooking.DataAccess.Data;
-using HotelBooking.DataAccess.Repositories.Interfaces;
+﻿using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.DTO;
-using HotelBooking.Models.Models;
-using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelManagment.Controllers
