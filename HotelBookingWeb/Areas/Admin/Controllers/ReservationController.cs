@@ -20,7 +20,7 @@ namespace HotelManagment.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult Search(ReservationSearchDTO rsd )
+        public IActionResult Search(ReservationSearchDTO rsd)
         {
             if (String.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckIn.HasValue || !rsd.CheckOut.HasValue)
             {
@@ -35,22 +35,37 @@ namespace HotelManagment.Controllers
 
             if (rsd.RoomType == "Sinlge")
             {
-                var availableRooms = _UOF.SingleRooms.GetAll(r => ! notAv.Contains(r.Id));
+                var availableRooms = _UOF.SingleRooms.GetAll(r => !notAv.Contains(r.Id));
                 return View(availableRooms);
 
             }
             else if (rsd.RoomType == "Double")
-                {
+            {
                 var availableRooms = _UOF.DoubleRooms.GetAll(r => !notAv.Contains(r.Id));
                 return View(availableRooms);
-                    
-                }
+
+            }
             else if (rsd.RoomType == "Suite")
             {
                 var availableRooms = _UOF.Suites.GetAll(r => !notAv.Contains(r.Id));
                 return View(availableRooms);
             }
             return NotFound();
+        }
+
+        public IActionResult GetByDate(GetByDateDTO Date)
+        {
+            if (Date == null)
+            {
+                return NotFound("Invalid date provided.");
+            }
+            var reservation = _UOF.Reservations.Get(r => r.CheckInDate.Day == Date.day.Day);
+
+            if (reservation == null)
+            {
+                return NotFound("No reservation found for this date.");
+            }
+            return Ok(reservation);
         }
     }
 }
