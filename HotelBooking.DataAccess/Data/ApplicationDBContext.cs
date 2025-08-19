@@ -17,6 +17,31 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<Suite> Suites { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<SingleRoom>().HasData(
+           new SingleRoom { Id = 1, RoomNumber = "S01", Floor = 1, IsAvailable = true },
+           new SingleRoom { Id = 2, RoomNumber = "S02", Floor = 1, IsAvailable = true },
+           new SingleRoom { Id = 3, RoomNumber = "S03", Floor = 1, IsAvailable = true },
+           new SingleRoom { Id = 4, RoomNumber = "S04", Floor = 1, IsAvailable = true },
+           new SingleRoom { Id = 5, RoomNumber = "S05", Floor = 1, IsAvailable = true }
+       );
+
+            // Seed Double Rooms
+            modelBuilder.Entity<DoubleRoom>().HasData(
+                new DoubleRoom { Id = 6, RoomNumber = "D01", Floor = 2, IsAvailable = true },
+                new DoubleRoom { Id = 7, RoomNumber = "D02", Floor = 2, IsAvailable = true },
+                new DoubleRoom { Id = 8, RoomNumber = "D03", Floor = 2, IsAvailable = true },
+                new DoubleRoom { Id = 9, RoomNumber = "D04", Floor = 2, IsAvailable = true },
+                new DoubleRoom { Id = 10, RoomNumber = "D05", Floor = 2, IsAvailable = true }
+            );
+
+            // Seed Suite Rooms
+            modelBuilder.Entity<Suite>().HasData(
+                new Suite { Id = 11, RoomNumber = "SU01", Floor = 3, IsAvailable = true },
+                new Suite { Id = 12, RoomNumber = "SU02", Floor = 3, IsAvailable = true },
+                new Suite { Id = 13, RoomNumber = "SU03", Floor = 3, IsAvailable = true },
+                new Suite { Id = 14, RoomNumber = "SU04", Floor = 3, IsAvailable = true },
+                new Suite { Id = 15, RoomNumber = "SU05", Floor = 3, IsAvailable = true }
+            );
             modelBuilder.Entity<Customer>().HasData(
 
     new Customer

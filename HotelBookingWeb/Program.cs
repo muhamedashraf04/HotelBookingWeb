@@ -1,7 +1,10 @@
+using CloudinaryDotNet;
 using HotelBooking.DataAccess.Data;
 using HotelBooking.DataAccess.Repositories;
 using HotelBooking.DataAccess.Repositories.Interfaces;
+using HotelBookingWeb;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,15 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
         )
     )
 );
+
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddSingleton(provider =>
+{
+    var settings = provider.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+    var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
+    return new Cloudinary(account);
+});
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();

@@ -10,7 +10,6 @@ namespace HotelBooking.DataAccess.Repositories
         public IReservationRepository Reservations { get; set; }
         public ISingleRoomRepository SingleRooms { get; set; }
         public IDoubleRoomRepository DoubleRooms { get; set; }
-
         public ISuiteRepository Suites { get; set; }
 
 

@@ -1,16 +1,21 @@
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
+using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
 using Microsoft.AspNetCore.Mvc;
 
 [Area("Admin")]
-[Route("Admin/[controller]/[action]")]
+[Route("Admin/[controller]/[action]")] 
 public class CustomerController : Controller
 {
     private readonly ILogger<CustomerController> _logger;
     private IUnitOfWork _unitOfWork;
+    private Cloudinary _cloudinary;
 
-    public CustomerController(ILogger<CustomerController> logger, IUnitOfWork unitOfWork)
+    public CustomerController(ILogger<CustomerController> logger, IUnitOfWork unitOfWork, Cloudinary cloudinary)
     {
+        _cloudinary = cloudinary;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -20,22 +25,76 @@ public class CustomerController : Controller
     {
         return View();
     }
-
     [HttpPost]
-    public IActionResult Register([FromBody] Customer customer)
+    public IActionResult Register([FromForm] RegisterCustomerDTO registerCustomerDTO)
     {
-        if (ModelState.IsValid)
-        {
-            var today = DateOnly.FromDateTime(DateTime.Now);
-            customer.Age = today.Year - customer.BirthDate.Year; _unitOfWork.Customers.Create(customer);
-            _unitOfWork.Save();
-            return Ok("Customer Registered Successfully");
-        }
-        else
+        Customer? customer = registerCustomerDTO.customer;
+        IFormFile? IDFile = registerCustomerDTO.IdentificationFile;
+        IFormFile? MarriageCertificateFile = registerCustomerDTO.MarriageCertificate;
+
+        if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
+        string message = "Customer Registered Successfully";
+        
+        if (IDFile != null)
+        {
+            using var stream = IDFile.OpenReadStream();
+            var uploadResult = _cloudinary.Upload(new ImageUploadParams
+            {
+                File = new FileDescription(IDFile.FileName, stream),
+                Folder = "hotel_booking/customers"
+            });
+
+            if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                customer.IdentificationAttachment = uploadResult.SecureUrl.ToString();
+            }
+            else
+            {
+                message += " | Failed to upload ID file";
+            }
+        }
+        else
+        {
+            message += " | ID Missing";
+        }
+
+        if (customer.IsMarried)
+        {
+            if (MarriageCertificateFile != null)
+            {
+                using var stream = MarriageCertificateFile.OpenReadStream();
+                var uploadResult = _cloudinary.Upload(new ImageUploadParams
+                {
+                    File = new FileDescription(MarriageCertificateFile.FileName, stream),
+                    Folder = "hotel_booking/customers/marriage_certificates"
+                });
+
+                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    customer.MarriageCertificateAttachment = uploadResult.SecureUrl.ToString();
+                }
+                else
+                {
+                    message += " | Failed to upload Marriage Certificate";
+                }
+            }
+            else
+            {
+                message += " | Marriage Certificate Missing";
+            }
+        }
+
+        customer.Age = DateOnly.FromDateTime(DateTime.Now).Year - customer.BirthDate.Year;
+        _unitOfWork.Customers.Create(customer);
+        _unitOfWork.Save();
+
+        return Ok(message);
     }
+
 
     [HttpGet]
     public IActionResult GetCustomers()
