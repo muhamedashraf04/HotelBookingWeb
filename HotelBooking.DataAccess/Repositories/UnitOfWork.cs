@@ -21,6 +21,9 @@ namespace HotelBooking.DataAccess.Repositories
             _DBContext = dBContext;
             Reservations = new ReservationRepository(_DBContext);
             Customers = new CustomerRepository(_DBContext);
+            SingleRooms= new SingleRoomRepository(_DBContext);
+            DoubleRooms = new DoubleRoomRepository(_DBContext);
+            Suites = new SuiteRepository(_DBContext);
         }
         public void Save()
         {
