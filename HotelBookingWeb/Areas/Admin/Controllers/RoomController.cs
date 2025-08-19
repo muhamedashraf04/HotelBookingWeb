@@ -68,7 +68,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                 if (RoomType == "Suite")
                 {
                     _unitOfWork.Suites.Create(new Suite
-                    {
+        {
                         RoomNumber = room.RoomNumber,
                         Floor = room.Floor,
                         Capacity = room.Capacity,
@@ -80,7 +80,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                 }
                 
             }
-            
+
             return View(room);
         }
     }
