@@ -13,22 +13,28 @@ public class Customer
 
     [Phone]
     public string PhoneNumber { get; set; }
-    [ValidateNever]
+    
     public string Address { get; set; }
-
+    [Required]
     public string Nationality { get; set; }
 
+    [Required]
     public string IdentificationType { get; set; }
 
+    [Required]
     public string IdentificationNumber { get; set; }
 
     public string IdentificationAttachment { get; set; }
 
+    [Required]
     public DateOnly BirthDate { get; set; }
+
+    public int Age { get; set; }
 
     [EmailAddress]
     public string Email { get; set; }
 
+    [Required]
     public bool IsMarried { get; set; }
 
     public string? MarriageCertificateNumber { get; set; }
