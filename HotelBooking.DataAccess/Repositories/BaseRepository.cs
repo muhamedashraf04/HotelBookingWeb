@@ -27,9 +27,15 @@ namespace HotelBooking.DataAccess.Repos
             }
             return query.FirstOrDefault();
         }
-        public IEnumerable<T> GetAll(string? IncludeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? IncludeProperties = null)
         {
             IQueryable<T> query = dbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
             if (!string.IsNullOrEmpty(IncludeProperties))
             {
                 foreach (var property in IncludeProperties.

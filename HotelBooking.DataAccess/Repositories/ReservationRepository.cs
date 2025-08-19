@@ -4,7 +4,7 @@ using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.Models;
 namespace HotelBooking.DataAccess.Repositories
 {
-    public class ReservationRepository : BaseRepository<Customer>, IReservationRepository
+    public class ReservationRepository : BaseRepository<Reservation>, IReservationRepository
     {
         ApplicationDBContext _dbContext;
         public ReservationRepository(ApplicationDBContext dBContext) : base(dBContext)
