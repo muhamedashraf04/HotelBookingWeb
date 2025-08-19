@@ -21,7 +21,7 @@ namespace HotelBooking.DataAccess.Data
 
     new Customer
     {
-        Id = "1",
+        Id = 1,
         Name = "John El Ahmady",
         PhoneNumber = "01022289755",
         Address = "Cairo, Egypt",
@@ -38,7 +38,7 @@ namespace HotelBooking.DataAccess.Data
     },
     new Customer
     {
-        Id = "2",
+        Id = 2,
         Name = "Sara Mahmoud",
         PhoneNumber = "01144556677",
         Address = "Giza, Egypt",
@@ -55,7 +55,7 @@ namespace HotelBooking.DataAccess.Data
     },
     new Customer
     {
-        Id = "3",
+        Id = 3,
         Name = "Michael Smith",
         PhoneNumber = "+1-202-555-0188",
         Address = "New York, USA",
@@ -69,7 +69,7 @@ namespace HotelBooking.DataAccess.Data
     },
     new Customer
     {
-        Id = "4",
+        Id = 4,
         Name = "Fatima Ali",
         PhoneNumber = "01234567890",
         Address = "Alexandria, Egypt",
@@ -83,7 +83,7 @@ namespace HotelBooking.DataAccess.Data
     },
     new Customer
     {
-        Id = "5",
+        Id = 5,
         Name = "David Johnson",
         PhoneNumber = "+44-7700-900123",
         Address = "London, UK",

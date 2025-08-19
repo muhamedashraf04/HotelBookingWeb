@@ -7,7 +7,8 @@ public class Reservation
 {
     // Primary Key
     [Key]
-    public string Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
     // Foreign Keys
     [Required(ErrorMessage = "Customer ID is required.")]
