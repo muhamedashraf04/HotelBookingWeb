@@ -1,6 +1,6 @@
 ﻿using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.RoomModels;
-using HotelBookingWeb.Areas.Guest.Controllers;
+using HotelBookingWeb.Areas.Receptionist.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
