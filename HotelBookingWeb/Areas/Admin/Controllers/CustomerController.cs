@@ -3,7 +3,7 @@ using HotelBooking.Models.Models;
 using Microsoft.AspNetCore.Mvc;
 
 [Area("Admin")]
-[Route("Admin/[controller]/[action]")]
+[Route("Admin/[controller]/[action]")] 
 public class CustomerController : Controller
 {
     private readonly ILogger<CustomerController> _logger;
