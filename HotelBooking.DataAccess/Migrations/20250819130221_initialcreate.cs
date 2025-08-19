@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBooking.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial_Create : Migration
+    public partial class initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -61,8 +61,8 @@ namespace HotelBooking.DataAccess.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RoomId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    RoomId = table.Column<int>(type: "int", nullable: false),
                     RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: false),

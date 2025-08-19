@@ -4,6 +4,7 @@ using HotelBooking.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250819130221_initialcreate")]
+    partial class initialcreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,48 +235,6 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DoubleRooms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 6,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D01"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D02"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D03"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D04"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D05"
-                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.RoomModels.SingleRoom", b =>
@@ -300,48 +261,6 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SingleRooms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Capacity = 1,
-                            Floor = 1,
-                            IsAvailable = true,
-                            RoomNumber = "S01"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Capacity = 1,
-                            Floor = 1,
-                            IsAvailable = true,
-                            RoomNumber = "S02"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Capacity = 1,
-                            Floor = 1,
-                            IsAvailable = true,
-                            RoomNumber = "S03"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Capacity = 1,
-                            Floor = 1,
-                            IsAvailable = true,
-                            RoomNumber = "S04"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Capacity = 1,
-                            Floor = 1,
-                            IsAvailable = true,
-                            RoomNumber = "S05"
-                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.RoomModels.Suite", b =>
@@ -368,48 +287,6 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Suites");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 11,
-                            Capacity = 3,
-                            Floor = 3,
-                            IsAvailable = true,
-                            RoomNumber = "SU01"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Capacity = 3,
-                            Floor = 3,
-                            IsAvailable = true,
-                            RoomNumber = "SU02"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            Capacity = 3,
-                            Floor = 3,
-                            IsAvailable = true,
-                            RoomNumber = "SU03"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            Capacity = 3,
-                            Floor = 3,
-                            IsAvailable = true,
-                            RoomNumber = "SU04"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            Capacity = 3,
-                            Floor = 3,
-                            IsAvailable = true,
-                            RoomNumber = "SU05"
-                        });
                 });
 #pragma warning restore 612, 618
         }
