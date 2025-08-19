@@ -34,6 +34,8 @@ builder.Services.AddScoped<ISuiteRepository,SuiteRepository>();
 
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

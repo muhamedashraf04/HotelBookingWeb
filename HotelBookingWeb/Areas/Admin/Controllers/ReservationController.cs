@@ -47,7 +47,7 @@ namespace HotelManagment.Controllers
             {
                 var availableRooms = _UOF.Suites.GetAll(r => !notAv.Contains(r.Id));
                 return Ok(availableRooms);
-            }
+        }
 
             return Ok("Omda");
         }
@@ -63,7 +63,7 @@ namespace HotelManagment.Controllers
             if (reservation == null)
             {
                 return NotFound("No reservation found for this date.");
-            }   
+            }
             return Ok(reservation);
         }
     }
