@@ -1,5 +1,7 @@
 ﻿using HotelBooking.DataAccess;
 using HotelBooking.DataAccess.Data;
+using HotelBooking.DataAccess.Repositories.Interfaces;
+using HotelBooking.Models.DTO;
 using HotelBooking.Models.Models;
 using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
@@ -8,39 +10,44 @@ namespace HotelManagment.Controllers
 {
     public class ReservationController : Controller
     {
-        private readonly ApplicationDBContext _db;
-        public ReservationController(ApplicationDBContext db)
+        private readonly IUnitOfWork _UOF;
+        public ReservationController(IUnitOfWork UOF)
         {
-            _db = db;
+            _UOF = UOF;
         }
         public IActionResult Index()
         {
             return View();
         }
         [HttpGet]
-        public IActionResult Search(DateTime? CheckIn, DateTime? CheckOut, string RoomType)
+        public IActionResult Search(ReservationSearchDTO rsd )
         {
-            if( String.IsNullOrEmpty(RoomType) || !CheckIn.HasValue || !CheckOut.HasValue)
+            if (String.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckIn.HasValue || !rsd.CheckOut.HasValue)
             {
                 return NotFound("Invalid search parameters. Please provide valid CheckIn, CheckOut dates and RoomType.");
             }
 
-            ICollection<Room> unAvailableRooms;
-
-            var from = CheckIn.Value;
-            var to = CheckOut.Value;
-
-            foreach (var reservation in _db.Reservations)
+            if (rsd.CheckIn >= rsd.CheckOut)
             {
-                if (CheckOut <= reservation.CheckInDate || CheckIn >= reservation.CheckOutDate) // " = hanshofha "
+                return NotFound("Check-in date must be before Check-out date.");
+            }
+            List<int> notAv = _UOF.Reservations.GetAll(r => !(rsd.CheckOut <= r.CheckInDate || rsd.CheckIn >= r.CheckOutDate)).Select(r => r.RoomId).ToList();
+
+            if (rsd.RoomType == "Sinlge")
+            {
+                var availableRooms = _UOF.SingleRooms.GetAll(r => ! notAv.Contains(r.Id));
+                return View(availableRooms);
+
+            }
+            else if (rsd.RoomType == "Double")
                 {
-                var availableRooms = _db.DoubleRooms.Where(r => !notAv.Contains(r.Id)).ToList();
+                var availableRooms = _UOF.DoubleRooms.GetAll(r => !notAv.Contains(r.Id));
                 return View(availableRooms);
                     
                 }
-            else if (RoomType == "Suite")
+            else if (rsd.RoomType == "Suite")
             {
-                var availableRooms = _db.Suites.Where(r => !notAv.Contains(r.Id)).ToList();
+                var availableRooms = _UOF.Suites.GetAll(r => !notAv.Contains(r.Id));
                 return View(availableRooms);
             }
 
