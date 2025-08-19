@@ -25,50 +25,76 @@ public class CustomerController : Controller
     {
         return View();
     }
-
     [HttpPost]
     public IActionResult Register([FromForm] RegisterCustomerDTO registerCustomerDTO)
     {
         Customer? customer = registerCustomerDTO.customer;
         IFormFile? IDFile = registerCustomerDTO.IdentificationFile;
-        
+        IFormFile? MarriageCertificateFile = registerCustomerDTO.MarriageCertificate;
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
-
         }
+
+        string message = "Customer Registered Successfully";
+        
         if (IDFile != null)
         {
             using var stream = IDFile.OpenReadStream();
-            var uploadParams = new ImageUploadParams()
+            var uploadResult = _cloudinary.Upload(new ImageUploadParams
             {
                 File = new FileDescription(IDFile.FileName, stream),
                 Folder = "hotel_booking/customers"
-            };
-
-            var uploadResult = _cloudinary.Upload(uploadParams);
+            });
 
             if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                var url = uploadResult.SecureUrl.ToString();
-                customer.IdentificationAttachment = url;
-                var today = DateOnly.FromDateTime(DateTime.Now);
-                customer.Age = today.Year - customer.BirthDate.Year; _unitOfWork.Customers.Create(customer);
-                _unitOfWork.Save();
-                return Ok("Customer Registered Successfully");
-
+                customer.IdentificationAttachment = uploadResult.SecureUrl.ToString();
             }
             else
             {
-                if (uploadResult.Error != null)
-                    return BadRequest($"Upload failed: {uploadResult.Error.Message}");
-                return BadRequest("Failed To Upload Image");
+                message += " | Failed to upload ID file";
             }
-
         }
-        return Ok("Customer Registered Successfully Without ID Attachment");
+        else
+        {
+            message += " | ID Missing";
+        }
 
+        if (customer.IsMarried)
+        {
+            if (MarriageCertificateFile != null)
+            {
+                using var stream = MarriageCertificateFile.OpenReadStream();
+                var uploadResult = _cloudinary.Upload(new ImageUploadParams
+                {
+                    File = new FileDescription(MarriageCertificateFile.FileName, stream),
+                    Folder = "hotel_booking/customers/marriage_certificates"
+                });
+
+                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    customer.MarriageCertificateAttachment = uploadResult.SecureUrl.ToString();
+                }
+                else
+                {
+                    message += " | Failed to upload Marriage Certificate";
+                }
+            }
+            else
+            {
+                message += " | Marriage Certificate Missing";
+            }
+        }
+
+        customer.Age = DateOnly.FromDateTime(DateTime.Now).Year - customer.BirthDate.Year;
+        _unitOfWork.Customers.Create(customer);
+        _unitOfWork.Save();
+
+        return Ok(message);
     }
+
 
     [HttpGet]
     public IActionResult GetCustomers()
