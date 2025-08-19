@@ -38,11 +38,11 @@ namespace HotelManagment.Controllers
 
             }
             else if (RoomType == "Double")
-            {
+                {
                 var availableRooms = _db.DoubleRooms.Where(r => !notAv.Contains(r.Id)).ToList();
                 return View(availableRooms);
-
-            }
+                    
+                }
             else if (RoomType == "Suite")
             {
                 var availableRooms = _db.Suites.Where(r => !notAv.Contains(r.Id)).ToList();
