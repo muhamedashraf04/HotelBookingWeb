@@ -1,9 +1,7 @@
 using HotelBooking.DataAccess.Data;
-using HotelBooking.DataAccess.Repos;
-using HotelBooking.Models.Models;
-using Microsoft.EntityFrameworkCore;
-using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.DataAccess.Repositories;
+using HotelBooking.DataAccess.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,9 +11,9 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,                
+            maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null          
+            errorNumbersToAdd: null
         )
     )
 );
@@ -25,7 +23,7 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<ISingleRoomRepository, SingleRoomRepository>();
 builder.Services.AddScoped<IDoubleRoomRepository, DoubleRoomRepository>();
-builder.Services.AddScoped<ISuiteRepository,SuiteRepository>();
+builder.Services.AddScoped<ISuiteRepository, SuiteRepository>();
 
 
 
@@ -49,7 +47,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{area=Guest}/{controller=Home}/{action=Index}/{id?}")
+    pattern: "{area=Receptionist}/{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 

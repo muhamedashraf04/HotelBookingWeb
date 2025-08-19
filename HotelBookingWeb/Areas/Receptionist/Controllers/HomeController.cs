@@ -4,9 +4,9 @@ using HotelBooking.Models.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace HotelBookingWeb.Areas.Guest.Controllers
+namespace HotelBookingWeb.Areas.Receptionist.Controllers
 {
-    [Area("Guest")]
+    [Area("Receptionist")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

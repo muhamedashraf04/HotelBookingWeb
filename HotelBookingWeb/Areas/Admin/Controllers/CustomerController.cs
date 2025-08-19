@@ -26,7 +26,8 @@ public class CustomerController : Controller
     {
         if (ModelState.IsValid)
         {
-            _unitOfWork.Customers.Create(customer);
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            customer.Age = today.Year - customer.BirthDate.Year; _unitOfWork.Customers.Create(customer);
             _unitOfWork.Save();
             return Ok("Customer Registered Successfully");
         }
