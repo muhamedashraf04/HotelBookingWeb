@@ -104,6 +104,21 @@ public class ReservationController : Controller
 
         return Ok("Omda");
     }
+    [HttpGet]
+    public IActionResult SearchByName([FromBody] GuestName Name)
+    {
+        if(string.IsNullOrEmpty(Name.Name))
+        {
+            return NotFound("Invalid search parameters. Please provide a valid name.");
+        }
+        var Customer_with_this_name = _unitOfWork.Customers.GetAll(r=>r.Name == Name.Name).Select(r=>r.Id);
+        var IsAvailable = _unitOfWork.Reservations.GetAll(r => Customer_with_this_name.Contains(r.CustomerId));
+        if (IsAvailable == null || !IsAvailable.Any())
+        {
+            return NotFound("No customer found with this name.");
+        }
+        return Ok(IsAvailable);
+    }
     [HttpPost]
     public IActionResult Create([FromBody] Reservation reservation)
     {
