@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBooking.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class initialcreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,7 +25,7 @@ namespace HotelBooking.DataAccess.Migrations
                     Nationality = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IdentificationType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IdentificationNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IdentificationAttachment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdentificationAttachment = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BirthDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Age = table.Column<int>(type: "int", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -48,6 +48,7 @@ namespace HotelBooking.DataAccess.Migrations
                     RoomNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Floor = table.Column<int>(type: "int", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
+                    RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -84,6 +85,7 @@ namespace HotelBooking.DataAccess.Migrations
                     RoomNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Floor = table.Column<int>(type: "int", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
+                    RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -100,6 +102,7 @@ namespace HotelBooking.DataAccess.Migrations
                     RoomNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Floor = table.Column<int>(type: "int", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
+                    RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -117,6 +120,42 @@ namespace HotelBooking.DataAccess.Migrations
                     { 3, "New York, USA", 0, new DateOnly(1990, 11, 4), "m.smith@example.com", "passport3.png", "X98765432", "Passport", false, null, null, null, "Michael Smith", "American", "+1-202-555-0188" },
                     { 4, "Alexandria, Egypt", 0, new DateOnly(1998, 1, 1), "fatima.ali@example.com", "id4.png", "29801011234567", "National ID", false, null, null, null, "Fatima Ali", "Egyptian", "01234567890" },
                     { 5, "London, UK", 0, new DateOnly(1988, 5, 30), "david.johnson@example.co.uk", "dl5.pdf", "DLUK998877", "Driver License", true, "mc5.pdf", "UKMC554433", null, "David Johnson", "British", "+44-7700-900123" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "DoubleRooms",
+                columns: new[] { "Id", "Capacity", "Floor", "IsAvailable", "RoomNumber", "RoomType" },
+                values: new object[,]
+                {
+                    { 6, 2, 2, true, "D01", "Double" },
+                    { 7, 2, 2, true, "D02", "Double" },
+                    { 8, 2, 2, true, "D03", "Double" },
+                    { 9, 2, 2, true, "D04", "Double" },
+                    { 10, 2, 2, true, "D05", "Double" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "SingleRooms",
+                columns: new[] { "Id", "Capacity", "Floor", "IsAvailable", "RoomNumber", "RoomType" },
+                values: new object[,]
+                {
+                    { 1, 1, 1, true, "S01", "Single" },
+                    { 2, 1, 1, true, "S02", "Single" },
+                    { 3, 1, 1, true, "S03", "Single" },
+                    { 4, 1, 1, true, "S04", "Single" },
+                    { 5, 1, 1, true, "S05", "Single" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Suites",
+                columns: new[] { "Id", "Capacity", "Floor", "IsAvailable", "RoomNumber", "RoomType" },
+                values: new object[,]
+                {
+                    { 11, 3, 3, true, "SU01", "Suite" },
+                    { 12, 3, 3, true, "SU02", "Suite" },
+                    { 13, 3, 3, true, "SU03", "Suite" },
+                    { 14, 3, 3, true, "SU04", "Suite" },
+                    { 15, 3, 3, true, "SU05", "Suite" }
                 });
         }
 

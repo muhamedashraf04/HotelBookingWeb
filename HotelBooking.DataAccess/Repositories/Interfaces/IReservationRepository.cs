@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace HotelBooking.DataAccess.Repositories.Interfaces
 {
-    public interface IReservationRepository : IBaseRepository<Customer>
+    public interface IReservationRepository : IBaseRepository<Reservation>
     {
     }
 }
