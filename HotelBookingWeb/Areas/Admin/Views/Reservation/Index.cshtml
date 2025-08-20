@@ -1,0 +1,24 @@
+﻿<h1>Pick the Date</h1>
+<div class="container mt-3">
+    <form class="row g-2 justify-content-center mt-3" method="get" asp-controller="Reservation" asp-action="Search">
+        <div class="col-auto">
+            <label for="CheckIn" class="form-label">From</label>
+            <input type="date" id="CheckIn" name="CheckIn" class="form-control" />
+        </div>
+        <div class="col-auto">
+            <label for="CheckOut" class="form-label">To</label>
+            <input type="date" id="CheckOut" name="CheckOut" class="form-control" />
+        </div>
+        <div class="col-auto">
+            <label for="RoomType" class="form-label">Room Type</label>
+            <select id="RoomType" name="RoomType" class="form-select">
+                <option value="Single">Single</option>
+                <option value="Double">Double</option>
+                <option value="Suite">Suite</option>
+            </select>
+        </div>
+        <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+</div>

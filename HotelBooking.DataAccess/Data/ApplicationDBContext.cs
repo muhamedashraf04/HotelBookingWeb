@@ -12,9 +12,10 @@ namespace HotelBooking.DataAccess.Data
         }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<DoubleRoom> DoubleRooms { get; set; }
         public DbSet<SingleRoom> SingleRooms { get; set; }
+        public DbSet<DoubleRoom> DoubleRooms { get; set; }
         public DbSet<Suite> Suites { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SingleRoom>().HasData(

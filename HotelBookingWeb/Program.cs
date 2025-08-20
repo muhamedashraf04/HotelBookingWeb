@@ -6,6 +6,7 @@ using HotelBookingWeb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -39,6 +40,10 @@ builder.Services.AddScoped<ISuiteRepository, SuiteRepository>();
 
 
 
+
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
