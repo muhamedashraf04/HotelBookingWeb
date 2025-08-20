@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelBooking.Models.DTO
+namespace HotelBooking.Models.DTOs
 {
     public class GetByDateDTO
     {
