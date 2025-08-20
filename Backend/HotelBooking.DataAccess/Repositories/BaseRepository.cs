@@ -71,7 +71,6 @@ namespace HotelBooking.DataAccess.Repos
                 throw new ArgumentNullException(nameof(obj), "Object cannot be null");
             }
             _dbContext.Update(obj);
-            _dbContext.SaveChanges();
         }
     }
 }
