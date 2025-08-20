@@ -13,7 +13,7 @@ public class Reservation
     // Foreign Keys
     [Required(ErrorMessage = "Customer ID is required.")]
     [ForeignKey("Customer")]
-    public string CustomerId { get; set; }
+    public int CustomerId { get; set; }
 
     [ForeignKey("Room")]
     public int RoomId { get; set; }

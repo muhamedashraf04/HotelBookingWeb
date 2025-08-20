@@ -9,5 +9,6 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
         public void Create(T obj);
 
         public bool Remove(int id);
+        public void Edit(T Obj);
     }
 }
