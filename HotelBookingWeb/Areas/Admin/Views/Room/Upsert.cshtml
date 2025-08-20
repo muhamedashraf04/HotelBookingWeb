@@ -1,5 +1,6 @@
 ﻿@using HotelBooking.Models.RoomModels
 @model Room
+
 <div class="row">
     <div class="col-md-6 offset-md-3">
         <div class="card shadow-sm border-0 mt-4">
@@ -7,6 +8,8 @@
                 <h2 class="text-center mb-4">Create Room</h2>
                 
                 <form method="post" asp-action="Upsert">
+                    @* <input asp-for="Id" hidden/>
+                    <input asp-for="Capacity" hidden/> *@
                     <div class=" form-group mb-3">
                         <label asp-for="RoomNumber" class="form-label"></label>
                         <input asp-for="RoomNumber" class="form-control"/>

@@ -31,9 +31,33 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             combined.AddRange(Suites);
             return View(combined);
         }
-        public IActionResult Upsert(int? id, string RoomType)
+        public IActionResult Upsert(int? id, int Capacity)
         {
-            return View();
+            Room room = null;
+            if (id == null || id == 0)
+            { 
+                return View (room);
+            }
+            else
+            {
+                if(Capacity==1)
+                {
+                    room=_unitOfWork.SingleRooms.Get(u=>u.Id==id);
+                    return View(room);
+                }
+                if (Capacity == 2)
+                {
+                    room = _unitOfWork.DoubleRooms.Get(u => u.Id == id);
+                    return View(room);
+                }
+                if (Capacity >= 3)
+                {
+                    room = _unitOfWork.Suites.Get(u => u.Id == id);
+                    return View(room);
+                }
+
+            }
+            return View(room);
         }
         [HttpPost]
         public IActionResult Upsert(Room room,string RoomType)
