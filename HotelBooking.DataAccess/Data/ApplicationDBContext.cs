@@ -18,6 +18,80 @@ namespace HotelBooking.DataAccess.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Reservation>().HasData(
+                new Reservation
+                {
+                    Id = 6,
+                    CustomerId = 1,
+                    RoomId = 1,
+                    RoomType = "Single",
+                    CheckInDate = new DateTime(2025, 8, 5),
+                    CheckOutDate = new DateTime(2025, 8, 10),
+                    NumberOfAdults = 2,
+                    NumberOfChildren = 1,
+                    NumberOfExtraBeds = 0
+                },
+                new Reservation
+                {
+                    Id = 7,
+                    CustomerId = 1,
+                    RoomId = 1,
+                    RoomType = "Single",
+                    CheckInDate = new DateTime(2025, 8, 6),
+                    CheckOutDate = new DateTime(2025, 8, 10),
+                    NumberOfAdults = 2,
+                    NumberOfChildren = 1,
+                    NumberOfExtraBeds = 0
+                },
+    new Reservation
+    {
+        Id = 1,
+        CustomerId = 1,
+        RoomId = 1,
+        RoomType = "Single",
+        CheckInDate = new DateTime(2025, 8, 25),
+        CheckOutDate = new DateTime(2025, 8, 28),
+        NumberOfAdults = 2,
+        NumberOfChildren = 1,
+        NumberOfExtraBeds = 0
+    },
+    new Reservation
+    {
+        Id = 2,
+        CustomerId = 2,
+        RoomId = 2,
+        RoomType = "Double",
+        CheckInDate = new DateTime(2025, 9, 1),
+        CheckOutDate = new DateTime(2025, 9, 5),
+        NumberOfAdults = 2,
+        NumberOfChildren = 0,
+        NumberOfExtraBeds = 1
+    },
+    new Reservation
+    {
+        Id = 3,
+        CustomerId = 3,
+        RoomId = 3,
+        RoomType = "Suite",
+        CheckInDate = new DateTime(2025, 9, 10),
+        CheckOutDate = new DateTime(2025, 9, 15),
+        NumberOfAdults = 4,
+        NumberOfChildren = 2,
+        NumberOfExtraBeds = 1
+    },
+    new Reservation
+    {
+        Id = 4,
+        RoomId = 4,
+        RoomType = "Single",
+        CheckInDate = new DateTime(2025, 10, 1),
+        CheckOutDate = new DateTime(2025, 10, 3),
+        NumberOfAdults = 1,
+        NumberOfChildren = 0,
+        NumberOfExtraBeds = 0
+    }
+);
+
             modelBuilder.Entity<SingleRoom>().HasData(
            new SingleRoom { Id = 1, RoomNumber = "S01", Floor = 1, IsAvailable = true },
            new SingleRoom { Id = 2, RoomNumber = "S02", Floor = 1, IsAvailable = true },

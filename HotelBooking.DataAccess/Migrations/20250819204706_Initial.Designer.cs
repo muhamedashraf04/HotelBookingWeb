@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250819130221_initialcreate")]
-    partial class initialcreate
+    [Migration("20250819204706_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,7 +48,6 @@ namespace HotelBooking.DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IdentificationAttachment")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IdentificationNumber")
@@ -232,9 +231,60 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("DoubleRooms");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 6,
+                            Capacity = 2,
+                            Floor = 2,
+                            IsAvailable = true,
+                            RoomNumber = "D01",
+                            RoomType = "Double"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Capacity = 2,
+                            Floor = 2,
+                            IsAvailable = true,
+                            RoomNumber = "D02",
+                            RoomType = "Double"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Capacity = 2,
+                            Floor = 2,
+                            IsAvailable = true,
+                            RoomNumber = "D03",
+                            RoomType = "Double"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Capacity = 2,
+                            Floor = 2,
+                            IsAvailable = true,
+                            RoomNumber = "D04",
+                            RoomType = "Double"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Capacity = 2,
+                            Floor = 2,
+                            IsAvailable = true,
+                            RoomNumber = "D05",
+                            RoomType = "Double"
+                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.RoomModels.SingleRoom", b =>
@@ -258,9 +308,60 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("SingleRooms");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Capacity = 1,
+                            Floor = 1,
+                            IsAvailable = true,
+                            RoomNumber = "S01",
+                            RoomType = "Single"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Capacity = 1,
+                            Floor = 1,
+                            IsAvailable = true,
+                            RoomNumber = "S02",
+                            RoomType = "Single"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Capacity = 1,
+                            Floor = 1,
+                            IsAvailable = true,
+                            RoomNumber = "S03",
+                            RoomType = "Single"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Capacity = 1,
+                            Floor = 1,
+                            IsAvailable = true,
+                            RoomNumber = "S04",
+                            RoomType = "Single"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Capacity = 1,
+                            Floor = 1,
+                            IsAvailable = true,
+                            RoomNumber = "S05",
+                            RoomType = "Single"
+                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.RoomModels.Suite", b =>
@@ -284,9 +385,60 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Suites");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 11,
+                            Capacity = 3,
+                            Floor = 3,
+                            IsAvailable = true,
+                            RoomNumber = "SU01",
+                            RoomType = "Suite"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Capacity = 3,
+                            Floor = 3,
+                            IsAvailable = true,
+                            RoomNumber = "SU02",
+                            RoomType = "Suite"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Capacity = 3,
+                            Floor = 3,
+                            IsAvailable = true,
+                            RoomNumber = "SU03",
+                            RoomType = "Suite"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Capacity = 3,
+                            Floor = 3,
+                            IsAvailable = true,
+                            RoomNumber = "SU04",
+                            RoomType = "Suite"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Capacity = 3,
+                            Floor = 3,
+                            IsAvailable = true,
+                            RoomNumber = "SU05",
+                            RoomType = "Suite"
+                        });
                 });
 #pragma warning restore 612, 618
         }

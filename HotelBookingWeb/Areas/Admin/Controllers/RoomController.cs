@@ -83,5 +83,39 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
             return View(room);
         }
+        public IActionResult GetAll()
+        {
+            var rooms = new List<Room>();
+            rooms.AddRange(_unitOfWork.SingleRooms.GetAll());
+            rooms.AddRange(_unitOfWork.DoubleRooms.GetAll());
+            rooms.AddRange(_unitOfWork.Suites.GetAll());
+
+            return Ok(rooms.ToList());
+        }
+        [HttpDelete]
+        public IActionResult Remove(int? Id, string RoomType)
+        {
+            if ( Id == null)
+            {
+                return BadRequest();
+            }else
+            {
+                if (RoomType == "Single")
+                {
+                    _unitOfWork.SingleRooms.Remove(Id.Value);
+                }
+                if (RoomType == "Double")
+                {
+                    _unitOfWork.DoubleRooms.Remove(Id.Value);
+                }
+                if (RoomType == "Suite")
+                {
+                    _unitOfWork.Suites.Remove(Id.Value);
+                }
+                _unitOfWork.Save();
+                return Ok();
+            }
+
+        }
     }
 }
