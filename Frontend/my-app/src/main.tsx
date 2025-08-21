@@ -5,7 +5,7 @@ import App from "./App.tsx";
 import Create from "./Customer/Create.tsx"; // Import your Create component
 import "./index.css";
 import Getall from "./Rooms/Getall.tsx";
-import Remove from "./Rooms/Remove.tsx";
+import Remove from "./Rooms/RemoveAndEdit.tsx";
 import Available from "./Rooms/Available.tsx";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/App" element={<App />} />
         <Route path="/Customer/Create" element={<Create />} />
         <Route path="/Rooms/Get-All" element={<Getall />} />
-        <Route path="/Rooms/Remove" element={<Remove />} />
+        <Route path="/Rooms/Edit" element={<Remove />} />
         <Route path="/Rooms/Available" element={<Available />} />
 
         {/* Add other routes here */}

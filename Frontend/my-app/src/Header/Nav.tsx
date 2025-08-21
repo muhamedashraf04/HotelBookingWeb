@@ -30,14 +30,14 @@ const Nav = () => {
               <div className="text-xl font-bold">Rooms</div>
             </NavigationMenuTrigger>
             <NavigationMenuContent>
+              <NavigationMenuLink href="/rooms/get-all">
+                All Room
+              </NavigationMenuLink>
               <NavigationMenuLink href="/rooms/create">
                 Create
               </NavigationMenuLink>
-              <NavigationMenuLink href="/rooms/remove">
-                Remove
-              </NavigationMenuLink>
-              <NavigationMenuLink href="/rooms/get-all">
-                GetAll
+              <NavigationMenuLink href="/rooms/Edit">
+                Edit
               </NavigationMenuLink>
             </NavigationMenuContent>
           </NavigationMenuItem>
