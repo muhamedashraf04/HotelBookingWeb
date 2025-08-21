@@ -1,8 +1,6 @@
 ﻿using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.RoomModels;
-using HotelBookingWeb.Areas.Receptionist.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers
 {
@@ -31,57 +29,82 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             combined.AddRange(Suites);
             return View(combined);
         }
-        public IActionResult Upsert(int? id, string RoomType)
-        {
-            return View();
-        }
         [HttpPost]
-        public IActionResult Upsert(Room room,string RoomType)
-        {
+        public IActionResult Upsert([FromBody] Room room)
+        {   
+            
+            string RoomType = room.RoomType;
             if (ModelState.IsValid)
             {
                 if (RoomType == "Single")
                 {
-                    _unitOfWork.SingleRooms.Create(new SingleRoom{
-                        RoomNumber = room.RoomNumber,
-                        Floor = room.Floor,
-                        Capacity = room.Capacity,
-                        IsAvailable = room.IsAvailable
+                    SingleRoom singleRoom = null;
+
+                    if (room.Id == 0 || (singleRoom = _unitOfWork.SingleRooms.Get(u => u.Id == room.Id)) == null)
+                    {
+                        // New Room
+                        singleRoom = new SingleRoom{
+                            Floor = room.Floor,
+                            RoomNumber = room.RoomNumber,
+                            Capacity = room.Capacity,
+                            IsAvailable = room.IsAvailable,
+                            RoomType = room.RoomType
+                        };
+                        _unitOfWork.SingleRooms.Create(singleRoom);
+                        _unitOfWork.Save();
+                        return Ok();
                     }
-                    );
+
+                    // Common property mapping
+                    singleRoom.IsAvailable = room.IsAvailable;
+                    singleRoom.Capacity = room.Capacity;
+                    singleRoom.Floor = room.Floor;
+                    singleRoom.RoomNumber = room.RoomNumber;
+                    singleRoom.RoomType = room.RoomType;
+
+                    // If editing, EF is already tracking it since we fetched it
+                    _unitOfWork.SingleRooms.Edit(singleRoom);
+
                     _unitOfWork.Save();
-                    return RedirectToAction("Index");
+                    return Ok();
                 }
+
                 if (RoomType == "Double")
                 {
-                    _unitOfWork.DoubleRooms.Create(new DoubleRoom
+                    DoubleRoom doubleRoom = new DoubleRoom
+
                     {
-                        RoomNumber = room.RoomNumber,
-                        Floor = room.Floor,
+                        IsAvailable = room.IsAvailable,
                         Capacity = room.Capacity,
-                        IsAvailable = room.IsAvailable
-                    }
-                    );
+                        Floor = room.Floor,
+                        Id = room.Id,
+                        RoomNumber = room.RoomNumber,
+                        RoomType = room.RoomType,
+                    };
+                    _unitOfWork.DoubleRooms.Edit(doubleRoom);
                     _unitOfWork.Save();
-                    return RedirectToAction("Index");
+                    return Ok();
                 }
                 if (RoomType == "Suite")
                 {
-                    _unitOfWork.Suites.Create(new Suite
-        {
-                        RoomNumber = room.RoomNumber,
-                        Floor = room.Floor,
+                    Suite suite = new Suite
+
+                    {
+                        IsAvailable = room.IsAvailable,
                         Capacity = room.Capacity,
-                        IsAvailable = room.IsAvailable
-                    }
-                    );
+                        Floor = room.Floor,
+                        Id = room.Id,
+                        RoomNumber = room.RoomNumber,
+                        RoomType = room.RoomType,
+                    };
+                    _unitOfWork.Suites.Edit(suite); 
                     _unitOfWork.Save();
-                    return RedirectToAction("Index");
+                    return Ok();
                 }
-                
+
             }
 
-            return View(room);
+            return BadRequest();
         }
         public IActionResult GetAll()
         {
@@ -95,10 +118,11 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
         [HttpDelete]
         public IActionResult Remove(int? Id, string RoomType)
         {
-            if ( Id == null)
+            if (Id == null)
             {
                 return BadRequest();
-            }else
+            }
+            else
             {
                 if (RoomType == "Single")
                 {
