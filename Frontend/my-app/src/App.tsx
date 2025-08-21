@@ -1,15 +1,4 @@
 "use client";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -26,6 +15,7 @@ import Header from "@/Header/Header";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import { ThemeProvider } from "./components/ui/theme-provider";
+import Popup from "./DeletePopup";
 
 type Reservation = {
   id: number;
@@ -39,12 +29,28 @@ type Reservation = {
   numberOfExtraBeds: number;
 };
 
+type Data = {
+  id: number;
+  message: string;
+  Area: string;
+  Controller: string;
+  Action: string;
+};
+
+function createData(id: number): Data {
+  return {
+    id,
+    message: `This will permanently delete Reservation #${id}. This action cannot be undone.`,
+    Area: "Admin",
+    Controller: "Reservation",
+    Action: "Remove",
+  };
+}
+
 const App = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<
-    Reservation | undefined
-  >(undefined);
+  const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -88,12 +94,15 @@ const App = () => {
                   </div>
                 ))
               : reservations.map((res) => (
-                  <Drawer key={res.id}>
+                  <Drawer
+                    key={res.id}
+                    open={openDrawerId === res.id}
+                    onOpenChange={(open) =>
+                      setOpenDrawerId(open ? res.id : null)
+                    }
+                  >
                     <DrawerTrigger asChild>
-                      <div
-                        className="border rounded-xl p-4 shadow hover:shadow-lg cursor-pointer transition"
-                        onClick={() => setSelectedReservation(res)}
-                      >
+                      <div className="border rounded-xl p-4 shadow hover:shadow-lg cursor-pointer transition">
                         <h2 className="text-xl font-bold">
                           Reservation #{res.id}
                         </h2>
@@ -145,59 +154,15 @@ const App = () => {
                             </Button>
                           </DrawerClose>
 
-                          {/* Delete Button with Confirmation */}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button className="bg-red-500 hover:bg-red-600 text-white cursor-pointer">
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete Reservation #
-                                  {res.id}. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="cursor-pointer">
-                                  Cancel
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="cursor-pointer"
-                                  onClick={async () => {
-                                    try {
-                                      const response = await fetch(
-                                        `http://localhost:5002/Admin/Reservation/Remove?id=${res.id}`,
-                                        { method: "DELETE" }
-                                      );
-                                      if (!response.ok)
-                                        throw new Error(
-                                          "Failed to delete reservation"
-                                        );
-
-                                      toast.success(
-                                        `Reservation #${res.id} deleted successfully`
-                                      );
-                                      setReservations((prev) =>
-                                        prev.filter((r) => r.id !== res.id)
-                                      );
-                                    } catch (err: any) {
-                                      toast.error(
-                                        err.message ||
-                                          "Error deleting reservation"
-                                      );
-                                    }
-                                  }}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Popup
+                            {...createData(res.id)}
+                            onDeleted={() => {
+                              setOpenDrawerId(null);
+                              setReservations((prev) =>
+                                prev.filter((r) => r.id !== res.id)
+                              );
+                            }}
+                          />
                         </DrawerFooter>
                       </div>
                     </DrawerContent>
