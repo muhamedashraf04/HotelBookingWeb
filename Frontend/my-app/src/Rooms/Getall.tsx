@@ -34,7 +34,7 @@ const Getall = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedRoom, setExpandedRoom] = useState<number | null>(null); // track accordion state
+  const [expandedRoom, setExpandedRoom] = useState<string | null>(null); // track accordion state
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -71,28 +71,28 @@ const Getall = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {loading
             ? skeletons.map((_, idx) => (
-                <div key={idx} className="border rounded p-4 shadow space-y-2">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ))
+              <div key={idx} className="border rounded p-4 shadow space-y-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))
             : paginatedRooms.length === 0
-            ? "No rooms available."
-            : paginatedRooms.map((room) => (
+              ? "No rooms available."
+              : paginatedRooms.map((room) => (
                 <Accordion
                   type="single"
                   collapsible
-                  key={room.id}
+                  key={room.roomNumber}
                   className="border rounded-xl shadow transition cursor-pointer"
                   value={
-                    expandedRoom === room.id ? `room-${room.id}` : undefined
+                    expandedRoom === room.roomNumber ? `room-${room.roomNumber}` : undefined
                   }
                 >
                   <AccordionItem
-                    value={`room-${room.id}`}
+                    value={`room-${room.roomNumber}`}
                     onClick={() =>
-                      setExpandedRoom(expandedRoom === room.id ? null : room.id)
+                      setExpandedRoom(expandedRoom === room.roomNumber ? null : room.roomNumber)
                     }
                   >
                     <div className="p-4">
@@ -102,13 +102,12 @@ const Getall = () => {
                             {room.roomNumber}
                           </h2>
                           <Badge
-                            className={`text-lg mt-1 ${
-                              room.roomType === "Double"
-                                ? "bg-blue-500 text-white"
-                                : room.roomType === "Suite"
+                            className={`text-lg mt-1 ${room.roomType === "Double"
+                              ? "bg-blue-500 text-white"
+                              : room.roomType === "Suite"
                                 ? "bg-red-950 text-white"
                                 : "bg-gray-200 text-black"
-                            }`}
+                              }`}
                           >
                             {room.roomType}
                           </Badge>
@@ -121,11 +120,10 @@ const Getall = () => {
 
                       <AccordionContent className="mt-4 flex flex-col gap-4">
                         <Button
-                          className={`w-full ${
-                            room.isAvailable
-                              ? "cursor-pointer"
-                              : "cursor-not-allowed"
-                          }`}
+                          className={`w-full ${room.isAvailable
+                            ? "cursor-pointer"
+                            : "cursor-not-allowed"
+                            }`}
                           onClick={() =>
                             toast.loading(`Booking Room ${room.roomNumber}`)
                           }
