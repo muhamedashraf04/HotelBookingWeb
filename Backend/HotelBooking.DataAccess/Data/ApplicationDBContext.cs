@@ -15,7 +15,6 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<SingleRoom> SingleRooms { get; set; }
         public DbSet<DoubleRoom> DoubleRooms { get; set; }
         public DbSet<Suite> Suites { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Reservation>().HasData(

@@ -11,18 +11,35 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-const Url = "http://localhost:5002";
-type Data = {
-  id: number;
+import axios from "axios";
+import { Url } from "../GlobalVariables";
+import ErrorToast from "./Toasts/ErrorToast";
+import LoadingToast from "./Toasts/LoadingToast";
+import SuccessToast from "./Toasts/SuccessToast";
+type data = {
+  id: string;
   message: string;
   Area: string;
   Controller: string;
   Action: string;
+  RoomType?: string;
 
   onDeleted?: () => void;
 };
-function Popup(Data: Data) {
+
+function DeletePopup(Data: data) {
+  const {
+    id,
+    message,
+    Area,
+    Controller,
+    Action,
+    onDeleted,
+    RoomType = "",
+  } = Data;
+  const request = `${Url}/${Area}/${Controller}/${Action}?id=${id}${
+    RoomType != "" ? `&RoomType=${RoomType}` : ""
+  }`;
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -33,7 +50,7 @@ function Popup(Data: Data) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>{Data.message}</AlertDialogDescription>
+          <AlertDialogDescription>{message}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="cursor-pointer">
@@ -42,18 +59,17 @@ function Popup(Data: Data) {
           <AlertDialogAction
             className="cursor-pointer"
             onClick={async () => {
+              LoadingToast(`Deleting ${Controller}`);
               try {
-                const response = await fetch(
-                  `${Url}/${Data.Area}/${Data.Controller}/${Data.Action}?id=${Data.id}`,
-                  { method: "DELETE" }
-                );
-                if (!response.ok) throw new Error("Failed to delete");
-                Data.onDeleted?.();
-                toast.success(
-                  `${Data.Controller} #${Data.id} deleted successfully`
-                );
+                const response = await axios.delete(request);
+
+                if (response.status != 200) throw new Error("Failed to delete");
+                onDeleted?.();
+                {
+                  SuccessToast(`${Data.Controller} deleted successfully`);
+                }
               } catch (err: any) {
-                toast.error(err.message || "Error deleting");
+                ErrorToast(err.message || "Error deleting");
               }
             }}
           >
@@ -65,4 +81,4 @@ function Popup(Data: Data) {
   );
 }
 
-export default Popup;
+export default DeletePopup;

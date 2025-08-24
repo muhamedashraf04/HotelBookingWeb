@@ -1,4 +1,3 @@
-import { ModeToggle } from "@/components/mode-toggle";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -36,14 +35,12 @@ const Nav = () => {
               <NavigationMenuLink href="/rooms/create">
                 Create
               </NavigationMenuLink>
-              <NavigationMenuLink href="/rooms/Edit">
-                Edit
-              </NavigationMenuLink>
+              <NavigationMenuLink href="/rooms/Edit">Edit</NavigationMenuLink>
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger>
-              <div className="text-xl font-bold">Customer</div>
+              <div className="text-xl font-bold">Customers</div>
             </NavigationMenuTrigger>
             <NavigationMenuContent>
               <NavigationMenuLink href="../Customer/Create">
@@ -59,25 +56,28 @@ const Nav = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger>
-              <div className="text-xl font-bold">Reservation</div>
+              <div className="text-xl font-bold">Reservations</div>
             </NavigationMenuTrigger>
             <NavigationMenuContent>
-              <NavigationMenuLink href="/reservation/create">
-                Create
+              <NavigationMenuLink href="/reservations/available">
+                Reserve
               </NavigationMenuLink>
-              <NavigationMenuLink href="/reservation/remove">
+              <NavigationMenuLink href="/reservations/remove">
                 Remove
               </NavigationMenuLink>
-              <NavigationMenuLink href="/reservation/get-all">
-                GetAll
+              <NavigationMenuLink href="/reservations/get-all">
+                Check-in
+              </NavigationMenuLink>
+              <NavigationMenuLink href="/reservationss/available">
+                Check-out
               </NavigationMenuLink>
             </NavigationMenuContent>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-      <div className="flex justify-end ml-auto mr-10">
+      {/* <div className="flex justify-end ml-auto mr-10">
         <ModeToggle />
-      </div>
+      </div> */}
     </nav>
   );
 };

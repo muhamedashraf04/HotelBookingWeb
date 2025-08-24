@@ -70,7 +70,7 @@ public class ReservationController : Controller
     }
 
 
-    [HttpGet]
+    [HttpPost]
     public IActionResult Search([FromBody] ReservationSearchDTO rsd)
     {
         if (String.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckIn.HasValue || !rsd.CheckOut.HasValue)
@@ -184,6 +184,9 @@ public class ReservationController : Controller
         _unitOfWork.Save();
         return Ok("Reservation deleted successfully.");
     }
+    [HttpGet]
+    public IActionResult GetPrice(int id) {
+
 
 }
 

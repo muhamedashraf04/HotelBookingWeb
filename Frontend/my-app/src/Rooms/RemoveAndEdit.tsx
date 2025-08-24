@@ -1,22 +1,11 @@
+import Header from "@/components/Header/Header";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -27,9 +16,11 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import Header from "@/Header/Header";
+import DeletePopup from "@/DeletePopup";
+import ErrorToast from "@/Toasts/ErrorToast";
 import { useEffect, useState } from "react";
-import { toast, Toaster } from "sonner";
+import { Toaster } from "sonner";
+import { Url } from "../../GlobalVariables.tsx";
 
 type Room = {
   id: number;
@@ -50,12 +41,12 @@ const Remove = () => {
     const fetchRooms = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:5002/Admin/Room/Getall");
+        const res = await fetch(`${Url}/Admin/Room/Getall`);
         if (!res.ok) throw new Error("Failed to fetch rooms");
         const data: Room[] = await res.json();
         setRooms(data);
       } catch (err: any) {
-        toast.error(err.message || "Something went wrong while fetching rooms");
+        ErrorToast(err.message || "Something went wrong while fetching rooms");
       } finally {
         setLoading(false);
       }
@@ -86,20 +77,20 @@ const Remove = () => {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            : paginatedRooms.length === 0
+            : paginatedRooms.length == 0
             ? "No rooms available."
             : paginatedRooms.map((room) => (
                 <div
-                  key={room.id}
+                  key={room.roomNumber}
                   className="border rounded-xl pl-4 pt-4 pb-0 shadow transition"
                 >
                   <h2 className="text-2xl font-bold">{room.roomNumber}</h2>
 
                   <Badge
                     className={`text-lg ${
-                      room.roomType === "Double"
+                      room.roomType == "Double"
                         ? "bg-blue-500 text-white"
-                        : room.roomType === "Suite"
+                        : room.roomType == "Suite"
                         ? "bg-red-950 text-white"
                         : "bg-gray-200 text-black" // fallback for Single or others
                     }`}
@@ -115,62 +106,25 @@ const Remove = () => {
                     <AccordionItem value={`room-${room.id}`}>
                       <AccordionTrigger></AccordionTrigger>
                       <AccordionContent className="flex flex-col gap-4">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button className="max-w-1/4 cursor-pointer">
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete Room{" "}
-                                {room.roomNumber}. You cannot undo this action.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-500 text-white cursor-pointer hover:bg-red-700 hover:text-gray-100 transition-colors"
-                                onClick={async () => {
-                                  toast.loading(
-                                    `Deleting Room ${room.roomNumber}`
-                                  );
-
-                                  try {
-                                    const res = await fetch(
-                                      `http://localhost:5002/Admin/Room/Remove?Id=${room.id}&RoomType=${room.roomType}`,
-                                      { method: "DELETE" }
-                                    );
-
-                                    if (!res.ok)
-                                      throw new Error("Failed to delete room");
-
-                                    toast.success(
-                                      `Room ${room.roomNumber} deleted successfully`
-                                    );
-
-                                    setRooms((prev) =>
-                                      prev.filter((r) => r.id !== room.id)
-                                    );
-                                  } catch (err: any) {
-                                    toast.error(
-                                      err.message ||
-                                        "Something went wrong while deleting the room"
-                                    );
-                                  }
-                                }}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <DeletePopup
+                          id={`${room.id}`}
+                          message={`This will permanently delete Room #${room.roomNumber} (${room.roomType}). This action cannot be undone.`}
+                          Area="Admin"
+                          Controller="Room"
+                          Action="Remove"
+                          RoomType={`${room.roomType}`}
+                          onDeleted={() => {
+                            setRooms((prev) =>
+                              prev.filter(
+                                (r) =>
+                                  !(
+                                    r.roomNumber === room.roomNumber &&
+                                    r.roomType === room.roomType
+                                  )
+                              )
+                            );
+                          }}
+                        />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
@@ -197,7 +151,7 @@ const Remove = () => {
                   <PaginationItem key={idx}>
                     <PaginationLink
                       href="#"
-                      isActive={currentPage === idx + 1}
+                      isActive={currentPage == idx + 1}
                       onClick={(e) => {
                         e.preventDefault();
                         setCurrentPage(idx + 1);
