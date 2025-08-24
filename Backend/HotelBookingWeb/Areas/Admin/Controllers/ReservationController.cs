@@ -184,9 +184,6 @@ public class ReservationController : Controller
         _unitOfWork.Save();
         return Ok("Reservation deleted successfully.");
     }
-    [HttpGet]
-    public IActionResult GetPrice(int id) {
-
 
 }
 
