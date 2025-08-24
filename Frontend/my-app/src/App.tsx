@@ -1,64 +1,85 @@
 "use client";
+
 import Header from "@/components/Header/Header";
-
-function App() {
-
-import React, { useEffect, useState } from "react";
 import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Url } from "../GlobalVariables";
+import ErrorToast from "../src/Toasts/ErrorToast";
 
-export default function Scheduler() {
+export default function App() {
   const [resources, setResources] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [days, setDays] = useState(30); // default 30 days
+
+  // ✅ Fetch function
+  async function Get() {
+    try {
+      // ✅ Fetch rooms
+      const response = await axios.get(`${Url}/Admin/Room/GetAll`);
+      const formattedRooms = response.data.map((room: any) => ({
+        id: room.id,
+        name: `Room ${room.roomNumber} (${room.roomType})`,
+      }));
+      setResources(formattedRooms);
+
+      // ✅ Fetch reservations
+      const res = await axios.get(`${Url}/admin/reservation/getall`);
+      const formattedReservations = res.data.map((r: any) => ({
+        id: r.id,
+        text: `Customer ${r.customerId} (${r.roomType})`,
+        start: r.checkInDate,
+        end: r.checkOutDate,
+        resource: r.roomId,
+      }));
+      setEvents(formattedReservations);
+
+      // ✅ Calculate furthest end date to adjust timeline
+      if (formattedReservations.length > 0) {
+        const furthest = new Date(
+          Math.max(
+            ...formattedReservations.map((r: any) => new Date(r.end).getTime())
+          )
+        );
+        const today = new Date();
+        const diffDays = Math.ceil(
+          (furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        setDays(Math.max(diffDays, 30) + 5); // at least 30 days
+      }
+    } catch (err: any) {
+      ErrorToast(err.message || "Error fetching data");
+    }
+  }
 
   useEffect(() => {
-    // ✅ Fetch rooms
-    fetch("http://localhost:5000/Admin/Room/GetAll")
-      .then((res) => res.json())
-      .then((data) => {
-        const formattedRooms = data.map((room: any) => ({
-          id: room.id, // resource ID
-          name: `Room ${room.roomNumber} (${room.roomType})`, // displayed in column
-        }));
-        setResources(formattedRooms);
-      });
-
-    // ✅ Fetch reservations
-    fetch("http://localhost:5000/api/reservations")
-      .then((res) => res.json())
-      .then((data) => {
-        const formattedReservations = data.map((r: any) => ({
-          id: r.id,
-          text: r.customer,
-          start: r.start,
-          end: r.end,
-          resource: r.roomId, // must match resource id above
-        }));
-        setEvents(formattedReservations);
-      });
+    Get();
   }, []);
 
   return (
     <>
       <Header />
-    </>
-  );
-}
-
-export default App;
-    <div className="flex justify-center mt-6">
-      <div style={{ width: "1000px", height: "500px" }}>
-        <DayPilotScheduler
-          startDate={DayPilot.Date.today()}
-          days={30}
-          scale={"Day"}
-          timeHeaders={[
-            { groupBy: "Month" },
-            { groupBy: "Day", format: "d" },
-          ]}
-          resources={resources}  // ✅ only this is needed
-          events={events}
-        />
+      <div className="flex justify-center mt-6 ">
+        <div
+          style={{
+            width: "1000px",
+            height: `${resources.length * 80}px`, // ✅ each room row ~80px tall
+          }}
+        >
+          <DayPilotScheduler
+            startDate={DayPilot.Date.today()}
+            days={days}
+            scale={"Day"}
+            timeHeaders={[
+              { groupBy: "Month" },
+              { groupBy: "Day", format: "d" },
+            ]}
+            resources={resources}
+            events={events}
+            rowMarginBottom={50} // ✅ increase header row size
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

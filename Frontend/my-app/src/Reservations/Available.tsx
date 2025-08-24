@@ -118,6 +118,16 @@ const Available = () => {
     }
   };
 
+  const getDateTime = (date: Date | undefined, time: string) => {
+    if (!date) {
+      ErrorToast("No date provided.");
+      return new Date(); // fallback to now
+    }
+    const [hours, minutes] = time.split(":").map(Number);
+    const newDate = new Date(date);
+    newDate.setHours(hours, minutes, 0, 0);
+    return newDate;
+  };
   return (
     <>
       <Header />
@@ -344,20 +354,8 @@ const Available = () => {
                         toast.loading(`Booking Room ${room.roomNumber}`);
                         navigate("/reservations/booking", {
                           state: {
-                            checkIn: new Date(
-                              `${
-                                checkInDate
-                                  ? checkInDate.toDateString()
-                                  : ErrorToast("No Check-in Date Provided.")
-                              } ${checkInTime}`
-                            ),
-                            checkOut: new Date(
-                              `${
-                                checkOutDate
-                                  ? checkOutDate.toDateString()
-                                  : ErrorToast("No Check-out Date Provided.")
-                              } ${checkOutTime}`
-                            ),
+                            checkIn: getDateTime(checkInDate, checkInTime),
+                            checkOut: getDateTime(checkOutDate, checkOutTime),
                             roomType: roomType,
                             roomNumber: room.roomNumber,
                             roomId: room.id,
