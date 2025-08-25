@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System.Net;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers
@@ -112,7 +113,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
             // --- Handle Uploads ---
             if (uploadedFiles != null && uploadedFiles.Count > 0)
-            {
+            { 
                 foreach (var file in uploadedFiles)
                 {
                     using var stream = file.OpenReadStream();
