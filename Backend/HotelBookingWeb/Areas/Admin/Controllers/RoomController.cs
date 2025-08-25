@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers
 {
@@ -20,6 +21,38 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             _logger = logger;
             _cloudinary = cloudinary;
         }
+        public string GetImagesFromFolder(string folderPath)
+        {
+            // Normalize: remove leading/trailing slashes, use forward slashes, add exactly one trailing slash
+            var prefix = string.IsNullOrWhiteSpace(folderPath)
+                ? ""
+                : folderPath.Replace("\\", "/").Trim('/') + "/";
+
+            var urls = new List<string>();
+
+            var listParams = new ListResourcesByPrefixParams
+            {
+                Prefix = prefix,
+                ResourceType = ResourceType.Image, // Only images
+                Type = "upload",
+                MaxResults = 500
+            };
+
+            ListResourcesResult result;
+            do
+            {
+                result = _cloudinary.ListResources(listParams);
+
+                if (result?.Resources != null)
+                    urls.AddRange(result.Resources.Select(r => r.SecureUrl.ToString()));
+
+                listParams.NextCursor = result?.NextCursor;
+            }
+            while (!string.IsNullOrEmpty(listParams.NextCursor));
+
+            return string.Join(",", urls);
+        }
+
         [HttpGet]
         public IActionResult Index()
         {
@@ -31,14 +64,53 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             combined.AddRange(Single);
             combined.AddRange(Double);
             combined.AddRange(Suites);
+            
             return View(combined);
         }
         [HttpPost]
-        public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles)
+        public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles, [FromForm] string? deletedImages)
         {
             var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
             var uploadedUrls = new List<string>();
 
+            if (!string.IsNullOrEmpty(deletedImages))
+            {
+                var urlsToDelete = System.Text.Json.JsonSerializer.Deserialize<List<string>>(deletedImages);
+
+                if (urlsToDelete != null && urlsToDelete.Any())
+                {
+                    var publicIds = new List<string>();
+
+                    foreach (var url in urlsToDelete)
+                    {
+                        var uri = new Uri(url);
+                        var segments = uri.AbsolutePath.Split('/');
+
+                        var startIndex = Array.IndexOf(segments, "hotel_booking");
+                        if (startIndex != -1)
+                        {
+                            var publicId = string.Join("/", segments.Skip(startIndex));
+                            publicId = Path.Combine(
+                                Path.GetDirectoryName(publicId) ?? string.Empty,
+                                Path.GetFileNameWithoutExtension(publicId)
+                            ).Replace("\\", "/");
+
+                            publicIds.Add(publicId);
+                        }
+                    }
+
+                    if (publicIds.Count > 0)
+                    {
+                        var deletionResult = _cloudinary.DeleteResources(publicIds.ToArray());
+                        if (deletionResult.StatusCode != System.Net.HttpStatusCode.OK)
+                        {
+                            return BadRequest("Failed to delete some images.");
+                        }
+                    }
+                }
+            }
+
+            // --- Handle Uploads ---
             if (uploadedFiles != null && uploadedFiles.Count > 0)
             {
                 foreach (var file in uploadedFiles)
@@ -57,9 +129,9 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                 }
             }
 
-            // Save image URLs as a comma-separated string
-            room.Images = string.Join(",", uploadedUrls);
-            
+            room.Images = GetImagesFromFolder(folderPath);
+
+            // ---- Now proceed with Room insert/update logic ----
             string RoomType = room.RoomType;
 
 
@@ -71,6 +143,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
                     if (singleRoom == null) // new room
                     {
+                        
                         singleRoom = new SingleRoom
                         {
                             Floor = room.Floor,
@@ -243,14 +316,20 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             {
                 if (RoomType == "Single")
                 {
+                    var room = _unitOfWork.SingleRooms.Get(u=>u.Id == Id);
+                    _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
                     _unitOfWork.SingleRooms.Remove(Id.Value);
                 }
                 if (RoomType == "Double")
                 {
+                    var room = _unitOfWork.DoubleRooms.Get(u => u.Id == Id);
+                    _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
                     _unitOfWork.DoubleRooms.Remove(Id.Value);
                 }
                 if (RoomType == "Suite")
                 {
+                    var room = _unitOfWork.Suites.Get(u => u.Id == Id);
+                    _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
                     _unitOfWork.Suites.Remove(Id.Value);
                 }
                 _unitOfWork.Save();
