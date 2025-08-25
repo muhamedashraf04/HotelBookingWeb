@@ -1,3 +1,4 @@
+import Header from "@/components/Header/Header";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,12 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Header from "@/Header/Header";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner"; // Import Toaster and toast
+import { Url } from "../../GlobalVariables";
 
 // Define a type for your form data
 type FormData = {
@@ -131,13 +132,10 @@ const Create = () => {
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:5002/Admin/Customer/Register",
-        {
-          method: "POST",
-          body: formPayload,
-        }
-      );
+      const response = await fetch(`${Url}/Admin/Customer/Register`, {
+        method: "POST",
+        body: formPayload,
+      });
 
       if (response.ok) {
         // Show success toast

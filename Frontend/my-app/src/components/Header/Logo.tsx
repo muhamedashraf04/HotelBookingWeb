@@ -1,5 +1,4 @@
-import logo from "../assets/images/Marriot_Logo.png";
-
+import logo from "../../assets/images/Marriot_Logo.png";
 const Logo = () => {
   return (
     <div className="logo w-24 h-24 p-2">

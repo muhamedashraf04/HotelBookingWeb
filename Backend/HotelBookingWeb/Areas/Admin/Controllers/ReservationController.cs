@@ -70,7 +70,7 @@ public class ReservationController : Controller
     }
 
 
-    [HttpGet]
+    [HttpPost]
     public IActionResult Search([FromBody] ReservationSearchDTO rsd)
     {
         if (String.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckIn.HasValue || !rsd.CheckOut.HasValue)
@@ -107,11 +107,11 @@ public class ReservationController : Controller
     [HttpGet]
     public IActionResult SearchByName([FromBody] GuestName Name)
     {
-        if(string.IsNullOrEmpty(Name.Name))
+        if (string.IsNullOrEmpty(Name.Name))
         {
             return NotFound("Invalid search parameters. Please provide a valid name.");
         }
-        var Customer_with_this_name = _unitOfWork.Customers.GetAll(r=>r.Name == Name.Name).Select(r=>r.Id);
+        var Customer_with_this_name = _unitOfWork.Customers.GetAll(r => r.Name == Name.Name).Select(r => r.Id);
         var IsAvailable = _unitOfWork.Reservations.GetAll(r => Customer_with_this_name.Contains(r.CustomerId));
         if (IsAvailable == null || !IsAvailable.Any())
         {
@@ -186,4 +186,5 @@ public class ReservationController : Controller
     }
 
 }
+    
 
