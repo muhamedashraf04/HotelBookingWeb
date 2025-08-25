@@ -17,12 +17,13 @@ import { toast, Toaster } from "sonner";
 import axios from "axios";
 import Popup from "./DeletePopup";
 import { Url } from "../GlobalVariables";
+import { useNavigate } from "react-router-dom";
 import ErrorToast from "../src/Toasts/ErrorToast";
 
 type Reservation = {
   id: number;
   customerId: number;
-  customerName?: string; // <--- store name here
+  customerName?: string;
   roomId: number;
   roomType: string;
   checkInDate: string;
@@ -59,12 +60,18 @@ export default function App() {
   const [resources, setResources] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [days, setDays] = useState(30);
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
 
-  // Fetch Rooms, Reservations, and Customers
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    reservation: Reservation | null;
+  } | null>(null);
+
   const fetchData = async () => {
     try {
       const roomRes = await axios.get(`${Url}/Admin/Room/GetAll`);
@@ -75,12 +82,9 @@ export default function App() {
       setResources(formattedRooms);
 
       const resRes = await axios.get(`${Url}/Admin/Reservation/GetAll`);
-      const customersRes = await axios.get(
-        `${Url}/Admin/Customer/GetCustomers`
-      );
+      const customersRes = await axios.get(`${Url}/Admin/Customer/GetCustomers`);
       const customers: Customer[] = customersRes.data;
 
-      // Attach customerName to each reservation
       const reservationsWithNames: Reservation[] = resRes.data.map(
         (r: Reservation) => {
           const customer = customers.find((c) => c.id === r.customerId);
@@ -102,20 +106,15 @@ export default function App() {
       setReservations(reservationsWithNames);
       setEvents(formattedEvents);
 
-      // Adjust timeline days
       if (formattedEvents.length > 0) {
         const furthest = new Date(
-          Math.max(
-            ...formattedEvents.map((r: any) => new Date(r.end).getTime())
-          )
+          Math.max(...formattedEvents.map((r: any) => new Date(r.end).getTime()))
         );
         const today = new Date();
-        const diffDays = Math.ceil(
-          (furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        setDays(diffDays + 5); 
+        const diffDays = Math.ceil((furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        setDays(Math.max(diffDays, 25) + 5);
       } else {
-        setDays(30); 
+        setDays(30);
       }
     } catch (err: any) {
       ErrorToast(err.message || "Error fetching data");
@@ -126,10 +125,17 @@ export default function App() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const disableContextMenu = (e: MouseEvent) => {
+      if (contextMenu) e.preventDefault();
+    };
+    window.addEventListener("contextmenu", disableContextMenu);
+    return () => window.removeEventListener("contextmenu", disableContextMenu);
+  }, [contextMenu]);
+
   const handleEventClick = (args: any) => {
     const clicked = reservations.find((r) => r.id === args.e.data.id);
     if (!clicked) return;
-
     setSelectedReservation(clicked);
     setOpenDrawerId(clicked.id);
   };
@@ -138,24 +144,68 @@ export default function App() {
     <>
       <Header />
       <Toaster />
-     <div className="flex justify-center mt-6">
-  <div style={{ width: "1000px", height: `${resources.length * 40}px` }}>
-    <DayPilotScheduler
-  startDate={DayPilot.Date.today()}
-  days={days}
-  scale="Day"
-  timeHeaders={[
-    { groupBy: "Month" },
-    { groupBy: "Day", format: "d" },
-  ]}
-  resources={resources}
-  events={events}
-  rowMarginBottom={20}
-  onEventClick={handleEventClick}
-/>
+      <div className="flex justify-center mt-6">
+        <div style={{ width: "1000px", height: `${resources.length * 40}px` }}>
+          <DayPilotScheduler
+            onEventRightClick={(args) => {
+              args.originalEvent.preventDefault();
+              const clicked = reservations.find((r) => r.id === args.e.data.id);
+              if (!clicked) return;
+              setContextMenu({
+                x: args.originalEvent.clientX,
+                y: args.originalEvent.clientY,
+                reservation: clicked,
+              });
+            }}
+            startDate={DayPilot.Date.today()}
+            days={days}
+            scale="Day"
+            timeHeaders={[{ groupBy: "Month" }, { groupBy: "Day", format: "d" }]}
+            resources={resources}
+            events={events}
+            rowMarginBottom={20}
+            onEventClick={handleEventClick}
+          />
+        </div>
+      </div>
 
-  </div>
-</div>
+      {contextMenu && (
+        <div
+          style={{
+            position: "fixed",
+            top: contextMenu.y,
+            left: contextMenu.x,
+            background: "white",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            boxShadow: "0px 2px 6px rgba(0,0,0,0.2)",
+            zIndex: 9999,
+          }}
+          onMouseLeave={() => setContextMenu(null)}
+        >
+          <button
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+            onClick={() => {
+              navigate(`/reservation/edit/${contextMenu.reservation!.id}`, {
+                state: contextMenu.reservation,
+              });
+              setContextMenu(null);
+            }}
+          >
+            ✏️ Edit
+          </button>
+          <button
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+            onClick={() => {
+              setSelectedReservation(contextMenu.reservation!);
+              setOpenDrawerId(contextMenu.reservation!.id);
+              setContextMenu(null);
+            }}
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      )}
 
       {selectedReservation && (
         <Drawer
