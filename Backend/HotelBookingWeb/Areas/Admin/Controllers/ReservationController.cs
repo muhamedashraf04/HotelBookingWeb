@@ -184,7 +184,21 @@ public class ReservationController : Controller
         _unitOfWork.Save();
         return Ok("Reservation deleted successfully.");
     }
+    [HttpPut]
+    public IActionResult Update([FromBody] ReservationUpdateDto dto)
+    {
+        var reservation = _unitOfWork.Reservations.Get(r => r.Id == dto.Id);
+        if (reservation == null) return NotFound();
+
+        // Update fields
+        reservation.CheckInDate = dto.CheckIn;
+        reservation.CheckOutDate = dto.CheckOut;
+        reservation.RoomId = dto.RoomId;
+
+        _unitOfWork.Save();
+        return Ok(reservation);
+    }
 
 }
-    
+
 
