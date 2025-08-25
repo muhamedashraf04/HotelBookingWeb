@@ -42,7 +42,17 @@ function Booking() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-
+  const formatDateTimeLocal = (date: Date | string | undefined) => {
+    if (!date) {
+      toast.error("No date provided.");
+      return "";
+    }
+    const d = new Date(date);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+      d.getDate()
+    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -117,10 +127,11 @@ function Booking() {
             Check-in:
             <input
               type="datetime-local"
-              value={new Date(checkInDate).toISOString().slice(0, 16)}
-              onChange={(e) => setCheckInDate(e.target.value)}
+              value={formatDateTimeLocal(checkInDate)}
+              onChange={(e) => setCheckInDate(new Date(e.target.value))}
               className="border p-2 w-full rounded"
               required
+              readOnly
             />
           </label>
 
@@ -128,10 +139,11 @@ function Booking() {
             Check-out:
             <input
               type="datetime-local"
-              value={new Date(checkOutDate).toISOString().slice(0, 16)}
-              onChange={(e) => setCheckOutDate(e.target.value)}
+              value={formatDateTimeLocal(checkOutDate)}
+              onChange={(e) => setCheckOutDate(new Date(e.target.value))}
               className="border p-2 w-full rounded"
               required
+              readOnly
             />
           </label>
           <div className="flex flex-col gap-2">
