@@ -1,4 +1,5 @@
-﻿using HotelBooking.Models.Models;
+﻿using HotelBooking.Models.Auth;
+using HotelBooking.Models.Models;
 using HotelBooking.Models.RoomModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,11 +11,18 @@ namespace HotelBooking.DataAccess.Data
         {
 
         }
+
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<SingleRoom> SingleRooms { get; set; }
         public DbSet<DoubleRoom> DoubleRooms { get; set; }
         public DbSet<Suite> Suites { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Reservation>().HasData(
