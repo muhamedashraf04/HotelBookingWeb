@@ -3,13 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HotelBooking.Models.Models;
 
-public class Reservation
+public class Reservation : BaseEntity
 {
-    // Primary Key
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
     // Foreign Keys
     [Required(ErrorMessage = "Customer ID is required.")]
     [ForeignKey("Customer")]

@@ -1,14 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HotelBooking.Models.Models;
 
-public class Customer
+public class Customer : BaseEntity
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Key]
-    public int Id { get; set; }
-
     [Required]
     public string Name { get; set; }
 

@@ -28,7 +28,8 @@ namespace HotelBooking.DataAccess.Data
                     CheckOutDate = new DateTime(2025, 8, 10),
                     NumberOfAdults = 2,
                     NumberOfChildren = 1,
-                    NumberOfExtraBeds = 0
+                    NumberOfExtraBeds = 0,
+                    createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
                 },
                 new Reservation
                 {
@@ -40,7 +41,8 @@ namespace HotelBooking.DataAccess.Data
                     CheckOutDate = new DateTime(2025, 8, 10),
                     NumberOfAdults = 2,
                     NumberOfChildren = 1,
-                    NumberOfExtraBeds = 0
+                    NumberOfExtraBeds = 0,
+                    createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
                 },
     new Reservation
     {
@@ -52,7 +54,8 @@ namespace HotelBooking.DataAccess.Data
         CheckOutDate = new DateTime(2025, 8, 28),
         NumberOfAdults = 2,
         NumberOfChildren = 1,
-        NumberOfExtraBeds = 0
+        NumberOfExtraBeds = 0,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Reservation
     {
@@ -64,7 +67,8 @@ namespace HotelBooking.DataAccess.Data
         CheckOutDate = new DateTime(2025, 9, 5),
         NumberOfAdults = 2,
         NumberOfChildren = 0,
-        NumberOfExtraBeds = 1
+        NumberOfExtraBeds = 1,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Reservation
     {
@@ -76,7 +80,8 @@ namespace HotelBooking.DataAccess.Data
         CheckOutDate = new DateTime(2025, 9, 15),
         NumberOfAdults = 4,
         NumberOfChildren = 2,
-        NumberOfExtraBeds = 1
+        NumberOfExtraBeds = 1,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Reservation
     {
@@ -87,7 +92,8 @@ namespace HotelBooking.DataAccess.Data
         CheckOutDate = new DateTime(2025, 10, 3),
         NumberOfAdults = 1,
         NumberOfChildren = 0,
-        NumberOfExtraBeds = 0
+        NumberOfExtraBeds = 0,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     }
 );
 
@@ -101,20 +107,20 @@ namespace HotelBooking.DataAccess.Data
 
             // Seed Double Rooms
             modelBuilder.Entity<DoubleRoom>().HasData(
-                new DoubleRoom { Id = 6, RoomNumber = "D01", Floor = 2, IsAvailable = true },
-                new DoubleRoom { Id = 7, RoomNumber = "D02", Floor = 2, IsAvailable = true },
-                new DoubleRoom { Id = 8, RoomNumber = "D03", Floor = 2, IsAvailable = true },
-                new DoubleRoom { Id = 9, RoomNumber = "D04", Floor = 2, IsAvailable = true },
-                new DoubleRoom { Id = 10, RoomNumber = "D05", Floor = 2, IsAvailable = true }
+                new DoubleRoom { Id = 6, RoomNumber = "D01", Floor = 2, IsAvailable = true,      },
+                new DoubleRoom { Id = 7, RoomNumber = "D02", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new DoubleRoom { Id = 8, RoomNumber = "D03", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new DoubleRoom { Id = 9, RoomNumber = "D04", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new DoubleRoom { Id = 10, RoomNumber = "D05", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) }
             );
 
             // Seed Suite Rooms
             modelBuilder.Entity<Suite>().HasData(
-                new Suite { Id = 11, RoomNumber = "SU01", Floor = 3, IsAvailable = true },
-                new Suite { Id = 12, RoomNumber = "SU02", Floor = 3, IsAvailable = true },
-                new Suite { Id = 13, RoomNumber = "SU03", Floor = 3, IsAvailable = true },
-                new Suite { Id = 14, RoomNumber = "SU04", Floor = 3, IsAvailable = true },
-                new Suite { Id = 15, RoomNumber = "SU05", Floor = 3, IsAvailable = true }
+                new Suite { Id = 11, RoomNumber = "SU01", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new Suite { Id = 12, RoomNumber = "SU02", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new Suite { Id = 13, RoomNumber = "SU03", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new Suite { Id = 14, RoomNumber = "SU04", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
+                new Suite { Id = 15, RoomNumber = "SU05", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) }
             );
             modelBuilder.Entity<Customer>().HasData(
 
@@ -130,10 +136,8 @@ namespace HotelBooking.DataAccess.Data
         IdentificationAttachment = "id1.jpg",
         BirthDate = new DateOnly(1995, 3, 12),
         Email = "john.ahmady@gmail.com",
-        IsMarried = true,
-        MarriageCertificateNumber = "MC123456",
-        MarriageCertificateAttachment = "mc1.pdf",
-        MarriedToCustomerId = "2"
+        IsMarried = false,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Customer
     {
@@ -147,10 +151,8 @@ namespace HotelBooking.DataAccess.Data
         IdentificationAttachment = "passport2.jpg",
         BirthDate = new DateOnly(1997, 7, 21),
         Email = "sara.mahmoud@gmail.com",
-        IsMarried = true,
-        MarriageCertificateNumber = "MC123456",
-        MarriageCertificateAttachment = "mc1.pdf",
-        MarriedToCustomerId = "1"
+        IsMarried = false,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Customer
     {
@@ -164,7 +166,8 @@ namespace HotelBooking.DataAccess.Data
         IdentificationAttachment = "passport3.png",
         BirthDate = new DateOnly(1990, 11, 4),
         Email = "m.smith@example.com",
-        IsMarried = false
+        IsMarried = false,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Customer
     {
@@ -178,7 +181,8 @@ namespace HotelBooking.DataAccess.Data
         IdentificationAttachment = "id4.png",
         BirthDate = new DateOnly(1998, 1, 1),
         Email = "fatima.ali@example.com",
-        IsMarried = false
+        IsMarried = false,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     },
     new Customer
     {
@@ -192,10 +196,9 @@ namespace HotelBooking.DataAccess.Data
         IdentificationAttachment = "dl5.pdf",
         BirthDate = new DateOnly(1988, 5, 30),
         Email = "david.johnson@example.co.uk",
-        IsMarried = true,
-        MarriageCertificateNumber = "UKMC554433",
-        MarriageCertificateAttachment = "mc5.pdf",
-        MarriedToCustomerId = null
+        IsMarried = false,
+        MarriedToCustomerId = null,
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
     }
 );
         }

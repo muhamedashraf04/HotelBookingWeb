@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using HotelBooking.Models.Models;
+using System.Linq.Expressions;
 
 namespace HotelBooking.DataAccess.Repositories.Interfaces
 {
@@ -6,9 +7,9 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
     {
         public T Get(Expression<Func<T, bool>> Filter, string? IncludeProperties = null);
         IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? IncludeProperties = null);
-        public void Create(T obj);
+        public void Create<T>(T obj) where T : BaseEntity;
 
         public bool Remove(int id);
-        public void Edit(T Obj);
+        public void Edit<T>(T Obj) where T : BaseEntity;
     }
 }
