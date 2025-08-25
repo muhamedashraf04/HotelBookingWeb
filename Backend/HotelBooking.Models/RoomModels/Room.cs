@@ -12,5 +12,5 @@ public class Room : BaseEntity
     public int Capacity { get; set; }
     public string RoomType { get; set; }
     public bool IsAvailable { get; set; }
-
+    public string? Images { get; set; }
 }
