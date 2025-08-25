@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250819204706_Initial")]
+    [Migration("20250825071546_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -82,6 +82,20 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
@@ -97,13 +111,12 @@ namespace HotelBooking.DataAccess.Migrations
                             IdentificationAttachment = "id1.jpg",
                             IdentificationNumber = "30105060784512",
                             IdentificationType = "National ID",
-                            IsMarried = true,
-                            MarriageCertificateAttachment = "mc1.pdf",
-                            MarriageCertificateNumber = "MC123456",
-                            MarriedToCustomerId = "2",
+                            IsMarried = false,
                             Name = "John El Ahmady",
                             Nationality = "Egyptian",
-                            PhoneNumber = "01022289755"
+                            PhoneNumber = "01022289755",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2258),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -115,13 +128,12 @@ namespace HotelBooking.DataAccess.Migrations
                             IdentificationAttachment = "passport2.jpg",
                             IdentificationNumber = "A23456789",
                             IdentificationType = "Passport",
-                            IsMarried = true,
-                            MarriageCertificateAttachment = "mc1.pdf",
-                            MarriageCertificateNumber = "MC123456",
-                            MarriedToCustomerId = "1",
+                            IsMarried = false,
                             Name = "Sara Mahmoud",
                             Nationality = "Egyptian",
-                            PhoneNumber = "01144556677"
+                            PhoneNumber = "01144556677",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2280),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -136,7 +148,9 @@ namespace HotelBooking.DataAccess.Migrations
                             IsMarried = false,
                             Name = "Michael Smith",
                             Nationality = "American",
-                            PhoneNumber = "+1-202-555-0188"
+                            PhoneNumber = "+1-202-555-0188",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2284),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -151,7 +165,9 @@ namespace HotelBooking.DataAccess.Migrations
                             IsMarried = false,
                             Name = "Fatima Ali",
                             Nationality = "Egyptian",
-                            PhoneNumber = "01234567890"
+                            PhoneNumber = "01234567890",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2288),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -163,12 +179,12 @@ namespace HotelBooking.DataAccess.Migrations
                             IdentificationAttachment = "dl5.pdf",
                             IdentificationNumber = "DLUK998877",
                             IdentificationType = "Driver License",
-                            IsMarried = true,
-                            MarriageCertificateAttachment = "mc5.pdf",
-                            MarriageCertificateNumber = "UKMC554433",
+                            IsMarried = false,
                             Name = "David Johnson",
                             Nationality = "British",
-                            PhoneNumber = "+44-7700-900123"
+                            PhoneNumber = "+44-7700-900123",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2464),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -205,9 +221,109 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Reservations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 6,
+                            CheckInDate = new DateTime(2025, 8, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 1,
+                            NumberOfAdults = 2,
+                            NumberOfChildren = 1,
+                            NumberOfExtraBeds = 0,
+                            RoomId = 1,
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 819, DateTimeKind.Local).AddTicks(2065),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CheckInDate = new DateTime(2025, 8, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 1,
+                            NumberOfAdults = 2,
+                            NumberOfChildren = 1,
+                            NumberOfExtraBeds = 0,
+                            RoomId = 1,
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2495),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 1,
+                            CheckInDate = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 1,
+                            NumberOfAdults = 2,
+                            NumberOfChildren = 1,
+                            NumberOfExtraBeds = 0,
+                            RoomId = 1,
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2516),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CheckInDate = new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 2,
+                            NumberOfAdults = 2,
+                            NumberOfChildren = 0,
+                            NumberOfExtraBeds = 1,
+                            RoomId = 2,
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2522),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CheckInDate = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 3,
+                            NumberOfAdults = 4,
+                            NumberOfChildren = 2,
+                            NumberOfExtraBeds = 1,
+                            RoomId = 3,
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2525),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CheckInDate = new DateTime(2025, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 0,
+                            NumberOfAdults = 1,
+                            NumberOfChildren = 0,
+                            NumberOfExtraBeds = 0,
+                            RoomId = 4,
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2528),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.RoomModels.DoubleRoom", b =>
@@ -224,6 +340,9 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<int>("Floor")
                         .HasColumnType("int");
 
+                    b.Property<string>("Images")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
@@ -234,6 +353,20 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<string>("RoomType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -247,7 +380,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 2,
                             IsAvailable = true,
                             RoomNumber = "D01",
-                            RoomType = "Double"
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9607),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -256,7 +391,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 2,
                             IsAvailable = true,
                             RoomNumber = "D02",
-                            RoomType = "Double"
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9624),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -265,7 +402,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 2,
                             IsAvailable = true,
                             RoomNumber = "D03",
-                            RoomType = "Double"
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9627),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -274,7 +413,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 2,
                             IsAvailable = true,
                             RoomNumber = "D04",
-                            RoomType = "Double"
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9630),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -283,7 +424,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 2,
                             IsAvailable = true,
                             RoomNumber = "D05",
-                            RoomType = "Double"
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9632),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -301,6 +444,9 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<int>("Floor")
                         .HasColumnType("int");
 
+                    b.Property<string>("Images")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
@@ -311,6 +457,20 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<string>("RoomType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -324,7 +484,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 1,
                             IsAvailable = true,
                             RoomNumber = "S01",
-                            RoomType = "Single"
+                            RoomType = "Single",
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -333,7 +495,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 1,
                             IsAvailable = true,
                             RoomNumber = "S02",
-                            RoomType = "Single"
+                            RoomType = "Single",
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -342,7 +506,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 1,
                             IsAvailable = true,
                             RoomNumber = "S03",
-                            RoomType = "Single"
+                            RoomType = "Single",
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -351,7 +517,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 1,
                             IsAvailable = true,
                             RoomNumber = "S04",
-                            RoomType = "Single"
+                            RoomType = "Single",
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -360,7 +528,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 1,
                             IsAvailable = true,
                             RoomNumber = "S05",
-                            RoomType = "Single"
+                            RoomType = "Single",
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -378,6 +548,9 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<int>("Floor")
                         .HasColumnType("int");
 
+                    b.Property<string>("Images")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
@@ -388,6 +561,20 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<string>("RoomType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -401,7 +588,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 3,
                             IsAvailable = true,
                             RoomNumber = "SU01",
-                            RoomType = "Suite"
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(130),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -410,7 +599,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 3,
                             IsAvailable = true,
                             RoomNumber = "SU02",
-                            RoomType = "Suite"
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(140),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -419,7 +610,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 3,
                             IsAvailable = true,
                             RoomNumber = "SU03",
-                            RoomType = "Suite"
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(142),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -428,7 +621,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 3,
                             IsAvailable = true,
                             RoomNumber = "SU04",
-                            RoomType = "Suite"
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(145),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -437,7 +632,9 @@ namespace HotelBooking.DataAccess.Migrations
                             Floor = 3,
                             IsAvailable = true,
                             RoomNumber = "SU05",
-                            RoomType = "Suite"
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(147),
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 #pragma warning restore 612, 618

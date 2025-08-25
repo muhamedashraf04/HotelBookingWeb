@@ -1,7 +1,7 @@
 ﻿using HotelBooking.DataAccess.Data;
 using HotelBooking.DataAccess.Repositories.Interfaces;
+using HotelBooking.Models.Models;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 
 namespace HotelBooking.DataAccess.Repos
@@ -48,8 +48,10 @@ namespace HotelBooking.DataAccess.Repos
             return query.ToList();
 
         }
-        public void Create(T obj)
+        public void Create<T>(T obj) where T : BaseEntity
         {
+            obj.createdAt = DateTime.Now;
+            obj.updatedAt = DateTime.Now;
             _dbContext.Add(obj);
         }
         public bool Remove(int id)
@@ -64,12 +66,13 @@ namespace HotelBooking.DataAccess.Repos
             _dbContext.Set<T>().Remove(objToRemove);
             return true;
         }
-        public void Edit(T obj)
+        public void Edit<T>(T obj) where T : BaseEntity
         {
             if (obj == null)
             {
                 throw new ArgumentNullException(nameof(obj), "Object cannot be null");
             }
+            obj.updatedAt = DateTime.Now;
             _dbContext.Update(obj);
         }
     }
