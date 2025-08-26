@@ -5,6 +5,9 @@ using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System.Net;
+using HotelBooking.Utilities;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers
 {
@@ -21,54 +24,11 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             _unitOfWork = unitOfWork;
             _logger = logger;
             _cloudinary = cloudinary;
-        }
-        public string GetImagesFromFolder(string folderPath)
-        {
-            // Normalize: remove leading/trailing slashes, use forward slashes, add exactly one trailing slash
-            var prefix = string.IsNullOrWhiteSpace(folderPath)
-                ? ""
-                : folderPath.Replace("\\", "/").Trim('/') + "/";
 
-            var urls = new List<string>();
-
-            var listParams = new ListResourcesByPrefixParams
-            {
-                Prefix = prefix,
-                ResourceType = ResourceType.Image, // Only images
-                Type = "upload",
-                MaxResults = 500
-            };
-
-            ListResourcesResult result;
-            do
-            {
-                result = _cloudinary.ListResources(listParams);
-
-                if (result?.Resources != null)
-                    urls.AddRange(result.Resources.Select(r => r.SecureUrl.ToString()));
-
-                listParams.NextCursor = result?.NextCursor;
-            }
-            while (!string.IsNullOrEmpty(listParams.NextCursor));
-
-            return string.Join(",", urls);
         }
 
-        [HttpGet]
-        public IActionResult Index()
-        {
-            IEnumerable<Room> Single = _unitOfWork.SingleRooms.GetAll().ToList();
-            IEnumerable<Room> Double = _unitOfWork.DoubleRooms.GetAll().ToList();
-            IEnumerable<Room> Suites = _unitOfWork.Suites.GetAll().ToList();
-
-            List<Room> combined = new List<Room>();
-            combined.AddRange(Single);
-            combined.AddRange(Double);
-            combined.AddRange(Suites);
-            
-            return View(combined);
-        }
         [HttpPost]
+        [Authorize]
         public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles, [FromForm] string? deletedImages)
         {
             var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
@@ -113,7 +73,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
             // --- Handle Uploads ---
             if (uploadedFiles != null && uploadedFiles.Count > 0)
-            { 
+            {
                 foreach (var file in uploadedFiles)
                 {
                     using var stream = file.OpenReadStream();
@@ -129,8 +89,8 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                     }
                 }
             }
-
-            room.Images = GetImagesFromFolder(folderPath);
+            var ro = new RoomImages(_cloudinary);
+            room.Images = ro.GetImagesFromFolder(folderPath);
 
             // ---- Now proceed with Room insert/update logic ----
             string RoomType = room.RoomType;
@@ -138,176 +98,61 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                if (RoomType == "Single")
+                var _room = _unitOfWork.Rooms.Get(u => u.Id == room.Id);
+
+                if (_room == null)
                 {
-                    var singleRoom = _unitOfWork.SingleRooms.Get(u => u.Id == room.Id);
 
-                    if (singleRoom == null) // new room
+                    _room = new Room
                     {
-                        
-                        singleRoom = new SingleRoom
-                        {
-                            Floor = room.Floor,
-                            RoomNumber = room.RoomNumber,
-                            Capacity = room.Capacity,
-                            IsAvailable = room.IsAvailable,
-                            RoomType = room.RoomType,
-                            Images = room.Images
-                        };
-                        _unitOfWork.SingleRooms.Create(singleRoom);
-                    }
-                    else
-                    {
-                        // Common property mapping
-                        singleRoom.IsAvailable = room.IsAvailable;
-                        singleRoom.Capacity = room.Capacity;
-                        singleRoom.Floor = room.Floor;
-                        singleRoom.RoomNumber = room.RoomNumber;
-                        singleRoom.RoomType = room.RoomType;
-                        singleRoom.Images = room.Images;
+                        Floor = room.Floor,
+                        RoomNumber = room.RoomNumber,
+                        Capacity = room.Capacity,
+                        IsAvailable = room.IsAvailable,
+                        RoomType = room.RoomType,
+                        Images = room.Images,
+                        Price = room.Price,
+                        updatedBy = User.Identity?.Name,
+                        createdBy = User.Identity?.Name
+                    };
 
-                        // If editing, EF is already tracking it since we fetched it
-                        _unitOfWork.SingleRooms.Edit(singleRoom);
-                    }
-                    _unitOfWork.Save();
-                    return Ok();
+                    _unitOfWork.Rooms.Create(_room);
                 }
-                if (RoomType == "Double")
+                else
                 {
-                    var doubleroom = _unitOfWork.DoubleRooms.Get(u => u.Id == room.Id);
+                    // Common property mapping
+                    _room.IsAvailable = room.IsAvailable;
+                    _room.Capacity = room.Capacity;
+                    _room.Floor = room.Floor;
+                    _room.RoomNumber = room.RoomNumber;
+                    _room.RoomType = room.RoomType;
+                    _room.Images = room.Images;
+                    _room.updatedBy = User.Identity?.Name;
+                    _room.Price = room.Price;
 
-                    if (doubleroom == null) // new room
-                    {
-                        doubleroom = new DoubleRoom
-                        {
-                            Floor = room.Floor,
-                            RoomNumber = room.RoomNumber,
-                            Capacity = room.Capacity,
-                            IsAvailable = room.IsAvailable,
-                            RoomType = room.RoomType,
-                            Images = room.Images
-                        };
-                        _unitOfWork.DoubleRooms.Create(doubleroom);
-                    }
-                    else
-                    {
-                        // Common property mapping
-                        doubleroom.IsAvailable = room.IsAvailable;
-                        doubleroom.Capacity = room.Capacity;
-                        doubleroom.Floor = room.Floor;
-                        doubleroom.RoomNumber = room.RoomNumber;
-                        doubleroom.RoomType = room.RoomType;
-                        doubleroom.Images = room.Images;
-
-                        // If editing, EF is already tracking it since we fetched it
-                        _unitOfWork.DoubleRooms.Edit(doubleroom);
-                    }
-                    _unitOfWork.Save();
-                    return Ok();
+                    _unitOfWork.Rooms.Edit(_room);
                 }
-                if (RoomType == "Suite")
-                {
-                    var suite = _unitOfWork.Suites.Get(u => u.Id == room.Id);
-
-                    if (suite == null) // new room
-                    {
-                        suite = new Suite
-                        {
-                            Floor = room.Floor,
-                            RoomNumber = room.RoomNumber,
-                            Capacity = room.Capacity,
-                            IsAvailable = room.IsAvailable,
-                            RoomType = room.RoomType,
-                            Images = room.Images
-                        };
-                        _unitOfWork.Suites.Create(suite);
-                    }
-                    else
-                    {
-                        // Common property mapping
-                        suite.IsAvailable = room.IsAvailable;
-                        suite.Capacity = room.Capacity;
-                        suite.Floor = room.Floor;
-                        suite.RoomNumber = room.RoomNumber;
-                        suite.RoomType = room.RoomType;
-                        suite.Images = room.Images;
-
-                        // If editing, EF is already tracking it since we fetched it
-                        _unitOfWork.Suites.Edit(suite);
-                    }
-                    _unitOfWork.Save();
-                    return Ok();
-                }
+                _unitOfWork.Save();
+                return Ok();
             }
-
             return BadRequest();
         }
         public IActionResult GetAll()
         {
-            var rooms = new List<Room>();
-            rooms.AddRange(_unitOfWork.SingleRooms.GetAll());
-            rooms.AddRange(_unitOfWork.DoubleRooms.GetAll());
-            rooms.AddRange(_unitOfWork.Suites.GetAll());
-
+            var rooms = _unitOfWork.Rooms.GetAll();
             return Ok(rooms.ToList());
         }
         [HttpGet]
-        public IActionResult GetRoom(int id, string type)
+        public IActionResult GetRoom(int id)
         {
-            if (type == "Single")
-            {
-                var room =_unitOfWork.SingleRooms.Get(u=>u.Id == id);
-                if (room == null) {return BadRequest();}
-                return Ok(new
-                {
-                    room.Id,
-                    room.RoomNumber,
-                    room.Capacity,
-                    room.IsAvailable,
-                    room.RoomType,
-                    room.Floor,
-                    room.Images
-                });
-            }
-            if (type == "Double")
-            {
-                var room = _unitOfWork.DoubleRooms.Get(u => u.Id == id);
-                if (room == null) { return BadRequest(); }
-                var imageList = room.Images?.Split(',').ToList() ?? new List<string>();
-                return Ok(new
-                {
-                    room.Id,
-                    room.RoomNumber,
-                    room.Capacity,
-                    room.IsAvailable,
-                    room.RoomType,
-                    room.Floor,
-                    room.Images
-                });
-            }
-            if (type == "Suite")
-            {
-                var room = _unitOfWork.Suites.Get(u => u.Id == id);
-                if (room == null) { return BadRequest(); }
-                var imageList = room.Images?.Split(',').ToList() ?? new List<string>();
-                return Ok(new
-                {
-                    room.Id,
-                    room.RoomNumber,
-                    room.Capacity,
-                    room.IsAvailable,
-                    room.RoomType,
-                    room.Floor,
-                    room.Images
-                });
-            }
-            else
-            {
-                return BadRequest();
-            }
+
+            var room = _unitOfWork.Rooms.Get(u => u.Id == id);
+            if (room == null) { return BadRequest(); }
+            return Ok(room);
+
         }
         [HttpDelete]
-        public IActionResult Remove(int? Id, string RoomType)
+        public IActionResult Remove(int? Id)
         {
             if (Id == null)
             {
@@ -315,28 +160,12 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             }
             else
             {
-                if (RoomType == "Single")
-                {
-                    var room = _unitOfWork.SingleRooms.Get(u=>u.Id == Id);
-                    _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
-                    _unitOfWork.SingleRooms.Remove(Id.Value);
-                }
-                if (RoomType == "Double")
-                {
-                    var room = _unitOfWork.DoubleRooms.Get(u => u.Id == Id);
-                    _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
-                    _unitOfWork.DoubleRooms.Remove(Id.Value);
-                }
-                if (RoomType == "Suite")
-                {
-                    var room = _unitOfWork.Suites.Get(u => u.Id == Id);
-                    _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
-                    _unitOfWork.Suites.Remove(Id.Value);
-                }
-                _unitOfWork.Save();
+
+                var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
+                _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
+                _unitOfWork.Rooms.Remove(Id.Value);
                 return Ok();
             }
-
         }
     }
 }

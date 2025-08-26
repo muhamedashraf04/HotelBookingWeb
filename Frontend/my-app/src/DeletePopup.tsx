@@ -22,24 +22,13 @@ type data = {
   Area: string;
   Controller: string;
   Action: string;
-  RoomType?: string;
 
   onDeleted?: () => void;
 };
 
 function DeletePopup(Data: data) {
-  const {
-    id,
-    message,
-    Area,
-    Controller,
-    Action,
-    onDeleted,
-    RoomType = "",
-  } = Data;
-  const request = `${Url}/${Area}/${Controller}/${Action}?id=${id}${
-    RoomType != "" ? `&RoomType=${RoomType}` : ""
-  }`;
+  const { id, message, Area, Controller, Action, onDeleted } = Data;
+  const request = `${Url}/${Area}/${Controller}/${Action}?id=${id}`;
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>

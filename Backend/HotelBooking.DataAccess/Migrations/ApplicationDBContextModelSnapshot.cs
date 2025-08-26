@@ -189,6 +189,10 @@ namespace HotelBooking.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("updatedAt")
                         .HasColumnType("datetime2");
 
@@ -216,6 +220,7 @@ namespace HotelBooking.DataAccess.Migrations
                             Nationality = "Egyptian",
                             PhoneNumber = "01022289755",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            status = "Registered",
                             updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -233,6 +238,7 @@ namespace HotelBooking.DataAccess.Migrations
                             Nationality = "Egyptian",
                             PhoneNumber = "01144556677",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            status = "Registered",
                             updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -250,6 +256,7 @@ namespace HotelBooking.DataAccess.Migrations
                             Nationality = "American",
                             PhoneNumber = "+1-202-555-0188",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            status = "Registered",
                             updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -267,6 +274,7 @@ namespace HotelBooking.DataAccess.Migrations
                             Nationality = "Egyptian",
                             PhoneNumber = "01234567890",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            status = "Registered",
                             updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -284,6 +292,7 @@ namespace HotelBooking.DataAccess.Migrations
                             Nationality = "British",
                             PhoneNumber = "+44-7700-900123",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            status = "Registered",
                             updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
@@ -305,6 +314,12 @@ namespace HotelBooking.DataAccess.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<float>("Discount")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Dues")
+                        .HasColumnType("real");
+
                     b.Property<int>("NumberOfAdults")
                         .HasColumnType("int");
 
@@ -313,6 +328,13 @@ namespace HotelBooking.DataAccess.Migrations
 
                     b.Property<int>("NumberOfExtraBeds")
                         .HasColumnType("int");
+
+                    b.Property<float>("Paid")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ProofOfPayment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RoomId")
                         .HasColumnType("int");
@@ -342,91 +364,79 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 6,
-                            CheckInDate = new DateTime(2025, 8, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CheckOutDate = new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 1,
-                            NumberOfAdults = 2,
-                            NumberOfChildren = 1,
-                            NumberOfExtraBeds = 0,
-                            RoomId = 1,
-                            RoomType = "Single",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CheckInDate = new DateTime(2025, 8, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CheckOutDate = new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 1,
-                            NumberOfAdults = 2,
-                            NumberOfChildren = 1,
-                            NumberOfExtraBeds = 0,
-                            RoomId = 1,
-                            RoomType = "Single",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
                             Id = 1,
-                            CheckInDate = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CheckOutDate = new DateTime(2025, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 1,
-                            NumberOfAdults = 2,
-                            NumberOfChildren = 1,
-                            NumberOfExtraBeds = 0,
-                            RoomId = 1,
-                            RoomType = "Single",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 2,
                             CheckInDate = new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CheckOutDate = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 2,
-                            NumberOfAdults = 2,
-                            NumberOfChildren = 0,
-                            NumberOfExtraBeds = 1,
-                            RoomId = 2,
-                            RoomType = "Double",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CheckInDate = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CheckOutDate = new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 3,
-                            NumberOfAdults = 4,
-                            NumberOfChildren = 2,
-                            NumberOfExtraBeds = 1,
-                            RoomId = 3,
-                            RoomType = "Suite",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CheckInDate = new DateTime(2025, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CheckOutDate = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 0,
+                            CheckOutDate = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 1,
+                            Discount = 0f,
+                            Dues = 0f,
                             NumberOfAdults = 1,
                             NumberOfChildren = 0,
                             NumberOfExtraBeds = 0,
-                            RoomId = 4,
+                            Paid = 200f,
+                            ProofOfPayment = "",
+                            RoomId = 1,
                             RoomType = "Single",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CheckInDate = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 2,
+                            Discount = 0f,
+                            Dues = 0f,
+                            NumberOfAdults = 1,
+                            NumberOfChildren = 1,
+                            NumberOfExtraBeds = 0,
+                            Paid = 150f,
+                            ProofOfPayment = "",
+                            RoomId = 1,
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CheckInDate = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 9, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 3,
+                            Discount = 10f,
+                            Dues = 50f,
+                            NumberOfAdults = 2,
+                            NumberOfChildren = 1,
+                            NumberOfExtraBeds = 1,
+                            Paid = 300f,
+                            ProofOfPayment = "",
+                            RoomId = 101,
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CheckInDate = new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOutDate = new DateTime(2025, 9, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CustomerId = 4,
+                            Discount = 5f,
+                            Dues = 200f,
+                            NumberOfAdults = 4,
+                            NumberOfChildren = 2,
+                            NumberOfExtraBeds = 2,
+                            Paid = 1000f,
+                            ProofOfPayment = "",
+                            RoomId = 201,
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
-            modelBuilder.Entity("HotelBooking.Models.RoomModels.DoubleRoom", b =>
+            modelBuilder.Entity("HotelBooking.Models.RoomModels.Room", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -441,10 +451,14 @@ namespace HotelBooking.DataAccess.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Images")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
+
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
 
                     b.Property<string>("RoomNumber")
                         .IsRequired()
@@ -470,111 +484,7 @@ namespace HotelBooking.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DoubleRooms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 6,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D01",
-                            RoomType = "Double",
-                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D02",
-                            RoomType = "Double",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D03",
-                            RoomType = "Double",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D04",
-                            RoomType = "Double",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Capacity = 2,
-                            Floor = 2,
-                            IsAvailable = true,
-                            RoomNumber = "D05",
-                            RoomType = "Double",
-                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
-                });
-
-            modelBuilder.Entity("HotelBooking.Models.RoomModels.SingleRoom", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Floor")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Images")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("RoomNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RoomType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("createdBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("updatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("updatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SingleRooms");
+                    b.ToTable("Rooms");
 
                     b.HasData(
                         new
@@ -582,159 +492,390 @@ namespace HotelBooking.DataAccess.Migrations
                             Id = 1,
                             Capacity = 1,
                             Floor = 1,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "S01",
+                            Price = 0f,
+                            RoomNumber = "S001",
                             RoomType = "Single",
-                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 2,
                             Capacity = 1,
                             Floor = 1,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "S02",
+                            Price = 0f,
+                            RoomNumber = "S002",
                             RoomType = "Single",
-                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 3,
                             Capacity = 1,
                             Floor = 1,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "S03",
+                            Price = 0f,
+                            RoomNumber = "S003",
                             RoomType = "Single",
-                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 4,
                             Capacity = 1,
                             Floor = 1,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "S04",
+                            Price = 0f,
+                            RoomNumber = "S004",
                             RoomType = "Single",
-                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 5,
                             Capacity = 1,
                             Floor = 1,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "S05",
+                            Price = 0f,
+                            RoomNumber = "S005",
                             RoomType = "Single",
-                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
-                });
-
-            modelBuilder.Entity("HotelBooking.Models.RoomModels.Suite", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Floor")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Images")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("RoomNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RoomType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("createdBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("updatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("updatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Suites");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 11,
-                            Capacity = 3,
-                            Floor = 3,
-                            IsAvailable = true,
-                            RoomNumber = "SU01",
-                            RoomType = "Suite",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = 12,
-                            Capacity = 3,
-                            Floor = 3,
+                            Id = 6,
+                            Capacity = 1,
+                            Floor = 2,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "SU02",
-                            RoomType = "Suite",
+                            Price = 0f,
+                            RoomNumber = "S006",
+                            RoomType = "Single",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = 13,
-                            Capacity = 3,
-                            Floor = 3,
+                            Id = 7,
+                            Capacity = 1,
+                            Floor = 2,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "SU03",
-                            RoomType = "Suite",
+                            Price = 0f,
+                            RoomNumber = "S007",
+                            RoomType = "Single",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = 14,
-                            Capacity = 3,
-                            Floor = 3,
+                            Id = 8,
+                            Capacity = 1,
+                            Floor = 2,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "SU04",
-                            RoomType = "Suite",
+                            Price = 0f,
+                            RoomNumber = "S008",
+                            RoomType = "Single",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = 15,
-                            Capacity = 3,
-                            Floor = 3,
+                            Id = 9,
+                            Capacity = 1,
+                            Floor = 2,
+                            Images = "",
                             IsAvailable = true,
-                            RoomNumber = "SU05",
+                            Price = 0f,
+                            RoomNumber = "S009",
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Capacity = 1,
+                            Floor = 2,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "S010",
+                            RoomType = "Single",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 101,
+                            Capacity = 2,
+                            Floor = 2,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D001",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 102,
+                            Capacity = 2,
+                            Floor = 2,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D002",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 103,
+                            Capacity = 2,
+                            Floor = 2,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D003",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 104,
+                            Capacity = 2,
+                            Floor = 2,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D004",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 105,
+                            Capacity = 2,
+                            Floor = 2,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D005",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 106,
+                            Capacity = 2,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D006",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 107,
+                            Capacity = 2,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D007",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 108,
+                            Capacity = 2,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D008",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 109,
+                            Capacity = 2,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D009",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 110,
+                            Capacity = 2,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "D010",
+                            RoomType = "Double",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 201,
+                            Capacity = 4,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU001",
                             RoomType = "Suite",
                             createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 202,
+                            Capacity = 4,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU002",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 203,
+                            Capacity = 4,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU003",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 204,
+                            Capacity = 4,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU004",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 205,
+                            Capacity = 4,
+                            Floor = 3,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU005",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 206,
+                            Capacity = 4,
+                            Floor = 4,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU006",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 207,
+                            Capacity = 4,
+                            Floor = 4,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU007",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 208,
+                            Capacity = 4,
+                            Floor = 4,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU008",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 209,
+                            Capacity = 4,
+                            Floor = 4,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU009",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 210,
+                            Capacity = 4,
+                            Floor = 4,
+                            Images = "",
+                            IsAvailable = true,
+                            Price = 0f,
+                            RoomNumber = "SU010",
+                            RoomType = "Suite",
+                            createdAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedAt = new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 

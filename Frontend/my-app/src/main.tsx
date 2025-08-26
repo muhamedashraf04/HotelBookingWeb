@@ -6,7 +6,7 @@ import Login from "./Auth/Login.tsx";
 import Register from "./Auth/Register.tsx";
 import Create from "./Customer/Create.tsx"; // Import your Create component
 import "./index.css";
-import SearchReservations from "./Reservations/Available.tsx";
+import SearchReservations from "./Reservations/SearchReservations.tsx";
 import Booking from "./Reservations/Book.tsx";
 import EditReservation from "./Reservations/EditReservation";
 import RemoveReservation from "./Reservations/Remove.tsx";

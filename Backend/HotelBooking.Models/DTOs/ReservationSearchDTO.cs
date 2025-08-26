@@ -8,8 +8,8 @@ namespace HotelBooking.Models.DTOs
 {
     public class ReservationSearchDTO
     {
-        public DateTime? CheckIn { get; set; }
-        public DateTime? CheckOut { get; set; }
-        public string RoomType { get; set; }
+        public DateTime? CheckInDate { get; set; }
+        public DateTime? CheckOutDate { get; set; }
+        public string RoomType { get; set; } = "";
     }
 }

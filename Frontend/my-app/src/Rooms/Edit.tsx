@@ -32,7 +32,7 @@ export type Room = {
   floor: number;
   capacity: number;
   isAvailable: boolean;
-  roomType: "Single" | "Double" | "Suite" | string;
+  roomType: string;
 };
 
 const ITEMS_PER_PAGE = 20;
@@ -112,7 +112,6 @@ const Edit = () => {
       });
       toast.success("Room updated");
 
-      // update locally by ID (do not require roomType match)
       setRooms((prev) =>
         prev.map((r) => (r.id === editDraft.id ? { ...editDraft } : r))
       );
@@ -195,7 +194,6 @@ const Edit = () => {
                           Area="Admin"
                           Controller="Room"
                           Action="Remove"
-                          RoomType={`${room.roomType}`}
                           onDeleted={() => {
                             setRooms((prev) =>
                               prev.filter((r) => r.id !== room.id)
@@ -377,5 +375,4 @@ const Edit = () => {
     </>
   );
 };
-
 export default Edit;
