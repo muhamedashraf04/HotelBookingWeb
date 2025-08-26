@@ -89,9 +89,38 @@ const SearchReservations = () => {
       return;
     }
 
+    // Parse the local time string (e.g., "12:00")
+    const [checkInHours, checkInMinutes] = checkInTime.split(":").map(Number);
+    const [checkOutHours, checkOutMinutes] = checkOutTime
+      .split(":")
+      .map(Number);
+
+    // Create UTC Date objects using Date.UTC()
+    const checkInUTC = new Date(
+      Date.UTC(
+        checkInDate.getFullYear(),
+        checkInDate.getMonth(),
+        checkInDate.getDate(),
+        checkInHours,
+        checkInMinutes,
+        0 // seconds
+      )
+    );
+
+    const checkOutUTC = new Date(
+      Date.UTC(
+        checkOutDate.getFullYear(),
+        checkOutDate.getMonth(),
+        checkOutDate.getDate(),
+        checkOutHours,
+        checkOutMinutes,
+        0 // seconds
+      )
+    );
+
     const body = {
-      checkIn: new Date(`${checkInDate.toDateString()} ${checkInTime}`),
-      checkOut: new Date(`${checkOutDate.toDateString()} ${checkOutTime}`),
+      checkIn: checkInUTC, // ✅ This date is correctly in UTC
+      checkOut: checkOutUTC, // ✅ This date is correctly in UTC
       roomType: roomType,
     };
 
@@ -107,7 +136,7 @@ const SearchReservations = () => {
       const data: Room[] = response.data;
 
       if (data.length === 0) {
-        ErrorToast("No available rooms for the selected dates."); // fires once per search
+        ErrorToast("No available rooms for the selected dates.");
       }
 
       setRooms(data);
@@ -124,8 +153,17 @@ const SearchReservations = () => {
       return new Date(); // fallback to now
     }
     const [hours, minutes] = time.split(":").map(Number);
-    const newDate = new Date(date);
-    newDate.setHours(hours, minutes, 0, 0);
+    // Create a date in UTC
+    const newDate = new Date(
+      Date.UTC(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        hours,
+        minutes,
+        0
+      )
+    );
     return newDate;
   };
   return (

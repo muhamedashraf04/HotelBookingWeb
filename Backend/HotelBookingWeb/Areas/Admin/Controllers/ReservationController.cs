@@ -1,6 +1,7 @@
 ﻿using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
+using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelManagment.Controllers;
@@ -82,7 +83,9 @@ public class ReservationController : Controller
         {
             return NotFound("Check-in date must be before Check-out date.");
         }
-        List<int> notAv = _unitOfWork.Reservations.GetAll(r => !(rsd.CheckOut <= r.CheckInDate || rsd.CheckIn >= r.CheckOutDate)).Select(r => r.RoomId).ToList();
+        List<int> notAv = _unitOfWork.Reservations.GetAll(r => !(rsd.CheckOut <= r.CheckInDate || 
+                                                                 rsd.CheckIn >= r.CheckOutDate))
+                                                                .Select(r => r.RoomId).ToList();
 
         if (rsd.RoomType == "Single")
         {
@@ -102,7 +105,7 @@ public class ReservationController : Controller
             return Ok(availableRooms);
         }
 
-        return Ok("Omda");
+        return BadRequest("Omda");
     }
     [HttpGet]
     public IActionResult SearchByName([FromBody] GuestName Name)
@@ -130,13 +133,20 @@ public class ReservationController : Controller
         {
             return BadRequest("Check-in date must be before Check-out date.");
         }
-        var sameRoom = _unitOfWork.Reservations.Get(r => r.RoomId == reservation.RoomId);
-        if (sameRoom != null)
+        var sameRoom = _unitOfWork.Reservations.GetAll(r =>r.RoomId==reservation.RoomId && !(reservation.CheckOutDate <= r.CheckInDate || reservation.CheckInDate >= r.CheckOutDate)).ToList();
+        if(!sameRoom.Any())
         {
-            if (reservation.CheckInDate < sameRoom.CheckOutDate &&
-                reservation.CheckOutDate > sameRoom.CheckInDate)
+            return BadRequest("NO ROOMS Av");
+        }
+        foreach (var room in sameRoom)
+        {
+            if (sameRoom != null)
             {
-                return BadRequest("Room is already assigned in this Date");
+                if (reservation.CheckInDate <= room.CheckOutDate &&
+                    reservation.CheckOutDate >= room.CheckInDate)
+                {
+                    return BadRequest("Room is already assigned in this Date");
+                }
             }
         }
         if (ModelState.IsValid)

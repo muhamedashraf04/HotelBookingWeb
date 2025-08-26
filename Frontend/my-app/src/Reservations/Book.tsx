@@ -46,14 +46,21 @@ function Booking() {
   );
 
   const formatDateTimeLocal = (date: Date | string | undefined) => {
-    if (!date) return "";
-    const d = new Date(date);
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
-      d.getDate()
-    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
+  if (!date) {
+    toast.error("No date provided.");
+    return "";
+  }
 
+  // Create a Date object from the input. This correctly parses the UTC time.
+  const d = new Date(date);
+
+  // Format the date in UTC, NOT local time.
+  // Use getUTC methods to get the hours/minutes as they are in UTC.
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
+    d.getUTCDate()
+  )}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+};
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
