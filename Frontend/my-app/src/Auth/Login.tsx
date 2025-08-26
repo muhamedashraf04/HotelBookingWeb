@@ -28,16 +28,20 @@ function Login() {
     setLoading(true);
 
     try {
+      console.log("Before");
       const res = await axios.post(`${Url}/api/auth/login`, form);
+
+      console.log("After");
       Cookies.set("token", res.data.token, { expires: 1 });
 
+      console.log("After2");
       toast.success("Login successful 🎉", {
         description: "Redirecting...",
       });
 
       setTimeout(() => {
         window.location.href = "/";
-      }, 1200);
+      }, 5000);
     } catch (err: any) {
       if (err.response) {
         toast.error("Login failed", {

@@ -27,8 +27,11 @@ const NavbarAuthButtons = () => {
 
   const handleLogout = () => {
     Cookies.remove("token");
-    navigate("/login"); // Redirect to login page after logout
+    navigate("/login");
   };
+
+  const buttonClass =
+    "cursor-pointer font-bold outline-4 outline-blue-500 bg-blue-500/30 hover:bg-blue-500/20 text-black";
 
   return (
     <div className="flex gap-3 items-center">
@@ -38,20 +41,14 @@ const NavbarAuthButtons = () => {
             <span className="font-bold">{username}</span>
             <span className="text-sm text-gray-500">{role}</span>
           </div>
-          <Button
-            variant="default"
-            className="cursor-pointer font-bold outline-4 outline-blue-500 bg-blue-500/30 hover:bg-blue-500/20 text-black"
-            onClick={handleLogout}
-          >
+          <Button className={buttonClass} onClick={handleLogout}>
             Logout
           </Button>
         </>
       ) : (
         <>
           <Link to="/login">
-            <Button variant="outline" className="cursor-pointer font-bold">
-              Login
-            </Button>
+            <Button className={buttonClass}>Login</Button>
           </Link>
           <Link to="/register">
             <Button className="cursor-pointer font-bold">Register</Button>
