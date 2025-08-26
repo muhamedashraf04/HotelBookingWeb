@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250825085846_Authenication")]
-    partial class Authenication
+    [Migration("20250825133318_SeedAdmin2")]
+    partial class SeedAdmin2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -66,6 +66,20 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Admins");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "Admin@HMS.com",
+                            PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
+                            Role = "Admin",
+                            UserName = "Admin",
+                            createdAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "Server",
+                            updatedAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedBy = "Server"
+                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.Auth.User", b =>

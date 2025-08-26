@@ -59,7 +59,7 @@ const getRoomBadgeClasses = (type: string) => {
       return "bg-emerald-100 text-emerald-950";
   }
 };
-const Available = () => {
+const SearchReservations = () => {
   const [checkInDate, setCheckInDate] = React.useState<Date | undefined>();
   const [checkOutDate, setCheckOutDate] = React.useState<Date | undefined>();
   const [checkInOpen, setCheckInOpen] = React.useState(false);
@@ -138,10 +138,12 @@ const Available = () => {
         </h1>
 
         {/* Inputs in a row */}
-        <div className="flex flex-wrap justify-center gap-4 mt-4 items-end">
+        <div className="flex flex-wrap justify-center gap-4 mt-10 mb-10 items-end scale-115">
           {/* Check-in Date */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="check-in-date">Check-in Date</Label>
+            <Label htmlFor="check-in-date" className="font-semibold ml-1">
+              Check-in Date
+            </Label>
             <Popover open={checkInOpen} onOpenChange={setCheckInOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -175,7 +177,9 @@ const Available = () => {
 
           {/* Check-in Time */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="check-in-time">Check-in Time</Label>
+            <Label htmlFor="check-in-time" className="font-semibold ml-1">
+              Check-in Time
+            </Label>
             <Input
               type="time"
               id="check-in-time"
@@ -188,7 +192,9 @@ const Available = () => {
 
           {/* Check-out Date */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="check-out-date">Check-out Date</Label>
+            <Label htmlFor="check-out-date" className="font-semibold ml-1">
+              Check-out Date
+            </Label>
             <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -226,7 +232,9 @@ const Available = () => {
 
           {/* Check-out Time */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="check-out-time">Check-out Time</Label>
+            <Label htmlFor="check-out-time" className="font-semibold ml-1">
+              Check-out Time
+            </Label>
             <Input
               type="time"
               id="check-out-time"
@@ -238,8 +246,8 @@ const Available = () => {
           </div>
 
           {/* Room Type Combobox */}
-          <div className="flex flex-col gap-2">
-            <Label>Room Type</Label>
+          <div className="flex flex-col gap-2 ">
+            <Label className="font-semibold ml-1">Room Type</Label>
             <Popover open={roomTypeOpen} onOpenChange={setRoomTypeOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -297,7 +305,7 @@ const Available = () => {
           </div>
         </div>
         {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
           {loading ? (
             Array.from({ length: 4 }).map((_, idx) => (
               <div
@@ -337,13 +345,17 @@ const Available = () => {
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-xl">Floor: {room.floor}</p>
-                        <p className="text-xl">Capacity: {room.capacity}</p>
+                        <p className="text-xl font-semibold">
+                          Floor : {room.floor}
+                        </p>
+                        <p className="text-xl font-semibold">
+                          Capacity : {room.capacity}
+                        </p>
                       </div>
                     </div>
                   </AccordionTrigger>
 
-                  <AccordionContent className="mt-4 flex flex-col gap-4">
+                  <AccordionContent className="m-4 mb-0 flex flex-col gap-4">
                     <Button
                       className={`w-full ${
                         room.isAvailable
@@ -377,4 +389,4 @@ const Available = () => {
   );
 };
 
-export default Available;
+export default SearchReservations;

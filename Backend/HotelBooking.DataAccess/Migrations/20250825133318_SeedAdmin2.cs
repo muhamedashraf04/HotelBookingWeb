@@ -8,11 +8,31 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBooking.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class SeedAdmin2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Admins",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Admins", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Customers",
                 columns: table => new
@@ -63,6 +83,26 @@ namespace HotelBooking.DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DoubleRooms", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TokenHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -133,16 +173,42 @@ namespace HotelBooking.DataAccess.Migrations
                     table.PrimaryKey("PK_Suites", x => x.Id);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Admins",
+                columns: new[] { "Id", "Email", "PasswordHash", "Role", "UserName", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                values: new object[] { 1, "Admin@HMS.com", "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8", "Admin", "Admin", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" });
+
             migrationBuilder.InsertData(
                 table: "Customers",
                 columns: new[] { "Id", "Address", "Age", "BirthDate", "Email", "IdentificationAttachment", "IdentificationNumber", "IdentificationType", "IsMarried", "MarriageCertificateAttachment", "MarriageCertificateNumber", "MarriedToCustomerId", "Name", "Nationality", "PhoneNumber", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 1, "Cairo, Egypt", 0, new DateOnly(1995, 3, 12), "john.ahmady@gmail.com", "id1.jpg", "30105060784512", "National ID", false, null, null, null, "John El Ahmady", "Egyptian", "01022289755", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2258), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 2, "Giza, Egypt", 0, new DateOnly(1997, 7, 21), "sara.mahmoud@gmail.com", "passport2.jpg", "A23456789", "Passport", false, null, null, null, "Sara Mahmoud", "Egyptian", "01144556677", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2280), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 3, "New York, USA", 0, new DateOnly(1990, 11, 4), "m.smith@example.com", "passport3.png", "X98765432", "Passport", false, null, null, null, "Michael Smith", "American", "+1-202-555-0188", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2284), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 4, "Alexandria, Egypt", 0, new DateOnly(1998, 1, 1), "fatima.ali@example.com", "id4.png", "29801011234567", "National ID", false, null, null, null, "Fatima Ali", "Egyptian", "01234567890", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2288), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 5, "London, UK", 0, new DateOnly(1988, 5, 30), "david.johnson@example.co.uk", "dl5.pdf", "DLUK998877", "Driver License", false, null, null, null, "David Johnson", "British", "+44-7700-900123", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(2464), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
+                    { 1, "Cairo, Egypt", 0, new DateOnly(1995, 3, 12), "john.ahmady@gmail.com", "id1.jpg", "30105060784512", "National ID", false, null, null, null, "John El Ahmady", "Egyptian", "01022289755", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 2, "Giza, Egypt", 0, new DateOnly(1997, 7, 21), "sara.mahmoud@gmail.com", "passport2.jpg", "A23456789", "Passport", false, null, null, null, "Sara Mahmoud", "Egyptian", "01144556677", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 3, "New York, USA", 0, new DateOnly(1990, 11, 4), "m.smith@example.com", "passport3.png", "X98765432", "Passport", false, null, null, null, "Michael Smith", "American", "+1-202-555-0188", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 4, "Alexandria, Egypt", 0, new DateOnly(1998, 1, 1), "fatima.ali@example.com", "id4.png", "29801011234567", "National ID", false, null, null, null, "Fatima Ali", "Egyptian", "01234567890", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 5, "London, UK", 0, new DateOnly(1988, 5, 30), "david.johnson@example.co.uk", "dl5.pdf", "DLUK998877", "Driver License", false, null, null, null, "David Johnson", "British", "+44-7700-900123", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
 
             migrationBuilder.InsertData(
@@ -150,11 +216,11 @@ namespace HotelBooking.DataAccess.Migrations
                 columns: new[] { "Id", "Capacity", "Floor", "Images", "IsAvailable", "RoomNumber", "RoomType", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 6, 2, 2, null, true, "D01", "Double", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9607), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 7, 2, 2, null, true, "D02", "Double", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9624), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 8, 2, 2, null, true, "D03", "Double", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9627), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 9, 2, 2, null, true, "D04", "Double", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9630), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 10, 2, 2, null, true, "D05", "Double", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(9632), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
+                    { 6, 2, 2, null, true, "D01", "Double", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 7, 2, 2, null, true, "D02", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 8, 2, 2, null, true, "D03", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 9, 2, 2, null, true, "D04", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 10, 2, 2, null, true, "D05", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
 
             migrationBuilder.InsertData(
@@ -162,12 +228,12 @@ namespace HotelBooking.DataAccess.Migrations
                 columns: new[] { "Id", "CheckInDate", "CheckOutDate", "CustomerId", "NumberOfAdults", "NumberOfChildren", "NumberOfExtraBeds", "RoomId", "RoomType", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 2, 1, 0, 1, "Single", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2516), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 2, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 2, 0, 1, 2, "Double", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2522), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 3, new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), 3, 4, 2, 1, 3, "Suite", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2525), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 4, new DateTime(2025, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 0, 1, 0, 0, 4, "Single", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2528), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 6, new DateTime(2025, 8, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 2, 1, 0, 1, "Single", new DateTime(2025, 8, 25, 10, 15, 43, 819, DateTimeKind.Local).AddTicks(2065), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 7, new DateTime(2025, 8, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 2, 1, 0, 1, "Single", new DateTime(2025, 8, 25, 10, 15, 43, 821, DateTimeKind.Local).AddTicks(2495), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
+                    { 1, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 8, 28, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 2, 1, 0, 1, "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 2, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 2, 0, 1, 2, "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 3, new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), 3, 4, 2, 1, 3, "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 4, new DateTime(2025, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 0, 1, 0, 0, 4, "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 6, new DateTime(2025, 8, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 2, 1, 0, 1, "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 7, new DateTime(2025, 8, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 2, 1, 0, 1, "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
 
             migrationBuilder.InsertData(
@@ -187,11 +253,11 @@ namespace HotelBooking.DataAccess.Migrations
                 columns: new[] { "Id", "Capacity", "Floor", "Images", "IsAvailable", "RoomNumber", "RoomType", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 11, 3, 3, null, true, "SU01", "Suite", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(130), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 12, 3, 3, null, true, "SU02", "Suite", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(140), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 13, 3, 3, null, true, "SU03", "Suite", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(142), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 14, 3, 3, null, true, "SU04", "Suite", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(145), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 15, 3, 3, null, true, "SU05", "Suite", new DateTime(2025, 8, 25, 10, 15, 43, 822, DateTimeKind.Local).AddTicks(147), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
+                    { 11, 3, 3, null, true, "SU01", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 12, 3, 3, null, true, "SU02", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 13, 3, 3, null, true, "SU03", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 14, 3, 3, null, true, "SU04", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 15, 3, 3, null, true, "SU05", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
         }
 
@@ -199,10 +265,16 @@ namespace HotelBooking.DataAccess.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Admins");
+
+            migrationBuilder.DropTable(
                 name: "Customers");
 
             migrationBuilder.DropTable(
                 name: "DoubleRooms");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "Reservations");
@@ -212,6 +284,9 @@ namespace HotelBooking.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "Suites");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

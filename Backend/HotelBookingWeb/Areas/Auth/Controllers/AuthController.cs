@@ -79,7 +79,7 @@ public class AuthController : ControllerBase
             return BadRequest("Email is already taken.");
         string currentAdminUserName = User.Identity?.Name;
         // create admin
-        var admin = new Admin
+        var admin = new HotelBooking.Models.Auth.Admin
         {
             UserName = dto.UserName,
             Email = dto.Email,
@@ -97,12 +97,29 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public IActionResult Login(LoginDto dto)
     {
-        var user = _unitOfWork.Users.Get(u => u.UserName == dto.UserName);
+        var try1 = _unitOfWork.Users.Get(u => u.UserName == dto.UserName);
+        HotelBooking.Models.Auth.Admin try2 = null;
 
-        if (user == null)
-            return Unauthorized("Invalid username or email.");
+        var user = null as BaseUser;
 
-        if (!PasswordHasher.Verify(dto.Password, user.PasswordHash))
+        if (try1 == null)
+        {
+            try2 = _unitOfWork.Admins.Get(u => u.UserName == dto.UserName);
+            if (try2 == null)
+            {
+                return Unauthorized("Invalid username or email.");
+            }
+            else
+            {
+                user = try2 as HotelBooking.Models.Auth.Admin;
+            }
+        }
+        else
+        {
+            user = try1 as User;
+        }
+
+        if (user == null || !PasswordHasher.Verify(dto.Password, user.PasswordHash))
             return Unauthorized("Invalid password.");
 
         var claims = new List<Claim>
@@ -128,4 +145,5 @@ public class AuthController : ControllerBase
 
         return Ok(new { token = jwt });
     }
+
 }

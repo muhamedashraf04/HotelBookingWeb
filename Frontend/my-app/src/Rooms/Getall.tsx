@@ -77,20 +77,20 @@ const Getall = () => {
   return (
     <>
       <Header />
-      <div className="p-8">
+      <div className="ml-8 mr-8">
         <Toaster />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {loading
             ? skeletons.map((_, idx) => (
-              <div key={idx} className="border rounded p-4 shadow space-y-2">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ))
+                <div key={idx} className="border rounded p-4 shadow space-y-2">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))
             : paginatedRooms.length === 0
-              ? toast.error("No rooms available.")
-              : paginatedRooms.map((room) => (
+            ? toast.error("No rooms available.")
+            : paginatedRooms.map((room) => (
                 <Accordion
                   type="single"
                   collapsible
@@ -134,10 +134,11 @@ const Getall = () => {
 
                       <AccordionContent className="mt-4 flex flex-col gap-4">
                         <Button
-                          className={`w-full ${room.isAvailable
+                          className={`w-full ${
+                            room.isAvailable
                               ? "cursor-pointer"
                               : "cursor-not-allowed"
-                            }`}
+                          }`}
                           onClick={() =>
                             toast.loading(`Booking Room ${room.roomNumber}`)
                           }
