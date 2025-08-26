@@ -8,11 +8,10 @@ import Create from "./Customer/Create.tsx"; // Import your Create component
 import "./index.css";
 import SearchReservations from "./Reservations/Available.tsx";
 import Booking from "./Reservations/Book.tsx";
+import EditReservation from "./Reservations/EditReservation";
 import RemoveReservation from "./Reservations/Remove.tsx";
 import CreateRoom from "./Rooms/CreateRoom.tsx";
 import Edit from "./Rooms/Edit.tsx";
-import Getall from "./Rooms/Getall.tsx";
-import EditReservation from "./Reservations/EditReservation";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -23,7 +22,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/Customer/Create" element={<Create />} />
         <Route path="/Rooms/Create" element={<CreateRoom />} />
         <Route path="/Rooms/Edit" element={<Edit />} />
-        <Route path="/Rooms/Get-All" element={<Getall />} />
         <Route path="/Reservations/Search" element={<SearchReservations />} />
         <Route path="/Reservations/Booking" element={<Booking />} />
         <Route path="/Reservations/Remove" element={<RemoveReservation />} />
