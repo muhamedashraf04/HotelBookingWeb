@@ -11,12 +11,7 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
         ICustomerRepository Customers { get; }
         IReservationRepository Reservations { get; }
 
-        ISingleRoomRepository SingleRooms { get; }
-
-        IDoubleRoomRepository DoubleRooms { get; }
-
-        ISuiteRepository Suites { get; }
-
+        IRoomRepository Rooms { get; }
         IUserRepository Users { get; }
 
         IAdminRepository Admins { get; }

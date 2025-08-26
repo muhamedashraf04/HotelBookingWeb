@@ -24,6 +24,12 @@ public class Reservation : BaseEntity
     [DataType(DataType.Date)]
     public DateTime CheckOutDate { get; set; }
 
+    public float Paid { get; set; } = 0;
+    public float Dues {  get; set; } = 0;
+
+    public string ProofOfPayment { get; set; } = "";
+
+    public float Discount { get; set; } = 0;
 
     public int NumberOfAdults { get; set; }
 

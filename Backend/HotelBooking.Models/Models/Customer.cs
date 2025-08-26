@@ -38,4 +38,6 @@ public class Customer : BaseEntity
     public string? MarriageCertificateAttachment { get; set; }
 
     public string? MarriedToCustomerId { get; set; }
+
+    public string status { get; set; } = "Registered";
 }

@@ -15,9 +15,7 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<SingleRoom> SingleRooms { get; set; }
-        public DbSet<DoubleRoom> DoubleRooms { get; set; }
-        public DbSet<Suite> Suites { get; set; }
+        public DbSet<Room> Rooms { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
 
@@ -26,110 +24,126 @@ namespace HotelBooking.DataAccess.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Reservation>().HasData(
-                new Reservation
-                {
-                    Id = 6,
-                    CustomerId = 1,
-                    RoomId = 1,
-                    RoomType = "Single",
-                    CheckInDate = new DateTime(2025, 8, 5),
-                    CheckOutDate = new DateTime(2025, 8, 10),
-                    NumberOfAdults = 2,
-                    NumberOfChildren = 1,
-                    NumberOfExtraBeds = 0,
-                    createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
-                },
-                new Reservation
-                {
-                    Id = 7,
-                    CustomerId = 1,
-                    RoomId = 1,
-                    RoomType = "Single",
-                    CheckInDate = new DateTime(2025, 8, 6),
-                    CheckOutDate = new DateTime(2025, 8, 10),
-                    NumberOfAdults = 2,
-                    NumberOfChildren = 1,
-                    NumberOfExtraBeds = 0,
-                    createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
-                },
-    new Reservation
-    {
-        Id = 1,
-        CustomerId = 1,
-        RoomId = 1,
-        RoomType = "Single",
-        CheckInDate = new DateTime(2025, 8, 25),
-        CheckOutDate = new DateTime(2025, 8, 28),
-        NumberOfAdults = 2,
-        NumberOfChildren = 1,
-        NumberOfExtraBeds = 0,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
-    },
-    new Reservation
-    {
-        Id = 2,
-        CustomerId = 2,
-        RoomId = 2,
-        RoomType = "Double",
-        CheckInDate = new DateTime(2025, 9, 1),
-        CheckOutDate = new DateTime(2025, 9, 5),
-        NumberOfAdults = 2,
-        NumberOfChildren = 0,
-        NumberOfExtraBeds = 1,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
-    },
-    new Reservation
-    {
-        Id = 3,
-        CustomerId = 3,
-        RoomId = 3,
-        RoomType = "Suite",
-        CheckInDate = new DateTime(2025, 9, 10),
-        CheckOutDate = new DateTime(2025, 9, 15),
-        NumberOfAdults = 4,
-        NumberOfChildren = 2,
-        NumberOfExtraBeds = 1,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
-    },
-    new Reservation
-    {
-        Id = 4,
-        RoomId = 4,
-        RoomType = "Single",
-        CheckInDate = new DateTime(2025, 10, 1),
-        CheckOutDate = new DateTime(2025, 10, 3),
-        NumberOfAdults = 1,
-        NumberOfChildren = 0,
-        NumberOfExtraBeds = 0,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
-    }
-);
+            new Reservation
+            {
+                Id = 1,
+                CustomerId = 1, // assume seeded customer
+                RoomId = 1,     // S001 (Single)
+                RoomType = "Single",
+                CheckInDate = new DateTime(2025, 9, 1),
+                CheckOutDate = new DateTime(2025, 9, 10),
+                Paid = 200,
+                Dues = 0,
+                ProofOfPayment = "",
+                Discount = 0,
+                NumberOfAdults = 1,
+                NumberOfChildren = 0,
+                NumberOfExtraBeds = 0,
+                createdAt = new DateTime(2025, 1, 1),
+                updatedAt = new DateTime(2025, 1, 1)
+            },
+            new Reservation
+            {
+                Id = 2,
+                CustomerId = 2,
+                RoomId = 1,  // same Single room, different interval
+                RoomType = "Single",
+                CheckInDate = new DateTime(2025, 9, 12),
+                CheckOutDate = new DateTime(2025, 9, 15),
+                Paid = 150,
+                Dues = 0,
+                ProofOfPayment = "",
+                Discount = 0,
+                NumberOfAdults = 1,
+                NumberOfChildren = 1,
+                NumberOfExtraBeds = 0,
+                createdAt = new DateTime(2025, 1, 1),
+                updatedAt = new DateTime(2025, 1, 1)
+            },
+            new Reservation
+            {
+                Id = 3,
+                CustomerId = 3,
+                RoomId = 101, // D001 (Double)
+                RoomType = "Double",
+                CheckInDate = new DateTime(2025, 9, 5),
+                CheckOutDate = new DateTime(2025, 9, 8),
+                Paid = 300,
+                Dues = 50,
+                ProofOfPayment = "",
+                Discount = 10,
+                NumberOfAdults = 2,
+                NumberOfChildren = 1,
+                NumberOfExtraBeds = 1,
+                createdAt = new DateTime(2025, 1, 1),
+                updatedAt = new DateTime(2025, 1, 1)
+            },
+            new Reservation
+            {
+                Id = 4,
+                CustomerId = 4,
+                RoomId = 201, // SU001 (Suite)
+                RoomType = "Suite",
+                CheckInDate = new DateTime(2025, 9, 15),
+                CheckOutDate = new DateTime(2025, 9, 20),
+                Paid = 1000,
+                Dues = 200,
+                ProofOfPayment = "",
+                Discount = 5,
+                NumberOfAdults = 4,
+                NumberOfChildren = 2,
+                NumberOfExtraBeds = 2,
+                createdAt = new DateTime(2025, 1, 1),
+                updatedAt = new DateTime(2025, 1, 1)
+            }
+        );
+            var singleRooms = Enumerable.Range(1, 10).Select(i => new Room
+            {
+                Id = i,
+                RoomNumber = $"S{i:000}",
+                Floor = (i - 1) / 5 + 1,   // 5 rooms per floor
+                Capacity = 1,
+                RoomType = "Single",
+                IsAvailable = true,
+                Price = 0,
+                Images = "",
+                createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+                updatedAt = new DateTime(2025, 8, 25, 0, 0, 0)
+            });
 
-            modelBuilder.Entity<SingleRoom>().HasData(
-           new SingleRoom { Id = 1, RoomNumber = "S01", Floor = 1, IsAvailable = true },
-           new SingleRoom { Id = 2, RoomNumber = "S02", Floor = 1, IsAvailable = true },
-           new SingleRoom { Id = 3, RoomNumber = "S03", Floor = 1, IsAvailable = true },
-           new SingleRoom { Id = 4, RoomNumber = "S04", Floor = 1, IsAvailable = true },
-           new SingleRoom { Id = 5, RoomNumber = "S05", Floor = 1, IsAvailable = true }
-       );
+            // --- Seed Double Rooms ---
+            var doubleRooms = Enumerable.Range(1, 10).Select(i => new Room
+            {
+                Id = 100 + i,
+                RoomNumber = $"D{i:000}",
+                Floor = (i - 1) / 5 + 2,
+                Capacity = 2,
+                RoomType = "Double",
+                IsAvailable = true,
+                Price = 0,
+                Images = "",
+                createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+                updatedAt = new DateTime(2025, 8, 25, 0, 0, 0)
+            });
 
-            // Seed Double Rooms
-            modelBuilder.Entity<DoubleRoom>().HasData(
-                new DoubleRoom { Id = 6, RoomNumber = "D01", Floor = 2, IsAvailable = true,      },
-                new DoubleRoom { Id = 7, RoomNumber = "D02", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new DoubleRoom { Id = 8, RoomNumber = "D03", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new DoubleRoom { Id = 9, RoomNumber = "D04", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new DoubleRoom { Id = 10, RoomNumber = "D05", Floor = 2, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) }
-            );
+            // --- Seed Suite Rooms ---
+            var suites = Enumerable.Range(1, 10).Select(i => new Room
+            {
+                Id = 200 + i,
+                RoomNumber = $"SU{i:000}",
+                Floor = (i - 1) / 5 + 3,
+                Capacity = 4,
+                RoomType = "Suite",
+                IsAvailable = true,
+                Price = 0,
+                Images = "",
+                createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+                updatedAt = new DateTime(2025, 8, 25, 0, 0, 0)
+            });
 
-            // Seed Suite Rooms
-            modelBuilder.Entity<Suite>().HasData(
-                new Suite { Id = 11, RoomNumber = "SU01", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new Suite { Id = 12, RoomNumber = "SU02", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new Suite { Id = 13, RoomNumber = "SU03", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new Suite { Id = 14, RoomNumber = "SU04", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
-                new Suite { Id = 15, RoomNumber = "SU05", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) }
-            );
+            modelBuilder.Entity<Room>().HasData(singleRooms);
+            modelBuilder.Entity<Room>().HasData(doubleRooms);
+            modelBuilder.Entity<Room>().HasData(suites);
             modelBuilder.Entity<Admin>().HasData(
                 new Admin { Id = 1,Role = "Admin", Email = "Admin@HMS.com", createdBy = "Server", createdAt =  new DateTime(2025, 4, 25, 0, 0, 0) , updatedAt = new DateTime(2025, 4, 25, 0, 0, 0), updatedBy = "Server", UserName = "Admin", PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8" }
                 );

@@ -38,10 +38,12 @@ import { useNavigate } from "react-router-dom";
 type Room = {
   id: number;
   roomNumber: string;
+  images: string;
   floor: number;
   capacity: number;
   roomType: string;
   isAvailable: boolean;
+  price: number;
 };
 
 const roomTypes = [
@@ -54,7 +56,7 @@ const getRoomBadgeClasses = (type: string) => {
     case "Double":
       return "bg-emerald-600 text-emerald-50";
     case "Suite":
-      return "bg-cyan-800 text-cyan-50";
+      return "bg-emerald-800 text-emerald-50";
     default:
       return "bg-emerald-100 text-emerald-950";
   }
@@ -119,8 +121,8 @@ const SearchReservations = () => {
     );
 
     const body = {
-      checkIn: checkInUTC, // ✅ This date is correctly in UTC
-      checkOut: checkOutUTC, // ✅ This date is correctly in UTC
+      checkInDate: checkInUTC, // ✅ This date is correctly in UTC
+      checkOutDate: checkOutUTC, // ✅ This date is correctly in UTC
       roomType: roomType,
     };
 
@@ -130,7 +132,8 @@ const SearchReservations = () => {
         `${Url}/Admin/Reservation/Search`,
         body
       );
-
+      console.log(body);
+      console.log(response.data);
       if (response.status !== 200) throw new Error("Failed to fetch rooms");
 
       const data: Room[] = response.data;
@@ -365,11 +368,14 @@ const SearchReservations = () => {
                 type="single"
                 collapsible
                 key={room.roomNumber}
-                className="border rounded-xl shadow transition"
+                className="border rounded-xl shadow transition "
               >
-                <AccordionItem value={`room-${room.roomNumber}`}>
-                  <AccordionTrigger className="p-4">
-                    <div className="flex justify-between items-center w-full">
+                <AccordionItem
+                  value={`room-${room.roomNumber}`}
+                  className=" hover:bg-gray-300/30 rounded-xl"
+                >
+                  <AccordionTrigger className="p-4 cursor-pointer">
+                    <div className="flex justify-between items-center w-full ">
                       <div>
                         <h2 className="text-2xl font-bold">
                           {room.roomNumber}
@@ -395,7 +401,7 @@ const SearchReservations = () => {
 
                   <AccordionContent className="m-4 mb-0 flex flex-col gap-4">
                     <Button
-                      className={`w-full ${
+                      className={`w-full  ${
                         room.isAvailable
                           ? "cursor-pointer"
                           : "cursor-not-allowed"

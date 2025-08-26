@@ -3,6 +3,7 @@ using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
 using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace HotelManagment.Controllers;
 
@@ -74,39 +75,90 @@ public class ReservationController : Controller
     [HttpPost]
     public IActionResult Search([FromBody] ReservationSearchDTO rsd)
     {
-        if (String.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckIn.HasValue || !rsd.CheckOut.HasValue)
+        if (string.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckInDate.HasValue || !rsd.CheckOutDate.HasValue)
         {
-            return NotFound("Invalid search parameters. Please provide valid CheckIn, CheckOut dates and RoomType.");
+            return BadRequest("Invalid search parameters. Please provide valid CheckIn, CheckOut dates and RoomType.");
         }
 
-        if (rsd.CheckIn >= rsd.CheckOut)
+        if (rsd.CheckInDate >= rsd.CheckOutDate)
         {
-            return NotFound("Check-in date must be before Check-out date.");
-        }
-        List<int> notAv = _unitOfWork.Reservations.GetAll(r => !(rsd.CheckOut <= r.CheckInDate || 
-                                                                 rsd.CheckIn >= r.CheckOutDate))
-                                                                .Select(r => r.RoomId).ToList();
-
-        if (rsd.RoomType == "Single")
-        {
-            var availableRooms = _unitOfWork.SingleRooms.GetAll(r => !notAv.Contains(r.Id));
-            return Ok(availableRooms);
-
-        }
-        else if (rsd.RoomType == "Double")
-        {
-            var availableRooms = _unitOfWork.DoubleRooms.GetAll(r => !notAv.Contains(r.Id));
-            return Ok(availableRooms);
-
-        }
-        else if (rsd.RoomType == "Suite")
-        {
-            var availableRooms = _unitOfWork.Suites.GetAll(r => !notAv.Contains(r.Id));
-            return Ok(availableRooms);
+            return BadRequest("Check-in date must be before Check-out date.");
         }
 
-        return BadRequest("Omda");
+        var reservations = _unitOfWork.Reservations.GetAll(
+            r => r.RoomType == rsd.RoomType
+        );
+        var roomReservations = reservations
+            .GroupBy(r => r.RoomId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(r => new
+                {
+                    CheckInDate = r.CheckInDate,
+                    CheckOutDate = r.CheckOutDate
+                }).OrderBy(i => i.CheckInDate).ToList()
+            );
+
+        var unavailablerooms = new List<int>();
+
+        foreach (var keyValuePair in roomReservations)
+        {
+            int roomId = keyValuePair.Key;
+            var intervals = keyValuePair.Value;
+            Console.WriteLine("#############");
+            Console.WriteLine(rsd.CheckInDate);
+            Console.WriteLine(intervals[0].CheckOutDate);
+            Console.WriteLine("#############");
+
+            bool canFit = false;
+
+            // Case A: before first reservation
+            if (rsd.CheckOutDate <= intervals[0].CheckInDate)
+            {
+                canFit = true;
+            }
+
+            // Case B: after last reservation
+            if (!canFit && rsd.CheckInDate >= intervals.Last().CheckOutDate)
+            {
+                canFit = true;
+            }
+            // Case C: between reservations
+            for (int j = 0; j < intervals.Count - 1 && !canFit; j++)
+            {
+                var current = intervals[j];
+                var next = intervals[j + 1];
+
+                if (rsd.CheckInDate >= current.CheckOutDate && rsd.CheckOutDate <= next.CheckInDate)
+                {
+                    canFit = true;
+                }
+            }
+
+            
+
+            if (!canFit)
+            {
+                var room = _unitOfWork.Rooms.Get(r => r.Id == roomId);
+
+                if (room != null)
+                {
+                    unavailablerooms.Add(room.Id);
+                    
+                }
+            }
+        }
+
+        var availableRooms = _unitOfWork.Rooms.GetAll(u => u.RoomType == rsd.RoomType && !unavailablerooms.Contains(u.Id));
+        if (!availableRooms.Any())
+        {
+            return NotFound("No available rooms match your search.");
+        }
+
+        return Ok(availableRooms);
     }
+
+
     [HttpGet]
     public IActionResult SearchByName([FromBody] GuestName Name)
     {
@@ -122,41 +174,94 @@ public class ReservationController : Controller
         }
         return Ok(IsAvailable);
     }
+    private static readonly SemaphoreSlim _reservationLock = new SemaphoreSlim(1, 1);
+
     [HttpPost]
-    public IActionResult Create([FromBody] Reservation reservation)
+    public async Task<IActionResult> Create([FromBody] Reservation reservation)
     {
         if (reservation == null)
         {
             return BadRequest("Reservation data is required.");
         }
+
         if (reservation.CheckInDate >= reservation.CheckOutDate)
         {
             return BadRequest("Check-in date must be before Check-out date.");
         }
-        var sameRoom = _unitOfWork.Reservations.GetAll(r =>r.RoomId==reservation.RoomId && !(reservation.CheckOutDate <= r.CheckInDate || reservation.CheckInDate >= r.CheckOutDate)).ToList();
-        if(!sameRoom.Any())
+
+        // try to acquire lock (wait up to 2 seconds, tweak if needed)
+        if (!await _reservationLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            return BadRequest("NO ROOMS Av");
+            return StatusCode(429, "Too many requests. Please wait and try again."); // 429 = Too Many Requests
         }
-        foreach (var room in sameRoom)
+
+        try
         {
-            if (sameRoom != null)
+            // Fetch all reservations for this room
+            var reservations = _unitOfWork.Reservations.GetAll(r => r.RoomId == reservation.RoomId)
+                                                       .OrderBy(r => r.CheckInDate)
+                                                       .ToList();
+
+            // If no existing reservations, room is free
+            if (!reservations.Any())
             {
-                if (reservation.CheckInDate <= room.CheckOutDate &&
-                    reservation.CheckOutDate >= room.CheckInDate)
+                if (ModelState.IsValid)
                 {
-                    return BadRequest("Room is already assigned in this Date");
+                    _unitOfWork.Reservations.Create(reservation);
+                    _unitOfWork.Save();
+                    return Ok("Reservation created successfully.");
+                }
+                return BadRequest("Invalid reservation data.");
+            }
+
+            bool canFit = false;
+
+            // Case A: before first reservation
+            if (reservation.CheckOutDate <= reservations.First().CheckInDate)
+            {
+                canFit = true;
+            }
+
+            // Case B: after last reservation
+            if (!canFit && reservation.CheckInDate >= reservations.Last().CheckOutDate)
+            {
+                canFit = true;
+            }
+
+            // Case C: between reservations
+            for (int i = 0; i < reservations.Count - 1 && !canFit; i++)
+            {
+                var current = reservations[i];
+                var next = reservations[i + 1];
+
+                if (reservation.CheckInDate >= current.CheckOutDate &&
+                    reservation.CheckOutDate <= next.CheckInDate)
+                {
+                    canFit = true;
                 }
             }
+
+            if (!canFit)
+            {
+                return BadRequest("Room is already booked in this interval.");
+            }
+
+            // Save new reservation
+            if (ModelState.IsValid)
+            {
+                _unitOfWork.Reservations.Create(reservation);
+                _unitOfWork.Save();
+                return Ok("Reservation created successfully.");
+            }
+
+            return BadRequest("Invalid reservation data. Please check the input and try again.");
         }
-        if (ModelState.IsValid)
+        finally
         {
-            _unitOfWork.Reservations.Create(reservation);
-            _unitOfWork.Save();
-            return Ok("Reservation created successfully.");
+            _reservationLock.Release(); // always release!
         }
-        return BadRequest("Invalid reservation data. Please check the input and try again.");
     }
+
 
     [HttpPatch]
     public IActionResult Edit([FromBody] Reservation reservation)
@@ -194,20 +299,20 @@ public class ReservationController : Controller
         _unitOfWork.Save();
         return Ok("Reservation deleted successfully.");
     }
-    [HttpPut]
-    public IActionResult Update([FromBody] ReservationUpdateDto dto)
-    {
-        var reservation = _unitOfWork.Reservations.Get(r => r.Id == dto.Id);
-        if (reservation == null) return NotFound();
+    //[HttpPut]
+    //public IActionResult Update([FromBody] ReservationUpdateDto dto)
+    //{
+    //    var reservation = _unitOfWork.Reservations.Get(r => r.Id == dto.Id);
+    //    if (reservation == null) return NotFound();
 
-        // Update fields
-        reservation.CheckInDate = dto.CheckIn;
-        reservation.CheckOutDate = dto.CheckOut;
-        reservation.RoomId = dto.RoomId;
+    //    // Update fields
+    //    reservation.CheckInDate = dto.CheckIn;
+    //    reservation.CheckOutDate = dto.CheckOut;
+    //    reservation.RoomId = dto.RoomId;
 
-        _unitOfWork.Save();
-        return Ok(reservation);
-    }
+    //    _unitOfWork.Save();
+    //    return Ok(reservation);
+    //}
 
 }
 
