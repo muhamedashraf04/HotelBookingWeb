@@ -12,6 +12,7 @@ import RemoveReservation from "./Reservations/Remove.tsx";
 import Getall from "./Rooms/Getall.tsx";
 import Remove from "./Rooms/RemoveAndEdit.tsx";
 import EditReservation from "./Reservations/EditReservation";
+import EditReservation from "./Reservations/EditReservation";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
