@@ -134,10 +134,6 @@ public class ReservationController : Controller
             return BadRequest("Check-in date must be before Check-out date.");
         }
         var sameRoom = _unitOfWork.Reservations.GetAll(r =>r.RoomId==reservation.RoomId && !(reservation.CheckOutDate <= r.CheckInDate || reservation.CheckInDate >= r.CheckOutDate)).ToList();
-        if(!sameRoom.Any())
-        {
-            return BadRequest("NO ROOMS Av");
-        }
         foreach (var room in sameRoom)
         {
             if (sameRoom != null)
