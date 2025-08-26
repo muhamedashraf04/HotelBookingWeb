@@ -1,4 +1,5 @@
-﻿using HotelBooking.Models.Models;
+﻿using HotelBooking.Models.Auth;
+using HotelBooking.Models.Models;
 using HotelBooking.Models.RoomModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,11 +11,18 @@ namespace HotelBooking.DataAccess.Data
         {
 
         }
+
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<SingleRoom> SingleRooms { get; set; }
         public DbSet<DoubleRoom> DoubleRooms { get; set; }
         public DbSet<Suite> Suites { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Reservation>().HasData(
@@ -122,6 +130,9 @@ namespace HotelBooking.DataAccess.Data
                 new Suite { Id = 14, RoomNumber = "SU04", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) },
                 new Suite { Id = 15, RoomNumber = "SU05", Floor = 3, IsAvailable = true , createdAt = new DateTime(2025, 8, 25, 0, 0, 0) }
             );
+            modelBuilder.Entity<Admin>().HasData(
+                new Admin { Id = 1,Role = "Admin", Email = "Admin@HMS.com", createdBy = "Server", createdAt =  new DateTime(2025, 4, 25, 0, 0, 0) , updatedAt = new DateTime(2025, 4, 25, 0, 0, 0), updatedBy = "Server", UserName = "Admin", PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8" }
+                );
             modelBuilder.Entity<Customer>().HasData(
 
     new Customer

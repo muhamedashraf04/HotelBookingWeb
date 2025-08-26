@@ -16,6 +16,10 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
         IDoubleRoomRepository DoubleRooms { get; }
 
         ISuiteRepository Suites { get; }
+
+        IUserRepository Users { get; }
+
+        IAdminRepository Admins { get; }
         public void Save();
     }
 }

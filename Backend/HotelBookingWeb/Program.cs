@@ -1,10 +1,15 @@
 using CloudinaryDotNet;
 using HotelBooking.DataAccess.Data;
 using HotelBooking.DataAccess.Repositories;
+using HotelBooking.DataAccess.Repositories.HotelBooking.DataAccess.Repositories;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBookingWeb;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +27,6 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -42,43 +46,54 @@ builder.Services.AddSingleton(provider =>
     var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
     return new Cloudinary(account);
 });
-
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
-builder.Services.AddScoped<ISingleRoomRepository, SingleRoomRepository>();
-builder.Services.AddScoped<IDoubleRoomRepository, DoubleRoomRepository>();
-builder.Services.AddScoped<ISuiteRepository, SuiteRepository>();
 
+var jwtSettings = builder.Configuration.GetSection("Jwt");
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
 
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
+        )
+    };
+});
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireRole("User", "Admin")
+        .Build();
 
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddSwaggerGen();
-
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+});
+builder.Services.AddControllers();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-// Use CORS middleware
 app.UseCors("MyAllowSpecificOrigins");
 app.UseHttpsRedirection();
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{area=Receptionist}/{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+app.MapControllers();
 
 
 app.Run();
