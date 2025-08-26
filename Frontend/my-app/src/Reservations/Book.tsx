@@ -44,6 +44,7 @@ function Booking() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ Added to prevent double submission
 
   const formatDateTimeLocal = (date: Date | string | undefined) => {
     if (!date) {
@@ -51,16 +52,13 @@ function Booking() {
       return "";
     }
 
-    // Create a Date object from the input. This correctly parses the UTC time.
     const d = new Date(date);
-
-    // Format the date in UTC, NOT local time.
-    // Use getUTC methods to get the hours/minutes as they are in UTC.
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
       d.getUTCDate()
     )}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
   };
+
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -81,6 +79,7 @@ function Booking() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // ✅ Prevent double click
     if (!customerId) {
       toast.error("Please select a customer");
       return;
@@ -97,6 +96,7 @@ function Booking() {
       numberOfExtraBeds: extraBeds,
     };
 
+    setIsSubmitting(true); // ✅ Disable button
     try {
       const res = await fetch(
         "http://localhost:5002/Admin/Reservation/Create",
@@ -117,6 +117,8 @@ function Booking() {
       toast.error(
         err.message || "Something went wrong while creating reservation"
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -145,23 +147,25 @@ function Booking() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="checkIn">Check-in</Label>
+              <Label id="checkInLabel" htmlFor="checkIn">Check-in</Label>
               <input
                 id="checkIn"
                 type="datetime-local"
                 value={formatDateTimeLocal(checkInDate)}
                 readOnly
+                aria-labelledby="checkInLabel" 
                 className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
               />
             </div>
 
             <div>
-              <Label htmlFor="checkOut">Check-out</Label>
+              <Label id="checkOutLabel" htmlFor="checkOut">Check-out</Label>
               <input
                 id="checkOut"
                 type="datetime-local"
                 value={formatDateTimeLocal(checkOutDate)}
                 readOnly
+                aria-labelledby="checkOutLabel"
                 className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
               />
             </div>
@@ -255,6 +259,7 @@ function Booking() {
 
           <Button
             type="submit"
+            disabled={isSubmitting}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
           >
             Confirm Booking
