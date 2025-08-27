@@ -41,9 +41,7 @@ export default function CheckoutListPage() {
     const fetchReservations = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `${Url}/Admin/CheckOut/GetCheckOutToday`
-        );
+        const response = await axios.get(`${Url}/Admin/Checkout/GetCheckedIn`);
         setReservations(response.data);
       } catch (err: any) {
         ErrorToast(
