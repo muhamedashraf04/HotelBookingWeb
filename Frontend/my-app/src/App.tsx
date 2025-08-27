@@ -115,7 +115,7 @@ export default function App() {
       const formattedEvents = reservationsWithNames.map((r) => {
         let cssClass = "";
 
-        if (r.status === "CheckedIn") {
+        if (r.status === "CheckedIn" || r.status === "Checked-In") {
           cssClass = "checkedin-event";
         } else if (r.status === "Reserved") {
           cssClass = "reserved-event";

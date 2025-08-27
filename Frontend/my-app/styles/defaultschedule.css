@@ -37,23 +37,6 @@ Theme Designer Version: 2025.06.18.39140
     --dp-scheduler-event-bg-top-color: #ffffff;
     --dp-scheduler-event-bg-bottom-color: #fafafa;
 }
-/* Default look */
-.scheduler_default_event {
-  --dp-scheduler-event-bar-bg-color: #9dc8e8;
-  --dp-scheduler-event-bar-color: #1066a8;
-}
-
-/* Checked-in status = green */
-.scheduler_default_event.checkedin-event {
-  --dp-scheduler-event-bar-bg-color: #b6e6b6;
-  --dp-scheduler-event-bar-color: #2d662d;
-}
-
-/* Reserved status = blue */
-.scheduler_default_event.reserved-event {
-  --dp-scheduler-event-bar-bg-color: #9dc8e8;
-  --dp-scheduler-event-bar-color: #1066a8;
-}
 .defaultschedule_main {
     --dp-scheduler-border-color: #c0c0c0;
     --dp-scheduler-border-inner-color: #e0e0e0;
@@ -576,3 +559,15 @@ Theme Designer Version: 2025.06.18.39140
 .defaultschedule_link_curve_mshadow.defaultschedule_link_curve_text {
     fill: #aaaaaa;
 }
+/* Reserved Event (default blue) */
+.defaultschedule_event.reserved-event {
+  --dp-scheduler-event-bar-bg-color: #9dc8e8;   /* bar color */
+  --dp-scheduler-event-bar-color: #1066a8;
+}
+
+/* Checked-In Event (light green) */
+.defaultschedule_event.checkedin-event {
+  --dp-scheduler-event-bar-bg-color: #b6e6b6;   /* bar color */
+  --dp-scheduler-event-bar-color: #09b01f;
+}
+
