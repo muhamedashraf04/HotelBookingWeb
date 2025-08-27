@@ -91,34 +91,35 @@ const Nav: React.FC = () => {
     adminOnly?: boolean;
     items: { label: string; href: string }[];
   }> = [
-      {
-        key: "rooms",
-        label: "Rooms",
-        adminOnly: true,
-        items: [
-          { label: "Get All", href: "/rooms/AllRooms" },
-          { label: "Create", href: "/rooms/create" },
-        ],
-      },
-      {
-        key: "customers",
-        label: "Customers",
-        items: [
-          { label: "Create", href: "/customer/create" },
-          { label: "Remove", href: "/customer/remove" },
-        ],
-      },
-      {
-        key: "reservations",
-        label: "Reservations",
-        items: [
-          { label: "Reserve", href: "/reservations/search" },
-          { label: "Remove", href: "/reservations/remove" },
-          { label: "Check-in", href: "/reservations/checkin" },
-          { label: "Check-out", href: "/reservations/search" },
-        ],
-      },
-    ];
+    {
+      key: "rooms",
+      label: "Rooms",
+      adminOnly: true,
+      items: [
+        { label: "Get All", href: "/rooms/AllRooms" },
+        { label: "Create", href: "/rooms/create" },
+      ],
+    },
+    {
+      key: "customers",
+      label: "Customers",
+      items: [
+        { label: "Create", href: "/customer/create" },
+        { label: "Remove", href: "/customer/remove" },
+        { label: "Get All", href: "/customer/get-all" },
+      ],
+    },
+    {
+      key: "reservations",
+      label: "Reservations",
+      items: [
+        { label: "Reserve", href: "/reservations/search" },
+        { label: "Remove", href: "/reservations/remove" },
+        { label: "Check-in", href: "/reservations/checkin" },
+        { label: "Check-out", href: "/reservations/checkout" },
+      ],
+    },
+  ];
 
   // compute and start countdown from localStorage expiry (persist cooldown across reloads)
   useEffect(() => {
