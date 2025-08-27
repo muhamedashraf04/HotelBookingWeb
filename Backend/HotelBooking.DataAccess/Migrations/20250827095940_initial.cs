@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBooking.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class seedreservations : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -65,6 +65,24 @@ namespace HotelBooking.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Rates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<float>(type: "real", nullable: false),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rates", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RefreshTokens",
                 columns: table => new
                 {
@@ -98,6 +116,7 @@ namespace HotelBooking.DataAccess.Migrations
                     Paid = table.Column<float>(type: "real", nullable: false),
                     Dues = table.Column<float>(type: "real", nullable: false),
                     ProofOfPayment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Discount = table.Column<float>(type: "real", nullable: false),
                     NumberOfAdults = table.Column<int>(type: "int", nullable: false),
                     NumberOfChildren = table.Column<int>(type: "int", nullable: false),
@@ -174,14 +193,24 @@ namespace HotelBooking.DataAccess.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Reservations",
-                columns: new[] { "Id", "CheckInDate", "CheckOutDate", "CustomerId", "Discount", "Dues", "NumberOfAdults", "NumberOfChildren", "NumberOfExtraBeds", "Paid", "ProofOfPayment", "RoomId", "RoomType", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                table: "Rates",
+                columns: new[] { "Id", "Price", "Type", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 0f, 0f, 1, 0, 0, 200f, "", 1, "Single", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 2, new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 0f, 0f, 1, 1, 0, 150f, "", 1, "Single", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 3, new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 8, 0, 0, 0, 0, DateTimeKind.Unspecified), 3, 10f, 50f, 2, 1, 1, 300f, "", 101, "Double", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 4, new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 5f, 200f, 4, 2, 2, 1000f, "", 201, "Suite", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
+                    { 1, 1000f, "Single", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" },
+                    { 2, 1500f, "Double", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" },
+                    { 3, 3000f, "Suite", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Reservations",
+                columns: new[] { "Id", "CheckInDate", "CheckOutDate", "CustomerId", "Discount", "Dues", "NumberOfAdults", "NumberOfChildren", "NumberOfExtraBeds", "Paid", "ProofOfPayment", "RoomId", "RoomType", "Status", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 0f, 0f, 1, 0, 0, 200f, "", 1, "Single", "Reserved", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 2, new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 0f, 0f, 1, 1, 0, 150f, "", 1, "Single", "Reserved", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 3, new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 8, 0, 0, 0, 0, DateTimeKind.Unspecified), 3, 10f, 50f, 2, 1, 1, 300f, "", 101, "Double", "Reserved", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 4, new DateTime(2025, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 9, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 5f, 200f, 4, 2, 2, 1000f, "", 201, "Suite", "Reserved", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
 
             migrationBuilder.InsertData(
@@ -230,6 +259,9 @@ namespace HotelBooking.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Rates");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");

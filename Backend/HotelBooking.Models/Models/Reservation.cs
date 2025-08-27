@@ -29,6 +29,8 @@ public class Reservation : BaseEntity
 
     public string ProofOfPayment { get; set; } = "";
 
+    public string Status { get; set; } = "Reserved";
+
     public float Discount { get; set; } = 0;
 
     public int NumberOfAdults { get; set; }

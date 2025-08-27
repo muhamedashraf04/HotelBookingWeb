@@ -11,5 +11,9 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
 
         public bool Remove(int id);
         public void Edit<T>(T Obj) where T : BaseEntity;
+        public Task<T?> GetAsync(Expression<Func<T, bool>> filter);
+
+        public Task<IEnumerable<T>> GetAllAsync();
+
     }
 }

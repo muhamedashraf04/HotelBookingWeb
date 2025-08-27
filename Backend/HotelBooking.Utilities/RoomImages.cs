@@ -13,7 +13,6 @@ namespace HotelBooking.Utilities
         }
         public string GetImagesFromFolder(string folderPath)
         {
-            // Normalize: remove leading/trailing slashes, use forward slashes, add exactly one trailing slash
             var prefix = string.IsNullOrWhiteSpace(folderPath)
                 ? ""
                 : folderPath.Replace("\\", "/").Trim('/') + "/";
@@ -23,7 +22,7 @@ namespace HotelBooking.Utilities
             var listParams = new ListResourcesByPrefixParams
             {
                 Prefix = prefix,
-                ResourceType = ResourceType.Image, // Only images
+                ResourceType = ResourceType.Image,
                 Type = "upload",
                 MaxResults = 500
             };

@@ -105,7 +105,7 @@ const SearchReservations = () => {
         checkInDate.getDate(),
         checkInHours,
         checkInMinutes,
-        0 // seconds
+        0
       )
     );
 
@@ -116,7 +116,7 @@ const SearchReservations = () => {
         checkOutDate.getDate(),
         checkOutHours,
         checkOutMinutes,
-        0 // seconds
+        0
       )
     );
 
@@ -394,6 +394,9 @@ const SearchReservations = () => {
                         </p>
                         <p className="text-xl font-semibold">
                           Capacity : {room.capacity}
+                        </p>
+                        <p className="text-xl font-semibold">
+                          Price : {room.price}
                         </p>
                       </div>
                     </div>

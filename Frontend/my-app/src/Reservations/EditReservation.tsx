@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ErrorToast from "@/Toasts/ErrorToast.tsx";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 type Room = {
   id: number;
@@ -175,9 +175,8 @@ const EditReservation = () => {
     <>
       <Header />
       <div className="p-8 space-y-6">
-        <Toaster />
+        <Toaster richColors />{" "}
         <h1 className="text-2xl font-bold text-center">Edit Reservation</h1>
-
         {/* Date, Time, Room Type selection & Search */}
         <div className="flex flex-wrap justify-center gap-4 mt-4 items-end">
           {/* Check-in Date */}
@@ -308,7 +307,6 @@ const EditReservation = () => {
             </Button>
           </div>
         </div>
-
         {/* Rooms List */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {loading ? (

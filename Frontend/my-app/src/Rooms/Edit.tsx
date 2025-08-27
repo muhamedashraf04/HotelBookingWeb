@@ -160,7 +160,7 @@ const Edit = () => {
                   className="border rounded-xl shadow"
                 >
                   {/* Header */}
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline  cursor-pointer">
                     <div className="flex w-full items-center justify-between">
                       <div>
                         <h2 className="text-2xl font-bold">

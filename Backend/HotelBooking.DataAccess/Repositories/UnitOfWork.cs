@@ -17,19 +17,29 @@ namespace HotelBooking.DataAccess.Repositories
 
         public IAdminRepository Admins { get; set; }
 
-        private ApplicationDBContext _DBContext;
+        public IRateRepository Rates { get; set; }
+
+
+        public ApplicationDBContext DbContext { get; set; } 
         public UnitOfWork(ApplicationDBContext dBContext)
         {
-            _DBContext = dBContext;
-            Reservations = new ReservationRepository(_DBContext);
-            Customers = new CustomerRepository(_DBContext);
-            Admins = new AdminRepository(_DBContext);
-            Users = new UserRepository(_DBContext);
-            Rooms = new RoomRepository(_DBContext);
+            DbContext = dBContext;
+            Reservations = new ReservationRepository(DbContext);
+            Customers = new CustomerRepository(DbContext);
+            Admins = new AdminRepository(DbContext);
+            Users = new UserRepository(DbContext);
+            Rooms = new RoomRepository(DbContext);
+            Rates = new RateRepository(DbContext);
         }
         public void Save()
         {
-            _DBContext.SaveChanges();
+            DbContext.SaveChanges();
+        }
+
+        public async Task<bool> SaveAsync()
+        {
+            await DbContext.SaveChangesAsync();
+            return true;
         }
 
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HotelBooking.DataAccess.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,13 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
 
         IRoomRepository Rooms { get; }
         IUserRepository Users { get; }
-
+        IRateRepository Rates { get; }
         IAdminRepository Admins { get; }
+
+        ApplicationDBContext DbContext { get; }
         public void Save();
+
+        public Task<bool> SaveAsync();
+
     }
 }

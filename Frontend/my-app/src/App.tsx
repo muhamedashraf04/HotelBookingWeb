@@ -1,24 +1,24 @@
 "use client";
 
 import Header from "@/components/Header/Header";
-import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
 } from "@/components/ui/drawer";
-import { useEffect, useState } from "react";
-import { toast, Toaster } from "sonner";
+import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
 import axios from "axios";
-import Popup from "./DeletePopup";
-import { Url } from "../GlobalVariables";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast, Toaster } from "sonner";
+import { Url } from "../GlobalVariables";
 import ErrorToast from "../src/Toasts/ErrorToast";
+import Popup from "./DeletePopup";
 
 type Reservation = {
   id: number;
@@ -82,7 +82,9 @@ export default function App() {
       setResources(formattedRooms);
 
       const resRes = await axios.get(`${Url}/Admin/Reservation/GetAll`);
-      const customersRes = await axios.get(`${Url}/Admin/Customer/GetCustomers`);
+      const customersRes = await axios.get(
+        `${Url}/Admin/Customer/GetCustomers`
+      );
       const customers: Customer[] = customersRes.data;
 
       const reservationsWithNames: Reservation[] = resRes.data.map(
@@ -108,10 +110,14 @@ export default function App() {
 
       if (formattedEvents.length > 0) {
         const furthest = new Date(
-          Math.max(...formattedEvents.map((r: any) => new Date(r.end).getTime()))
+          Math.max(
+            ...formattedEvents.map((r: any) => new Date(r.end).getTime())
+          )
         );
         const today = new Date();
-        const diffDays = Math.ceil((furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil(
+          (furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
         setDays(Math.max(diffDays, 25) + 5);
       } else {
         setDays(30);
@@ -143,7 +149,7 @@ export default function App() {
   return (
     <>
       <Header />
-      <Toaster />
+      <Toaster richColors />
       <div className="flex justify-center mt-6">
         <div style={{ width: "1000px", height: `${resources.length * 40}px` }}>
           <DayPilotScheduler
@@ -160,7 +166,10 @@ export default function App() {
             startDate={DayPilot.Date.today()}
             days={days}
             scale="Day"
-            timeHeaders={[{ groupBy: "Month" }, { groupBy: "Day", format: "d" }]}
+            timeHeaders={[
+              { groupBy: "Month" },
+              { groupBy: "Day", format: "d" },
+            ]}
             resources={resources}
             events={events}
             rowMarginBottom={20}

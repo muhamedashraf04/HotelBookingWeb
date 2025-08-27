@@ -111,7 +111,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                         IsAvailable = room.IsAvailable,
                         RoomType = room.RoomType,
                         Images = room.Images,
-                        Price = room.Price,
+                        Price = _unitOfWork.Rates.Get(u=> u.Type == room.RoomType).Price,
                         updatedBy = User.Identity?.Name,
                         createdBy = User.Identity?.Name
                     };
@@ -120,6 +120,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                 }
                 else
                 {
+                    var rate = _unitOfWork.Rates.Get(u => u.Type == room.RoomType);
                     // Common property mapping
                     _room.IsAvailable = room.IsAvailable;
                     _room.Capacity = room.Capacity;
@@ -128,7 +129,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                     _room.RoomType = room.RoomType;
                     _room.Images = room.Images;
                     _room.updatedBy = User.Identity?.Name;
-                    _room.Price = room.Price;
+                    _room.Price = rate == null ? 0 : rate.Price;
 
                     _unitOfWork.Rooms.Edit(_room);
                 }
@@ -167,5 +168,26 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                 return Ok();
             }
         }
+        [HttpPatch]
+        public async Task<IActionResult> Refresh()
+        {
+            var rooms = await _unitOfWork.Rooms.GetAllAsync(); // should return Task<IEnumerable<Room>>
+
+            foreach (var room in rooms)
+            {
+                var rate = await _unitOfWork.Rates.GetAsync(u => u.Type == room.RoomType);
+                if (rate != null && rate.Price != room.Price)
+                {
+                    room.Price = rate.Price;
+                    _unitOfWork.Rooms.Edit(room);
+                }
+            }
+
+            await _unitOfWork.SaveAsync();
+            return Ok("Prices refreshed for all rooms.");
+        }
+
+
+
     }
 }

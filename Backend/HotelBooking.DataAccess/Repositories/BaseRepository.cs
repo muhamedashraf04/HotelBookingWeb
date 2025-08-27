@@ -75,5 +75,16 @@ namespace HotelBooking.DataAccess.Repos
             obj.updatedAt = DateTime.Now;
             _dbContext.Update(obj);
         }
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await _dbContext.Set<T>().ToListAsync();
+        }
+
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> filter)
+        {
+            return await _dbContext.Set<T>().FirstOrDefaultAsync(filter);
+        }
+
+        
     }
 }

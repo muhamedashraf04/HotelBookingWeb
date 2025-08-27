@@ -18,11 +18,49 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<Room> Rooms { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<Rate> Rates { get; set; }
 
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Rate>().HasData(
+                new Rate
+                {
+                    Id = 1,
+                    createdAt = new DateTime(2025, 9, 10),
+                    updatedAt = new DateTime(2025, 9, 10),
+                    createdBy = "Server",
+                    updatedBy = "Server",
+                    Type = "Single",
+                    Price = 1000,
+
+                },
+                new Rate
+                {
+                    Id = 2,
+                    createdAt = new DateTime(2025, 9, 10),
+                    updatedAt = new DateTime(2025, 9, 10),
+                    createdBy = "Server",
+                    updatedBy = "Server",
+                    Type = "Double",
+                    Price = 1500,
+
+                },
+                new Rate
+                {
+                    Id = 3,
+                    createdAt = new DateTime(2025, 9, 10),
+                    updatedAt = new DateTime(2025, 9, 10),
+                    createdBy = "Server",
+                    updatedBy = "Server",
+                    Type = "Suite",
+                    Price = 3000,
+
+                }
+
+
+                );
             modelBuilder.Entity<Reservation>().HasData(
             new Reservation
             {

@@ -355,7 +355,7 @@ const Create = () => {
             </AlertDialogContent>
           </AlertDialog>
         </form>
-        <Toaster />
+        <Toaster richColors />{" "}
       </div>
     </>
   );

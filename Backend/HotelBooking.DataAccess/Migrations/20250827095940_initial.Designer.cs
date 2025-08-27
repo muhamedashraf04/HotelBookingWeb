@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250826212502_seed-reservations")]
-    partial class seedreservations
+    [Migration("20250827095940_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -300,6 +300,72 @@ namespace HotelBooking.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("HotelBooking.Models.Models.Rate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rates");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Price = 1000f,
+                            Type = "Single",
+                            createdAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "Server",
+                            updatedAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedBy = "Server"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Price = 1500f,
+                            Type = "Double",
+                            createdAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "Server",
+                            updatedAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedBy = "Server"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Price = 3000f,
+                            Type = "Suite",
+                            createdAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "Server",
+                            updatedAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedBy = "Server"
+                        });
+                });
+
             modelBuilder.Entity("HotelBooking.Models.Models.Reservation", b =>
                 {
                     b.Property<int>("Id")
@@ -346,6 +412,10 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("createdAt")
                         .HasColumnType("datetime2");
 
@@ -380,6 +450,7 @@ namespace HotelBooking.DataAccess.Migrations
                             ProofOfPayment = "",
                             RoomId = 1,
                             RoomType = "Single",
+                            Status = "Reserved",
                             createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
@@ -398,6 +469,7 @@ namespace HotelBooking.DataAccess.Migrations
                             ProofOfPayment = "",
                             RoomId = 1,
                             RoomType = "Single",
+                            Status = "Reserved",
                             createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
@@ -416,6 +488,7 @@ namespace HotelBooking.DataAccess.Migrations
                             ProofOfPayment = "",
                             RoomId = 101,
                             RoomType = "Double",
+                            Status = "Reserved",
                             createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
@@ -434,6 +507,7 @@ namespace HotelBooking.DataAccess.Migrations
                             ProofOfPayment = "",
                             RoomId = 201,
                             RoomType = "Suite",
+                            Status = "Reserved",
                             createdAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             updatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
