@@ -2,6 +2,7 @@
 
 import Header from "@/components/Header/Header";
 import { Button } from "@/components/ui/button";
+import "../styles/defaultschedule.css";
 import {
   Drawer,
   DrawerClose,
@@ -41,6 +42,7 @@ type Reservation = {
   numberOfAdults: number;
   numberOfChildren: number;
   numberOfExtraBeds: number;
+  status: string;
 };
 
 type Customer = {
@@ -90,7 +92,7 @@ export default function App() {
       const roomRes = await axios.get(`${Url}/Admin/Room/GetAll`);
       const formattedRooms = roomRes.data.map((room: any) => ({
         id: room.id,
-        name: `Room ${room.roomNumber} (${room.roomType})`,
+        name: `${room.roomNumber} (${room.roomType})`,
       }));
       setResources(formattedRooms);
 
@@ -110,13 +112,24 @@ export default function App() {
         }
       );
 
-      const formattedEvents = reservationsWithNames.map((r) => ({
-        id: r.id,
-        text: `${r.customerName} (${r.roomType})`,
-        start: r.checkInDate,
-        end: r.checkOutDate,
-        resource: r.roomId,
-      }));
+      const formattedEvents = reservationsWithNames.map((r) => {
+        let cssClass = "";
+
+        if (r.status === "CheckedIn") {
+          cssClass = "checkedin-event";
+        } else if (r.status === "Reserved") {
+          cssClass = "reserved-event";
+        }
+
+        return {
+          id: r.id,
+          text: `${r.customerName} (${r.roomType})`,
+          start: r.checkInDate,
+          end: r.checkOutDate,
+          resource: r.roomId,
+          cssClass, // ✅ this links to your CSS
+        };
+      });
 
       setReservations(reservationsWithNames);
       setEvents(formattedEvents);
@@ -227,6 +240,9 @@ export default function App() {
             events={events}
             rowMarginBottom={20}
             onEventClick={handleEventClick}
+            eventMoveHandling="Disabled"
+            eventResizeHandling="Disabled"
+            theme="defaultschedule"
           />
         </div>
       </div>
