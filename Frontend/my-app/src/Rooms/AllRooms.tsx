@@ -40,7 +40,7 @@ export type Room = {
 
 const ITEMS_PER_PAGE = 20;
 
-const Edit = () => {
+const AllRooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -275,4 +275,4 @@ const Edit = () => {
     </>
   );
 };
-export default Edit;
+export default AllRooms;

@@ -78,11 +78,9 @@ export default function CreateRoom() {
         });
 
         setExistingImages(
-          room.images === "" ?
-            room.images = null :
-            typeof room.images === "string"
-              ? room.images.split(",").map((img: string) => img.trim())
-              : null
+          typeof room.images === "string"
+            ? room.images.split(",").map((img: string) => img.trim())
+            : null
         );
       })
       .catch((err) => {

@@ -12,7 +12,7 @@ import EditReservation from "./Reservations/EditReservation";
 import RemoveReservation from "./Reservations/Remove.tsx";
 import SearchReservations from "./Reservations/SearchReservations.tsx";
 import CreateRoom from "./Rooms/CreateRoom.tsx";
-import Edit from "./Rooms/Edit.tsx";
+import AllRooms from "./Rooms/AllRooms.tsx";
 import CheckInPage from "./Checkin/CheckinPage.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -23,14 +23,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/App" element={<App />} />
         <Route path="/Customer/Create" element={<Create />} />
         <Route path="/Rooms/Create/:id?" element={<CreateRoom />} />
-        <Route path="/Rooms/Edit" element={<Edit />} />
+        <Route path="/Rooms/AllRooms" element={<AllRooms />} />
         <Route path="/Reservations/Search" element={<SearchReservations />} />
         <Route path="/Reservations/Booking" element={<Booking />} />
         <Route path="/Reservations/Remove" element={<RemoveReservation />} />
         <Route path="/reservation/edit/:id" element={<EditReservation />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Login" element={<Login />} />
-<Route path="/checkin/:id" element={<CheckInPage />} />
+        <Route path="/checkin/:id" element={<CheckInPage />} />
 
         <Route path="/Reservations/Checkin" element={<Checkin />} />
         {/* Add other routes here */}

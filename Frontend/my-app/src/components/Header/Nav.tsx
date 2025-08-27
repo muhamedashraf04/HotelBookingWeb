@@ -91,36 +91,35 @@ const Nav: React.FC = () => {
     adminOnly?: boolean;
     items: { label: string; href: string }[];
   }> = [
-    {
-      key: "rooms",
-      label: "Rooms",
-      adminOnly: true,
-      items: [
-        { label: "All Room", href: "/rooms/get-all" },
-        { label: "Create", href: "/rooms/create" },
-        { label: "Edit", href: "/rooms/edit" },
-      ],
-    },
-    {
-      key: "customers",
-      label: "Customers",
-      items: [
-        { label: "Create", href: "/customer/create" },
-        { label: "Remove", href: "/customer/remove" },
-        { label: "Get All", href: "/customer/get-all" },
-      ],
-    },
-    {
-      key: "reservations",
-      label: "Reservations",
-      items: [
-        { label: "Reserve", href: "/reservations/search" },
-        { label: "Remove", href: "/reservations/remove" },
-        { label: "Check-in", href: "/reservations/checkin" },
-        { label: "Check-out", href: "/reservations/search" },
-      ],
-    },
-  ];
+      {
+        key: "rooms",
+        label: "Rooms",
+        adminOnly: true,
+        items: [
+          { label: "Get All", href: "/rooms/AllRooms" },
+          { label: "Create", href: "/rooms/create" },
+        ],
+      },
+      {
+        key: "customers",
+        label: "Customers",
+        items: [
+          { label: "Create", href: "/customer/create" },
+          { label: "Remove", href: "/customer/remove" },
+          { label: "Get All", href: "/customer/get-all" },
+        ],
+      },
+      {
+        key: "reservations",
+        label: "Reservations",
+        items: [
+          { label: "Reserve", href: "/reservations/search" },
+          { label: "Remove", href: "/reservations/remove" },
+          { label: "Check-in", href: "/reservations/checkin" },
+          { label: "Check-out", href: "/reservations/search" },
+        ],
+      },
+    ];
 
   // compute and start countdown from localStorage expiry (persist cooldown across reloads)
   useEffect(() => {
@@ -146,8 +145,7 @@ const Nav: React.FC = () => {
     // if cooldown active → show toast with remaining and return
     if (cooldownSeconds > 0) {
       ErrorToast(
-        `Please wait ${cooldownSeconds} second${
-          cooldownSeconds === 1 ? "" : "s"
+        `Please wait ${cooldownSeconds} second${cooldownSeconds === 1 ? "" : "s"
         } before refreshing.`
       );
       return;
@@ -172,7 +170,7 @@ const Nav: React.FC = () => {
         try {
           const body = await res.text();
           if (body) text = `${text}: ${body}`;
-        } catch {}
+        } catch { }
         throw new Error(text);
       }
 
