@@ -20,11 +20,7 @@ public class CustomerController : Controller
         _logger = logger;
     }
 
-    [HttpGet]
-    public IActionResult Index()
-    {
-        return View();
-    }
+    
     [HttpPost]
     public IActionResult Register([FromForm] RegisterCustomerDTO registerCustomerDTO)
     {
@@ -121,4 +117,15 @@ public class CustomerController : Controller
             return NotFound("Object not found.");
         }
     }
+    [HttpGet]
+    public IActionResult Get(int id)
+    {
+        var customer = _unitOfWork.Customers.Get(c => c.Id == id);
+        if (customer == null)
+        {
+            return NotFound("Customer not found.");
+        }
+        return Ok(customer);
+    }
+
 }

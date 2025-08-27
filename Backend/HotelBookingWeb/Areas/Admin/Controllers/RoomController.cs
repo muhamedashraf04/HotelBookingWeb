@@ -28,7 +28,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles, [FromForm] string? deletedImages)
         {
             var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
@@ -89,7 +89,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                     }
                 }
             }
-            var ro = new RoomImages(_cloudinary);
+            var ro = new ImageUtility(_cloudinary);
             room.Images = ro.GetImagesFromFolder(folderPath);
 
             // ---- Now proceed with Room insert/update logic ----
