@@ -30,7 +30,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        
+
         public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles, [FromForm] string? deletedImages)
         {
             var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
@@ -110,7 +110,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                         IsAvailable = room.IsAvailable,
                         RoomType = room.RoomType,
                         Images = room.Images,
-                        Price = _unitOfWork.Rates.Get(u=> u.Type == room.RoomType).Price,
+                        Price = _unitOfWork.Rates.Get(u => u.Type == room.RoomType).Price,
                         updatedBy = User.Identity?.Name,
                         createdBy = User.Identity?.Name
                     };
@@ -151,27 +151,27 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             return Ok(room);
 
         }
-            [HttpDelete]
-            public IActionResult Remove(int? Id)
+        [HttpDelete]
+        public IActionResult Remove(int? Id)
+        {
+            if (Id == null)
             {
-                if (Id == null)
-                {
-                    return BadRequest();
-                }
-                else
-                {
+                return BadRequest();
+            }
+            else
+            {
 
-                 var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
-                 var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";                                                                        
-                 _cloudinary.DeleteResourcesByPrefix(prefix);
-                
+                var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
+                var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";
+                _cloudinary.DeleteResourcesByPrefix(prefix);
+
                 _unitOfWork.Rooms.Remove(Id.Value);
-                 _unitOfWork.Save();
-                   
-                    return Ok();
-                }
+                _unitOfWork.Save();
+
+                return Ok();
             }
         }
+
         [HttpPatch]
         public async Task<IActionResult> Refresh()
         {
@@ -194,4 +194,5 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
 
     }
+}
 
