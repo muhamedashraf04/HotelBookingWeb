@@ -148,14 +148,12 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
             var room = _unitOfWork.Rooms.Get(u => u.Id == id);
             if (room == null) { return BadRequest(); }
-            Console.WriteLine($"room {room.RoomNumber}");
             return Ok(room);
 
         }
             [HttpDelete]
             public IActionResult Remove(int? Id)
             {
-                Console.WriteLine(Id);
                 if (Id == null)
                 {
                     return BadRequest();
