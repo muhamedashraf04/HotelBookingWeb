@@ -17,8 +17,8 @@ import AllRooms from "./Rooms/AllRooms.tsx";
 import CreateRoom from "./Rooms/CreateRoom.tsx";
 import CheckoutListPage from "./Reservations/Checkout.tsx";
 import CheckOutPage from "./CheckOut/CheckOutPage.tsx"
-
 import RemoveCustomer from "./Customer/Remove.tsx";
+
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -39,7 +39,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/Customer/Remove" element={<RemoveCustomer />} />
         <Route path="/Reservations/Checkout" element={<CheckoutListPage />} />  {/* list of all needing checkout */}
         <Route path="/Checkout/:id" element={<CheckOutPage />} />              {/* single checkout page */}
-        <Route path="/rates/edit" element={<EditRates />} />
+        <Route path="/rates/edit" element={<EditRates />} />        <Route path="/Reservations/Checkout" element={<CheckoutListPage />} />  {/* list of all needing checkout */}
+        <Route path="/Checkout/:id" element={<CheckOutPage />} />              {/* single checkout page */}
+
         <Route path="/Reservations/Checkin" element={<Checkin />} />
 
       </Routes>

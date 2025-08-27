@@ -57,7 +57,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!reservation && id) {
       axios
-        .get(`${Url}/Admin/Reservation/Get/?id=${id}`)
+        .get(`${Url}/Admin/Reservation/Get/${id}`)
         .then((res) => setReservation(res.data))
         .catch(() => toast.error("Failed to load reservation"));
     }
@@ -165,12 +165,21 @@ export default function CheckoutPage() {
 
         <label className="block">
           <span className="block mb-2 font-medium">Paid Amount</span>
-          <Input type="number" value={reservation?.paid} required disabled />
+          <Input
+            type="number"
+            value={paid}
+            onChange={(e) => setPaid(Number(e.target.value))}
+            required
+          />
         </label>
 
         <label className="block">
           <span className="block mb-2 font-medium">Dues</span>
-          <Input type="number" value={reservation?.dues} disabled />
+          <Input
+            type="number"
+            value={dues}
+            onChange={(e) => setDues(Number(e.target.value))}
+          />
         </label>
 
         <div className="space-y-3">

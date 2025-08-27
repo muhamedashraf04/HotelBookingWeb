@@ -145,7 +145,8 @@ const Nav: React.FC = () => {
     // if cooldown active → show toast with remaining and return
     if (cooldownSeconds > 0) {
       ErrorToast(
-        `Please wait ${cooldownSeconds} second${cooldownSeconds === 1 ? "" : "s"
+        `Please wait ${cooldownSeconds} second${
+          cooldownSeconds === 1 ? "" : "s"
         } before refreshing.`
       );
       return;
@@ -170,7 +171,7 @@ const Nav: React.FC = () => {
         try {
           const body = await res.text();
           if (body) text = `${text}: ${body}`;
-        } catch { }
+        } catch {}
         throw new Error(text);
       }
 
