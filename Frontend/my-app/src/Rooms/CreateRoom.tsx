@@ -16,7 +16,7 @@ import { useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
 import { useEffect } from "react";
 import { Url } from "../../GlobalVariables.tsx";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 
 
@@ -45,6 +45,7 @@ export default function CreateRoom() {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { id } = useParams<{ id: string }>();
@@ -78,9 +79,12 @@ export default function CreateRoom() {
         });
 
         setExistingImages(
-          typeof room.images === "string"
-            ? room.images.split(",").map((img: string) => img.trim())
-            : null
+          typeof room.images === "string" && room.images.trim().length > 0
+            ? room.images
+              .split(",")
+              .map((img: string) => img.trim())
+              .filter((img: string) => img.length > 0) // 🔑 remove empty strings
+            : []
         );
       })
       .catch((err) => {
@@ -166,7 +170,6 @@ export default function CreateRoom() {
       });
 
 
-      toast.success("Room created successfully!");
       setFormData({
         roomNumber: "",
         roomType: "Single",
@@ -176,6 +179,10 @@ export default function CreateRoom() {
         Price: 0,
         Images: null
       });
+
+      toast.success(id ? "Room updated successfully!" : "Room created successfully!");
+      navigate("/Rooms/AllRooms");
+
       setExistingImages([]);
       setNewImages([]);
       setDeletedImages([]);
@@ -193,7 +200,7 @@ export default function CreateRoom() {
       <Header />
       <Toaster />
       <form onSubmit={submit} className="max-w-2xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold"> {saving ? (id ? "Updating..." : "Creating...") : id ? "Update Room" : "Create Room"}</h1>
+        <h1 className="text-2xl font-bold"> {id ? "Update Room" : "Create Room"}</h1>
 
         <div className="grid grid-cols-2 gap-4">
           {/* Room Type with shadcn Select */}

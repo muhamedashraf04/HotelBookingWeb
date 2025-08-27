@@ -164,7 +164,11 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                 var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
                 var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";
                 _cloudinary.DeleteResourcesByPrefix(prefix);
-
+                var res = _unitOfWork.Reservations.Get(u => u.Id == Id);
+                if (res != null)
+                { 
+                    return BadRequest("Room is in Reservation");
+                }
                 _unitOfWork.Rooms.Remove(Id.Value);
                 _unitOfWork.Save();
 
