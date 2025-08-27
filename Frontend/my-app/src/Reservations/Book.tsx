@@ -92,6 +92,7 @@ function Booking() {
       numberOfAdults: adults,
       numberOfChildren: children,
       numberOfExtraBeds: extraBeds,
+      status: "Reserved",
     };
 
     setIsSubmitting(true);
