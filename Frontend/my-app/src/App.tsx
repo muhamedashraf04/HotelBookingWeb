@@ -262,6 +262,16 @@ export default function App() {
           onMouseLeave={() => setContextMenu(null)}
         >
           <button
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-green-600"
+            onClick={() => {
+              navigate(`/Reservations/CheckIn/${contextMenu.reservation!.id}`, {
+                state: contextMenu.reservation,
+              });
+            }}
+          >
+            ✅ Check-In
+          </button>
+          <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100"
             onClick={() => {
               navigate(`/reservation/edit/${contextMenu.reservation!.id}`, {
