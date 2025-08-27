@@ -17,6 +17,7 @@ import { toast, Toaster } from "sonner";
 import { useEffect } from "react";
 import { Url } from "../../GlobalVariables.tsx";
 import { useParams } from "react-router-dom";
+import Cookies from "js-cookie";
 
 
 interface RoomFormState {
@@ -160,8 +161,12 @@ export default function CreateRoom() {
 
       // Send everything in one request
       await axios.post(`${Url}/Admin/Room/Upsert`, imageFormData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${Cookies.get("token")}`
+        },
       });
+
 
       toast.success("Room created successfully!");
       setFormData({

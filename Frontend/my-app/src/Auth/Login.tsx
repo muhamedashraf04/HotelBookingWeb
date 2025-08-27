@@ -33,7 +33,7 @@ function Login() {
 
       console.log("After");
       Cookies.set("token", res.data.token, { expires: 1 });
-
+      console.log(res.data.token);
       console.log("After2");
       toast.success("Login successful 🎉", {
         description: "Redirecting...",
@@ -97,9 +97,8 @@ function Login() {
 
           <Button
             type="submit"
-            className={`w-full ${
-              !loading ? "cursor-pointer" : "cursor-not-allowed"
-            }`}
+            className={`w-full ${!loading ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
