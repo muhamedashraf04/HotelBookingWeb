@@ -14,6 +14,9 @@ import SearchReservations from "./Reservations/SearchReservations.tsx";
 import CreateRoom from "./Rooms/CreateRoom.tsx";
 import AllRooms from "./Rooms/AllRooms.tsx";
 import CheckInPage from "./Checkin/CheckinPage.tsx";
+import CheckoutListPage from "./Reservations/Checkout.tsx";
+import CheckOutPage from "./CheckOut/CheckOutPage.tsx"
+
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -31,6 +34,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/Register" element={<Register />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/checkin/:id" element={<CheckInPage />} />
+        <Route path="/Reservations/Checkout" element={<CheckoutListPage />} />  {/* list of all needing checkout */}
+        <Route path="/Checkout/:id" element={<CheckOutPage />} />              {/* single checkout page */}
 
         <Route path="/Reservations/Checkin" element={<Checkin />} />
         {/* Add other routes here */}
