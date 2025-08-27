@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using System.Net;
 
 namespace HotelBooking.Utilities
 {
@@ -11,6 +12,7 @@ namespace HotelBooking.Utilities
         {
             _cloudinary = cloudinary;
         }
+
         public string GetImagesFromFolder(string folderPath)
         {
             var prefix = string.IsNullOrWhiteSpace(folderPath)

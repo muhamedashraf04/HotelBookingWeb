@@ -14,7 +14,10 @@ import axios from "axios";
 import { Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
+import { useEffect } from "react";
 import { Url } from "../../GlobalVariables.tsx";
+import { useParams } from "react-router-dom";
+
 
 interface RoomFormState {
   id?: number;
@@ -23,6 +26,8 @@ interface RoomFormState {
   floor: number;
   capacity: number;
   isAvailable: boolean;
+  Price: number;
+  Images: string | null;
 }
 
 export default function CreateRoom() {
@@ -30,12 +35,61 @@ export default function CreateRoom() {
     roomNumber: "",
     roomType: "Single",
     floor: 0,
-    capacity: 1,
-    isAvailable: true,
+    capacity: 0,
+    isAvailable: false,
+    Price: 0,
+    Images: null,
   });
-  const [images, setImages] = useState<File[]>([]);
+
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { id } = useParams<{ id: string }>();
+  useEffect(() => {
+    if (!id) return;
+
+    axios.get(`${Url}/Admin/Room/GetRoom?id=${id}`)
+      .then((res) => {
+        const room = res.data;
+
+        if (!room) {
+          toast.error("Room not found");
+          return;
+        }
+
+        // ✅ Ensure roomType is always one of the allowed values
+        const validRoomTypes = ["Single", "Double", "Suite"];
+        const safeRoomType = validRoomTypes.includes(room.roomType)
+          ? room.roomType
+          : "Single";
+
+        setFormData({
+          id: room.id ?? undefined,
+          roomNumber: room.roomNumber ?? "",
+          roomType: safeRoomType as "Single" | "Double" | "Suite",
+          floor: room.floor ?? 0,
+          capacity: room.capacity ?? 0,
+          isAvailable: room.isAvailable ?? false,
+          Price: room.price ?? 0,
+          Images: room.Images ?? null
+        });
+
+        setExistingImages(
+          room.images === "" ?
+            room.images = null :
+            typeof room.images === "string"
+              ? room.images.split(",").map((img: string) => img.trim())
+              : null
+        );
+      })
+      .catch((err) => {
+        console.error("Error loading room:", err);
+        toast.error("Failed to load room data");
+      });
+  }, [id]);
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -58,15 +112,22 @@ export default function CreateRoom() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (images.length + files.length > 5) {
+    if (existingImages.length + newImages.length + files.length > 5) {
       toast.error("Maximum 5 images allowed");
       return;
     }
-    setImages((prev) => [...prev, ...files]);
+    setNewImages((prev) => [...prev, ...files]);
   };
 
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+  const handleDeleteImage = (image: string | File) => {
+    if (typeof image === "string") {
+      // it's an existing image (URL)
+      setExistingImages((prev) => prev.filter((img) => img !== image));
+      setDeletedImages((prev) => [...prev, image]);
+    } else {
+      // it's a new image (File)
+      setNewImages((prev) => prev.filter((file) => file !== image));
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -76,22 +137,31 @@ export default function CreateRoom() {
 
     setSaving(true);
     try {
-      // Create room first
-      const roomResponse = await axios.post(`${Url}/Admin/Room/Upsert`, {
-        id: 0,
-        ...formData,
-      });
+      const imageFormData = new FormData();
 
-      // Upload images if any
-      if (images.length > 0) {
-        const imageFormData = new FormData();
-        images.forEach((file) => imageFormData.append("images", file));
-        imageFormData.append("roomId", roomResponse.data.roomId);
+      // Append room fields
+      imageFormData.append("room.Id", formData.id?.toString() ?? "0");
+      imageFormData.append("room.RoomNumber", formData.roomNumber);
+      imageFormData.append("room.RoomType", formData.roomType);
+      imageFormData.append("room.Floor", formData.floor.toString());
+      imageFormData.append("room.Capacity", formData.capacity.toString());
+      imageFormData.append("room.IsAvailable", formData.isAvailable.toString());
+      imageFormData.append("room.Price", formData.Price.toString());
 
-        await axios.post(`${Url}/Admin/Room/UploadImages`, imageFormData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+      // Append new uploaded files
+      newImages.forEach((file) =>
+        imageFormData.append("uploadedFiles", file)
+      );
+
+      // Append deleted images as JSON string
+      if (deletedImages.length > 0) {
+        imageFormData.append("deletedImages", JSON.stringify(deletedImages));
       }
+
+      // Send everything in one request
+      await axios.post(`${Url}/Admin/Room/Upsert`, imageFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       toast.success("Room created successfully!");
       setFormData({
@@ -100,8 +170,13 @@ export default function CreateRoom() {
         floor: 0,
         capacity: 1,
         isAvailable: true,
+        Price: 0,
+        Images: null
       });
-      setImages([]);
+      setExistingImages([]);
+      setNewImages([]);
+      setDeletedImages([]);
+
     } catch (e: any) {
       toast.error(e?.response?.data ?? "Failed to create room");
     } finally {
@@ -109,12 +184,13 @@ export default function CreateRoom() {
     }
   };
 
+
   return (
     <>
       <Header />
       <Toaster />
       <form onSubmit={submit} className="max-w-2xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Create New Room</h1>
+        <h1 className="text-2xl font-bold"> {saving ? (id ? "Updating..." : "Creating...") : id ? "Update Room" : "Create Room"}</h1>
 
         <div className="grid grid-cols-2 gap-4">
           {/* Room Type with shadcn Select */}
@@ -197,18 +273,37 @@ export default function CreateRoom() {
             />
           </div>
 
-          {images.length > 0 && (
+          {(existingImages.length > 0 || newImages.length > 0) && (
             <div className="grid grid-cols-3 gap-2">
-              {images.map((file, index) => (
-                <div key={index} className="relative">
+              {/* Existing images */}
+              {existingImages.map((url, index) => (
+                <div key={`existing-${index}`} className="relative">
                   <img
-                    src={URL.createObjectURL(file)}
-                    alt={`Preview ${index}`}
+                    src={url}
+                    alt={`Existing ${index}`}
                     className="w-full h-20 object-cover rounded"
                   />
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
+                    onClick={() => handleDeleteImage(url)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+
+              {/* New images */}
+              {newImages.map((file, index) => (
+                <div key={`new-${index}`} className="relative">
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={`New ${index}`}
+                    className="w-full h-20 object-cover rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(file)}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
                   >
                     <X className="w-3 h-3" />
@@ -220,7 +315,7 @@ export default function CreateRoom() {
         </div>
 
         <Button type="submit" disabled={saving} className="w-full">
-          {saving ? "Creating..." : "Create Room"}
+          {saving ? (id ? "Updating..." : "Creating...") : id ? "Update Room" : "Create Room"}
         </Button>
       </form>
     </>

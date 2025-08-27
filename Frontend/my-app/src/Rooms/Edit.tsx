@@ -23,6 +23,7 @@ import DeletePopup from "@/DeletePopup";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { toast, Toaster } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { Url } from "../../GlobalVariables.tsx";
 
 // Types
@@ -35,6 +36,8 @@ export type Room = {
   roomType: string;
 };
 
+
+
 const ITEMS_PER_PAGE = 20;
 
 const Edit = () => {
@@ -42,7 +45,7 @@ const Edit = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRoom, setExpandedRoom] = useState<string | undefined>();
-
+  const navigate = useNavigate();
   // inline edit state
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<Room | null>(null);
@@ -186,135 +189,32 @@ const Edit = () => {
 
                   {/* Content */}
                   <AccordionContent className="px-4 pb-4">
-                    {!isEditing ? (
-                      <div className="flex gap-3">
-                        <DeletePopup
-                          id={`${room.id}`}
-                          message={`This will permanently delete Room #${room.roomNumber} (${room.roomType}). This action cannot be undone.`}
-                          Area="Admin"
-                          Controller="Room"
-                          Action="Remove"
-                          onDeleted={() => {
-                            setRooms((prev) =>
-                              prev.filter((r) => r.id !== room.id)
-                            );
-                          }}
-                        />
-                        <Button
-                          variant="secondary"
-                          className="cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEdit(room);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    ) : (
-                      <div
-                        className="space-y-3"
-                        onClick={(e) => e.stopPropagation()} // keep open while editing
+
+                    <div className="flex gap-3">
+                      <DeletePopup
+                        id={`${room.id}`}
+                        message={`This will permanently delete Room #${room.roomNumber} (${room.roomType}). This action cannot be undone.`}
+                        Area="Admin"
+                        Controller="Room"
+                        Action="Remove"
+                        onDeleted={() => {
+                          setRooms((prev) =>
+                            prev.filter((r) => r.id !== room.id)
+                          );
+                        }}
+                      />
+                      <Button
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => {
+                          navigate(`/Rooms/Create/${room.id}`, {
+                            state: room.id
+                          });
+                        }}
                       >
-                        <div className="grid grid-cols-2 gap-3">
-                          <label className="text-sm">
-                            <span className="block mb-1">Room #</span>
-                            <input
-                              className="w-full border rounded px-2 py-1"
-                              value={editDraft?.roomNumber ?? ""}
-                              onChange={(e) =>
-                                setEditDraft((d) => ({
-                                  ...(d as Room),
-                                  roomNumber: e.target.value,
-                                }))
-                              }
-                            />
-                          </label>
-
-                          <label className="text-sm">
-                            <span className="block mb-1">Type</span>
-                            <select
-                              className="w-full border rounded px-2 py-1"
-                              value={editDraft?.roomType ?? "Single"}
-                              onChange={(e) => {
-                                const v = e.target.value as Room["roomType"];
-                                setEditDraft((d) => {
-                                  const cur = d as Room;
-                                  return {
-                                    ...cur,
-                                    roomType: v,
-                                    capacity:
-                                      v === "Single"
-                                        ? 1
-                                        : v === "Double"
-                                        ? 2
-                                        : Math.max(cur.capacity, 3),
-                                  };
-                                });
-                              }}
-                            >
-                              <option value="Single">Single</option>
-                              <option value="Double">Double</option>
-                              <option value="Suite">Suite</option>
-                            </select>
-                          </label>
-
-                          <label className="text-sm">
-                            <span className="block mb-1">Floor</span>
-                            <input
-                              type="number"
-                              className="w-full border rounded px-2 py-1"
-                              value={editDraft?.floor ?? 0}
-                              onChange={(e) =>
-                                setEditDraft((d) => ({
-                                  ...(d as Room),
-                                  floor: Number(e.target.value || 0),
-                                }))
-                              }
-                            />
-                          </label>
-
-                          <label className="text-sm">
-                            <span className="block mb-1">Capacity</span>
-                            <input
-                              type="number"
-                              className="w-full border rounded px-2 py-1"
-                              value={editDraft?.capacity ?? 1}
-                              onChange={(e) =>
-                                setEditDraft((d) => ({
-                                  ...(d as Room),
-                                  capacity: Number(e.target.value || 1),
-                                }))
-                              }
-                            />
-                          </label>
-                        </div>
-
-                        <label className="inline-flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={!!editDraft?.isAvailable}
-                            onChange={(e) =>
-                              setEditDraft((d) => ({
-                                ...(d as Room),
-                                isAvailable: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span>Available</span>
-                        </label>
-
-                        <div className="flex gap-2">
-                          <Button className="flex-1" onClick={saveEdit}>
-                            Save
-                          </Button>
-                          <Button variant="secondary" onClick={cancelEdit}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                        Edit
+                      </Button>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               );
