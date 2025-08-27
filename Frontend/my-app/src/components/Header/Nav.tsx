@@ -116,7 +116,7 @@ const Nav: React.FC = () => {
         { label: "Reserve", href: "/reservations/search" },
         { label: "Remove", href: "/reservations/remove" },
         { label: "Check-in", href: "/reservations/checkin" },
-        { label: "Check-out", href: "/reservations/search" },
+        { label: "Check-out", href: "/reservations/checkout" },
       ],
     },
   ];
