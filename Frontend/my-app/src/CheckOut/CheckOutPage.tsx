@@ -170,6 +170,7 @@ export default function CheckoutPage() {
             value={paid}
             onChange={(e) => setPaid(Number(e.target.value))}
             required
+            disabled
           />
         </label>
 
