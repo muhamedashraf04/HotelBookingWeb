@@ -4,11 +4,11 @@ using System.Net;
 
 namespace HotelBooking.Utilities
 {
-    public class RoomImages
+    public class ImageUtility
     {
         private Cloudinary _cloudinary;
 
-        public RoomImages(Cloudinary cloudinary)
+        public ImageUtility(Cloudinary cloudinary)
         {
             _cloudinary = cloudinary;
         }
