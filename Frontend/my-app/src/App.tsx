@@ -11,11 +11,21 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
+import axios from "axios";
 import { Url } from "../GlobalVariables";
 import ErrorToast from "../src/Toasts/ErrorToast";
 import Popup from "./DeletePopup";
@@ -64,6 +74,9 @@ export default function App() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const [selectedReservation, setSelectedReservation] =
+    useState<Reservation | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reservationToDelete, setReservationToDelete] =
     useState<Reservation | null>(null);
 
   const [contextMenu, setContextMenu] = useState<{
@@ -146,6 +159,46 @@ export default function App() {
     setOpenDrawerId(clicked.id);
   };
 
+  const handleDeleteClick = (reservation: Reservation) => {
+    setReservationToDelete(reservation);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!reservationToDelete) return;
+
+    try {
+      // Call your API to delete the reservation
+      const response = await axios.delete(
+        `${Url}/Admin/Reservation/Delete?id=${reservationToDelete.id}`
+      );
+
+      if (response.status === 200) {
+        // Show success message
+        toast.success(
+          `Reservation for ${reservationToDelete.customerName} has been deleted successfully.`
+        );
+
+        // Refresh the data
+        fetchData();
+      } else {
+        ErrorToast("Failed to delete reservation");
+      }
+    } catch (err: any) {
+      if (err.response?.status === 400) {
+        ErrorToast("Invalid reservation ID");
+      } else if (err.response?.status === 404) {
+        ErrorToast("Reservation not found");
+      } else {
+        ErrorToast(err.message || "Error deleting reservation");
+      }
+    } finally {
+      // Close the dialog
+      setDeleteDialogOpen(false);
+      setReservationToDelete(null);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -206,8 +259,7 @@ export default function App() {
           <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
             onClick={() => {
-              setSelectedReservation(contextMenu.reservation!);
-              setOpenDrawerId(contextMenu.reservation!.id);
+              handleDeleteClick(contextMenu.reservation!);
               setContextMenu(null);
             }}
           >
@@ -249,35 +301,37 @@ export default function App() {
                 <p>Extra Beds: {selectedReservation.numberOfExtraBeds}</p>
               </div>
 
-              <DrawerFooter className="flex justify-between">
+              <DrawerFooter>
                 <DrawerClose asChild>
                   <Button variant="outline">Close</Button>
                 </DrawerClose>
-
-                <Popup
-                  {...{
-                    ...createData(
-                      selectedReservation.id,
-                      selectedReservation.customerName!
-                    ),
-                    id: selectedReservation.id.toString(),
-                  }}
-                  onDeleted={() => {
-                    setOpenDrawerId(null);
-                    setReservations((prev) =>
-                      prev.filter((r) => r.id !== selectedReservation.id)
-                    );
-                    setEvents((prev) =>
-                      prev.filter((ev) => ev.id !== selectedReservation.id)
-                    );
-                    toast.success("Reservation deleted successfully!");
-                  }}
-                />
               </DrawerFooter>
             </div>
           </DrawerContent>
         </Drawer>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {reservationToDelete
+                ? `This will permanently delete the reservation for ${reservationToDelete.customerName}. This action cannot be undone.`
+                : "This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

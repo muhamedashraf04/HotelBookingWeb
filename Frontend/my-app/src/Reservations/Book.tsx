@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
@@ -30,6 +31,7 @@ type Customer = {
 
 function Booking() {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ useNavigate here
   const { roomNumber, roomType, checkIn, checkOut, roomId } =
     location.state || {};
 
@@ -44,14 +46,10 @@ function Booking() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ Added to prevent double submission
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatDateTimeLocal = (date: Date | string | undefined) => {
-    if (!date) {
-      toast.error("No date provided.");
-      return "";
-    }
-
+    if (!date) return "";
     const d = new Date(date);
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
@@ -79,7 +77,7 @@ function Booking() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return; // ✅ Prevent double click
+    if (isSubmitting) return;
     if (!customerId) {
       toast.error("Please select a customer");
       return;
@@ -96,7 +94,7 @@ function Booking() {
       numberOfExtraBeds: extraBeds,
     };
 
-    setIsSubmitting(true); // ✅ Disable button
+    setIsSubmitting(true);
     try {
       const res = await fetch(
         "http://localhost:5002/Admin/Reservation/Create",
@@ -109,6 +107,9 @@ function Booking() {
 
       if (res.ok) {
         toast.success("Reservation created successfully!");
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
       } else {
         const msg = await res.text();
         toast.error(msg);
@@ -147,19 +148,23 @@ function Booking() {
 
           <div className="space-y-4">
             <div>
-              <Label id="checkInLabel" htmlFor="checkIn">Check-in</Label>
+              <Label id="checkInLabel" htmlFor="checkIn">
+                Check-in
+              </Label>
               <input
                 id="checkIn"
                 type="datetime-local"
                 value={formatDateTimeLocal(checkInDate)}
                 readOnly
-                aria-labelledby="checkInLabel" 
+                aria-labelledby="checkInLabel"
                 className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
               />
             </div>
 
             <div>
-              <Label id="checkOutLabel" htmlFor="checkOut">Check-out</Label>
+              <Label id="checkOutLabel" htmlFor="checkOut">
+                Check-out
+              </Label>
               <input
                 id="checkOut"
                 type="datetime-local"
@@ -258,7 +263,7 @@ function Booking() {
           </div>
 
           <Button
-            type="submit"
+            type="submit" // ✅ submit the form
             disabled={isSubmitting}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
           >
