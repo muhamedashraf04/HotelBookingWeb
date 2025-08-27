@@ -12,10 +12,19 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
-import Popup from "./DeletePopup";
 import { Url } from "../GlobalVariables";
 import { useNavigate } from "react-router-dom";
 import ErrorToast from "../src/Toasts/ErrorToast";
@@ -65,6 +74,9 @@ export default function App() {
   const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reservationToDelete, setReservationToDelete] =
+    useState<Reservation | null>(null);
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -82,7 +94,9 @@ export default function App() {
       setResources(formattedRooms);
 
       const resRes = await axios.get(`${Url}/Admin/Reservation/GetAll`);
-      const customersRes = await axios.get(`${Url}/Admin/Customer/GetCustomers`);
+      const customersRes = await axios.get(
+        `${Url}/Admin/Customer/GetCustomers`
+      );
       const customers: Customer[] = customersRes.data;
 
       const reservationsWithNames: Reservation[] = resRes.data.map(
@@ -108,10 +122,14 @@ export default function App() {
 
       if (formattedEvents.length > 0) {
         const furthest = new Date(
-          Math.max(...formattedEvents.map((r: any) => new Date(r.end).getTime()))
+          Math.max(
+            ...formattedEvents.map((r: any) => new Date(r.end).getTime())
+          )
         );
         const today = new Date();
-        const diffDays = Math.ceil((furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil(
+          (furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
         setDays(Math.max(diffDays, 25) + 5);
       } else {
         setDays(30);
@@ -140,6 +158,46 @@ export default function App() {
     setOpenDrawerId(clicked.id);
   };
 
+  const handleDeleteClick = (reservation: Reservation) => {
+    setReservationToDelete(reservation);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!reservationToDelete) return;
+
+    try {
+      // Call your API to delete the reservation
+      const response = await axios.delete(
+        `${Url}/Admin/Reservation/Delete?id=${reservationToDelete.id}`
+      );
+
+      if (response.status === 200) {
+        // Show success message
+        toast.success(
+          `Reservation for ${reservationToDelete.customerName} has been deleted successfully.`
+        );
+
+        // Refresh the data
+        fetchData();
+      } else {
+        ErrorToast("Failed to delete reservation");
+      }
+    } catch (err: any) {
+      if (err.response?.status === 400) {
+        ErrorToast("Invalid reservation ID");
+      } else if (err.response?.status === 404) {
+        ErrorToast("Reservation not found");
+      } else {
+        ErrorToast(err.message || "Error deleting reservation");
+      }
+    } finally {
+      // Close the dialog
+      setDeleteDialogOpen(false);
+      setReservationToDelete(null);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -160,7 +218,10 @@ export default function App() {
             startDate={DayPilot.Date.today()}
             days={days}
             scale="Day"
-            timeHeaders={[{ groupBy: "Month" }, { groupBy: "Day", format: "d" }]}
+            timeHeaders={[
+              { groupBy: "Month" },
+              { groupBy: "Day", format: "d" },
+            ]}
             resources={resources}
             events={events}
             rowMarginBottom={20}
@@ -197,8 +258,7 @@ export default function App() {
           <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
             onClick={() => {
-              setSelectedReservation(contextMenu.reservation!);
-              setOpenDrawerId(contextMenu.reservation!.id);
+              handleDeleteClick(contextMenu.reservation!);
               setContextMenu(null);
             }}
           >
@@ -240,35 +300,37 @@ export default function App() {
                 <p>Extra Beds: {selectedReservation.numberOfExtraBeds}</p>
               </div>
 
-              <DrawerFooter className="flex justify-between">
+              <DrawerFooter>
                 <DrawerClose asChild>
                   <Button variant="outline">Close</Button>
                 </DrawerClose>
-
-                <Popup
-                  {...{
-                    ...createData(
-                      selectedReservation.id,
-                      selectedReservation.customerName!
-                    ),
-                    id: selectedReservation.id.toString(),
-                  }}
-                  onDeleted={() => {
-                    setOpenDrawerId(null);
-                    setReservations((prev) =>
-                      prev.filter((r) => r.id !== selectedReservation.id)
-                    );
-                    setEvents((prev) =>
-                      prev.filter((ev) => ev.id !== selectedReservation.id)
-                    );
-                    toast.success("Reservation deleted successfully!");
-                  }}
-                />
               </DrawerFooter>
             </div>
           </DrawerContent>
         </Drawer>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {reservationToDelete
+                ? `This will permanently delete the reservation for ${reservationToDelete.customerName}. This action cannot be undone.`
+                : "This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
