@@ -11,12 +11,13 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
     {
         ICustomerRepository Customers { get; }
         IReservationRepository Reservations { get; }
+        //IOldReservationRespository OldReservations { get; }
 
         IRoomRepository Rooms { get; }
         IUserRepository Users { get; }
         IRateRepository Rates { get; }
         IAdminRepository Admins { get; }
-
+        
         ApplicationDBContext DbContext { get; }
         public void Save();
 

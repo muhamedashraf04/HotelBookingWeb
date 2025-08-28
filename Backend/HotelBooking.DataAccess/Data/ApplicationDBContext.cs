@@ -19,6 +19,7 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Rate> Rates { get; set; }
+        //public DbSet<OldReservations> OldReservations { get; set; }
 
 
 

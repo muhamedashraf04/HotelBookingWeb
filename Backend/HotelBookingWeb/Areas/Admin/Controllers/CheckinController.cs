@@ -1,9 +1,11 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
+using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
 using HotelBooking.Utilities;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.Models.RoomModels;
 namespace HotelBookingWeb.Areas.Admin.Controllers;
 
 [Area("Admin")]
@@ -57,16 +59,18 @@ public class CheckinController : Controller
 
     [HttpPatch]
     
-    public IActionResult In( int? id, [FromForm] List<IFormFile>? uploadedFiles)
+    public IActionResult In( [FromForm]CheckInDTO inDTO, [FromForm] List<IFormFile>? uploadedFiles)
     {
         var reservation = null as Reservation;
-        if (id == null)
+        var room = null as Room;
+        if (inDTO == null)
         {
             return BadRequest("Reservation data is required.");
         }
         else
         {
-            reservation = _unitOfWork.Reservations.Get(u => u.Id == id);
+            reservation = _unitOfWork.Reservations.Get(u => u.Id == inDTO.ReservationId);
+            room = _unitOfWork.Rooms.Get(u => u.Id == reservation.RoomId);
             if (reservation == null)
             {
                 return BadRequest("Reservation could not be found.");
@@ -99,11 +103,25 @@ public class CheckinController : Controller
             }
         }
         var ro = new ImageUtility(_cloudinary);
+
+        int numberOfNights = (reservation.CheckOutDate - reservation.CheckInDate).Days;
+        float totalCost = room.Price * numberOfNights;
+        float totalAfterDisount = totalCost - (totalCost * (inDTO.Discount / 100));
+        Console.WriteLine("Number of nights" + numberOfNights); 
+        Console.WriteLine("Total Cost " + totalCost);
+        Console.WriteLine("total after Discout" + totalAfterDisount);
         reservation.ProofOfPayment = ro.GetImagesFromFolder(folderPath);
         reservation.Status = "Checked-In";
+
+        reservation.Paid += inDTO.Paid;
+        reservation.Discount = inDTO.Discount;
+        reservation.Dues = totalAfterDisount - reservation.Paid;
+        Console.WriteLine("Dues" + reservation.Dues);
+
         var customer = _unitOfWork.Customers.Get(u => u.Id == reservation.CustomerId);
         customer.status = reservation.Status;
         _unitOfWork.Reservations.Edit(reservation);
+        _unitOfWork.Customers.Edit(customer);
         _unitOfWork.Save();
         return Ok("Checked-In Successfully.");
 

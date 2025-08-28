@@ -570,4 +570,8 @@ Theme Designer Version: 2025.06.18.39140
   --dp-scheduler-event-bar-bg-color: #b6e6b6;   /* bar color */
   --dp-scheduler-event-bar-color: #09b01f;
 }
+.defaultschedule_event.checkout-event {
+  --dp-scheduler-event-bar-bg-color: #FF0000 ;   /* bar color */
+  --dp-scheduler-event-bar-color: #8B0000;
+}
 
