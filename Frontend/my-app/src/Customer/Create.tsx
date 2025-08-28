@@ -205,14 +205,18 @@ const Create = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
+
                   <Calendar
                     mode="single"
                     selected={birthDate}
+                    captionLayout="dropdown"
                     onSelect={(date) => {
                       setBirthDate(date);
-                      setIsCalendarOpen(false); // Collapse the popover
+                      setIsCalendarOpen(false);
                     }}
-                    initialFocus
+                    disabled={(date) =>
+                      date < new Date(new Date().setHours(0, 0, 0, 0))
+                    }
                   />
                 </PopoverContent>
               </Popover>
@@ -319,9 +323,8 @@ const Create = () => {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                className={`w-full ${
-                  !isLoading ? "cursor-pointer" : "cursor-not-allowed"
-                }`}
+                className={`w-full ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
+                  }`}
                 disabled={isLoading}
               >
                 {isLoading ? "Registering..." : "Register"}
