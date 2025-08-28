@@ -23,7 +23,7 @@ import Cookies from "js-cookie";
 interface RoomFormState {
   id?: number;
   roomNumber: string;
-  roomType: "Single" | "Double" | "Suite";
+  roomType: string;
   floor: number;
   capacity: number;
   isAvailable: boolean;
@@ -49,6 +49,14 @@ export default function CreateRoom() {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { id } = useParams<{ id: string }>();
+  const [roomtypes, setroomtypes] = useState<string[]>([]);
+  useEffect(() => {
+    const fetchrates = async () => {
+      const response = await axios.get(`${Url}/Admin/Rate/Getall`);
+      setroomtypes(response.data);
+    }
+    fetchrates();
+  }, [])
   useEffect(() => {
     if (!id) return;
 
@@ -62,7 +70,7 @@ export default function CreateRoom() {
         }
 
         // ✅ Ensure roomType is always one of the allowed values
-        const validRoomTypes = ["Single", "Double", "Suite"];
+        const validRoomTypes = roomtypes;
         const safeRoomType = validRoomTypes.includes(room.roomType)
           ? room.roomType
           : "Single";
@@ -70,7 +78,7 @@ export default function CreateRoom() {
         setFormData({
           id: room.id ?? undefined,
           roomNumber: room.roomNumber ?? "",
-          roomType: safeRoomType as "Single" | "Double" | "Suite",
+          roomType: safeRoomType as string,
           floor: room.floor ?? 0,
           capacity: room.capacity ?? 0,
           isAvailable: room.isAvailable ?? false,
@@ -83,7 +91,7 @@ export default function CreateRoom() {
             ? room.images
               .split(",")
               .map((img: string) => img.trim())
-              .filter((img: string) => img.length > 0) // 🔑 remove empty strings
+              .filter((img: string) => img.length > 0)
             : []
         );
       })
@@ -109,7 +117,7 @@ export default function CreateRoom() {
   const handleRoomTypeChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      roomType: value as "Single" | "Double" | "Suite",
+      roomType: value as string,
     }));
   };
 
@@ -181,7 +189,10 @@ export default function CreateRoom() {
       });
 
       toast.success(id ? "Room updated successfully!" : "Room created successfully!");
-      navigate("/Rooms/AllRooms");
+      setTimeout(() => {
+        navigate("/Rooms/AllRooms");
+      }, 1000);
+
 
       setExistingImages([]);
       setNewImages([]);
@@ -215,9 +226,9 @@ export default function CreateRoom() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="Single">Single</SelectItem>
-                  <SelectItem value="Double">Double</SelectItem>
-                  <SelectItem value="Suite">Suite</SelectItem>
+
+                  {roomtypes.map((type) => (<SelectItem value={type} >{type}</SelectItem>))}
+
                 </SelectGroup>
               </SelectContent>
             </Select>
