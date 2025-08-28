@@ -180,25 +180,6 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             }
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> Refresh()
-        {
-            var rooms = await _unitOfWork.Rooms.GetAllAsync(); // should return Task<IEnumerable<Room>>
-
-            foreach (var room in rooms)
-            {
-                var rate = await _unitOfWork.Rates.GetAsync(u => u.Type == room.RoomType);
-                if (rate != null && rate.Price != room.Price)
-                {
-                    room.Price = rate.Price;
-                    _unitOfWork.Rooms.Edit(room);
-                }
-            }
-
-            await _unitOfWork.SaveAsync();
-            return Ok("Prices refreshed for all rooms.");
-        }
-
 
 
     }
