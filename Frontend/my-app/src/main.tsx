@@ -11,6 +11,7 @@ import Booking from "./Reservations/Book.tsx";
 import RemoveReservation from "./Reservations/Remove.tsx";
 import Getall from "./Rooms/Getall.tsx";
 import Remove from "./Rooms/RemoveAndEdit.tsx";
+import RemoveCustomer from "./Customer/Remove.tsx";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -18,6 +19,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<App />} />
         <Route path="/App" element={<App />} />
         <Route path="/Customer/Create" element={<Create />} />
+                <Route path="/Customer/Remove" element={<RemoveCustomer />} />
+
         <Route path="/Rooms/Get-All" element={<Getall />} />
         <Route path="/Rooms/Edit" element={<Remove />} />
         <Route path="/Reservations/Search" element={<SearchReservations />} />
