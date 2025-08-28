@@ -57,7 +57,7 @@ public class CheckOutController : Controller
 
     [HttpPatch]
 
-    public IActionResult In(int? id, [FromForm] List<IFormFile>? uploadedFiles)
+    public IActionResult Out(int? id, [FromForm] List<IFormFile>? uploadedFiles)
     {
         var reservation = null as Reservation;
         if (id == null)
