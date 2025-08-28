@@ -34,7 +34,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/checkin/:id" element={<CheckInPage />} />
         <Route path="/rates/edit" element={<EditRates />} />
         <Route path="/Reservations/Checkin" element={<Checkin />} />
-        {/* Add other routes here */}
+
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

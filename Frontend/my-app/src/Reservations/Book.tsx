@@ -30,7 +30,7 @@ type Customer = {
 
 function Booking() {
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ useNavigate here
+  const navigate = useNavigate();
   const { roomNumber, roomType, checkIn, checkOut, roomId } =
     location.state || {};
 

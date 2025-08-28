@@ -10,11 +10,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Check, ChevronDownIcon, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 import { toast, Toaster } from "sonner";
 import { Url } from "../../GlobalVariables.tsx";
-
 import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
@@ -34,6 +49,8 @@ import {
 import { cn } from "@/lib/utils";
 import ErrorToast from "@/Toasts/ErrorToast.tsx";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import DeletePopup from "@/DeletePopup.tsx";
 
 type Room = {
   id: number;
@@ -73,6 +90,8 @@ const SearchReservations = () => {
   const [roomType, setRoomType] = React.useState<string>("");
   const [roomTypeOpen, setRoomTypeOpen] = React.useState(false);
 
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const [rooms, setRooms] = React.useState<Room[]>([]);
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
@@ -346,92 +365,144 @@ const SearchReservations = () => {
           </div>
         </div>
         {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="border rounded-xl p-4 shadow space-y-2 animate-pulse"
-              >
-                <div className="h-6 w-3/4 bg-gray-300 rounded" />
-                <div className="h-4 w-1/2 bg-gray-300 rounded" />
-                <div className="h-10 w-full bg-gray-300 rounded" />
-              </div>
-            ))
-          ) : rooms.length === 0 ? (
-            <p className="text-center text-lg text-gray-500 col-span-full">
-              No available rooms for the selected dates.
-            </p>
-          ) : (
-            rooms.map((room) => (
-              <Accordion
-                type="single"
-                collapsible
-                key={room.roomNumber}
-                className="border rounded-xl shadow transition "
-              >
-                <AccordionItem
-                  value={`room-${room.roomNumber}`}
-                  className=" hover:bg-gray-300/30 rounded-xl"
-                >
-                  <AccordionTrigger className="p-4 cursor-pointer">
-                    <div className="flex justify-between items-center w-full ">
-                      <div>
-                        <h2 className="text-2xl font-bold">
-                          {room.roomNumber}
-                        </h2>
-                        <Badge
-                          className={`text-lg mt-1 ${getRoomBadgeClasses(
-                            room.roomType
-                          )}`}
-                        >
-                          {room.roomType}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-xl font-semibold">
-                          Floor : {room.floor}
-                        </p>
-                        <p className="text-xl font-semibold">
-                          Capacity : {room.capacity}
-                        </p>
-                        <p className="text-xl font-semibold">
-                          Price : {room.price}
-                        </p>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
 
-                  <AccordionContent className="m-4 mb-0 flex flex-col gap-4">
-                    <Button
-                      className={`w-full  ${
-                        room.isAvailable
-                          ? "cursor-pointer"
-                          : "cursor-not-allowed"
-                      }`}
-                      onClick={() => {
-                        toast.loading(`Booking Room ${room.roomNumber}`);
-                        navigate("/reservations/booking", {
-                          state: {
-                            checkIn: getDateTime(checkInDate, checkInTime),
-                            checkOut: getDateTime(checkOutDate, checkOutTime),
-                            roomType: roomType,
-                            roomNumber: room.roomNumber,
-                            roomId: room.id,
-                          },
-                        });
-                      }}
-                      disabled={!room.isAvailable}
-                    >
-                      {room.isAvailable ? "Book Now" : "Unavailable"}
-                    </Button>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            ))
-          )}
+        <div className="grid md:grid-cols-10 gap-6">
+          {rooms.map((room) => (
+            <div
+              key={room.id}
+              className="border rounded-xl shadow cursor-pointer hover:bg-muted/30 flex items-center justify-center"
+              onClick={() => {
+                setSelectedRoom(room);
+                setOpenDrawerId(room.id);
+                console.log("Selected room:", room);
+              }}
+            >
+              {/* Centered Content */}
+              <div className="flex flex-col items-center justify-center p-4">
+                <h2 className="text-2xl font-bold mb-2 text-center">
+                  {room.roomNumber}
+                </h2>
+                <Badge
+                  className={`text-lg ${getRoomBadgeClasses(room.roomType)}`}
+                >
+                  {room.roomType}
+                </Badge>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+        {/* Drawer */}
+        {selectedRoom && (
+          <Drawer
+            open={openDrawerId === selectedRoom.id}
+            onOpenChange={(open) =>
+              setOpenDrawerId(open ? selectedRoom.id : null)
+            }
+          >
+            <DrawerContent className="max-w-full mx-auto rounded-t-2xl shadow-xl">
+              <div className="mx-auto w-full max-w-full grid-cols-2">
+                {/* Header */}
+                <DrawerHeader className="border-b pb-4">
+                  <DrawerTitle className="text-2xl font-bold">
+                    Room Details
+                  </DrawerTitle>
+                  <DrawerDescription className="text-muted-foreground">
+                    Full details for Room #{selectedRoom.roomNumber}
+                  </DrawerDescription>
+                </DrawerHeader>
+                {/* Body */}
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  {/* Image Carousel */}
+                  <div className="flex items-center justify-center">
+                    {selectedRoom.images ? (
+                      <Carousel className="w-full max-w-lg"> {/* bigger width */}
+                        <CarouselContent>
+                          {(
+                            Array.isArray(selectedRoom.images)
+                              ? selectedRoom.images
+                              : selectedRoom.images.split(",")
+                          )
+                            .map((img) => img.trim())
+                            .filter((img) => img.length > 0)
+                            .map((src, index) => (
+                              <CarouselItem key={index}>
+                                <div className="p-1 flex items-center justify-center">
+                                  <img
+                                    src={src}
+                                    alt={`Room image ${index + 1}`}
+                                    className="w-full h-[380px] object-contain rounded-xl shadow-md"
+                                  />
+                                </div>
+                              </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                      </Carousel>
+                    ) : (
+                      <p className="text-center text-muted-foreground">
+                        No images available.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Divider + Text */}
+                  <div className="flex flex-col md:flex-row items-center w-full">
+                    {/* Taller vertical divider */}
+                    <div className="hidden md:block w-px bg-gray-300 mx-6 h-full"></div>
+
+                    {/* Text Details */}
+                    <div className="space-y-2 text-2xl flex-1 font-[inter]">
+                      <p className="font-extrabold text-5xl mt-0 mb-25"><span className="font-extrabold"></span> {selectedRoom.roomNumber}</p>
+                      <p><span className="font-bold">Type:</span> {selectedRoom.roomType}</p>
+                      <p><span className="font-bold">Floor:</span> {selectedRoom.floor}</p>
+                      <p><span className="font-bold">Capacity:</span> {selectedRoom.capacity}</p>
+                      <p><span className="font-bold">Price per night:</span> ${selectedRoom.price}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <DrawerFooter className="flex flex-col md:flex-row items-center justify-end gap-4 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                  <DrawerClose asChild>
+                    <Button
+                      variant="outline"
+                      className="flex-1 px-6 py-2"
+                    >
+                      Close
+                    </Button>
+                  </DrawerClose>
+
+                  <Button
+                    className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors
+      ${selectedRoom.isAvailable
+                        ? "cursor-pointer"
+                        : "cursor-not-allowed opacity-70"
+                      }`}
+                    onClick={() => {
+                      toast.loading(`Booking Room ${selectedRoom.roomNumber}`);
+                      navigate("/reservations/booking", {
+                        state: {
+                          checkIn: getDateTime(checkInDate, checkInTime),
+                          checkOut: getDateTime(checkOutDate, checkOutTime),
+                          roomType: roomType,
+                          roomNumber: selectedRoom.roomNumber,
+                          roomId: selectedRoom.id,
+                        },
+                      });
+                    }}
+                    disabled={!selectedRoom.isAvailable}
+                  >
+                    {selectedRoom.isAvailable ? "Book Now" : "Unavailable"}
+                  </Button>
+                </DrawerFooter>
+
+              </div>
+            </DrawerContent>
+          </Drawer>
+        )}
+      </div >
+
     </>
   );
 };

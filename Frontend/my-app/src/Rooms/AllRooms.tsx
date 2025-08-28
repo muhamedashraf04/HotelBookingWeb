@@ -1,14 +1,24 @@
 "use client";
 
 import Header from "@/components/Header/Header";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Pagination,
   PaginationContent,
@@ -34,23 +44,20 @@ export type Room = {
   capacity: number;
   isAvailable: boolean;
   roomType: string;
+  price: number;
+  images: string;
 };
 
-
-
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 70;
 
 const AllRooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedRoom, setExpandedRoom] = useState<string | undefined>();
+  const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const navigate = useNavigate();
-  // inline edit state
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editDraft, setEditDraft] = useState<Room | null>(null);
 
-  // load rooms once
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -59,9 +66,7 @@ const AllRooms = () => {
         if (res.status !== 200) throw new Error("Failed to fetch rooms");
         setRooms(res.data as Room[]);
       } catch (err: any) {
-        toast.error(
-          err?.message || "Something went wrong while fetching rooms"
-        );
+        toast.error(err?.message || "Something went wrong while fetching rooms");
       } finally {
         setLoading(false);
       }
@@ -91,39 +96,6 @@ const AllRooms = () => {
     }
   };
 
-  const startEdit = (room: Room) => {
-    setEditingId(room.id);
-    setEditDraft({ ...room });
-    setExpandedRoom(`room-${room.id}`); // ensure open while editing
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditDraft(null);
-  };
-
-  const saveEdit = async () => {
-    if (!editDraft) return;
-    try {
-      await axios.post(`${Url}/Admin/Room/Upsert`, {
-        id: editDraft.id,
-        roomNumber: editDraft.roomNumber,
-        floor: editDraft.floor,
-        capacity: editDraft.capacity,
-        isAvailable: editDraft.isAvailable,
-        roomType: editDraft.roomType,
-      });
-      toast.success("Room updated");
-
-      setRooms((prev) =>
-        prev.map((r) => (r.id === editDraft.id ? { ...editDraft } : r))
-      );
-      cancelEdit();
-    } catch (e: any) {
-      toast.error(e?.response?.data ?? "Failed to save");
-    }
-  };
-
   return (
     <>
       <Header />
@@ -132,7 +104,7 @@ const AllRooms = () => {
 
         {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
             {Array.from({ length: ITEMS_PER_PAGE }).map((_, idx) => (
               <div key={idx} className="border rounded p-4 shadow space-y-2">
                 <Skeleton className="h-6 w-3/4" />
@@ -146,80 +118,142 @@ const AllRooms = () => {
             No rooms available.
           </div>
         ) : (
-          <Accordion
-            type="single"
-            collapsible
-            value={expandedRoom}
-            onValueChange={(v) => setExpandedRoom(v)}
-            className="grid grid-cols-1 md:grid-cols-4 gap-6"
+          <div className="grid md:grid-cols-10 gap-6">
+            {paginatedRooms.map((room) => (
+              <div
+                key={room.id}
+                className="border rounded-xl shadow cursor-pointer hover:bg-muted/30 flex items-center justify-center"
+                onClick={() => {
+                  setSelectedRoom(room);
+                  setOpenDrawerId(room.id);
+                  console.log("Selected room:", room);
+                }}
+              >
+                {/* Centered Content */}
+                <div className="flex flex-col items-center justify-center p-4">
+                  <h2 className="text-2xl font-bold mb-2 text-center">
+                    {room.roomNumber}
+                  </h2>
+                  <Badge
+                    className={`text-lg ${getRoomBadgeClasses(room.roomType)}`}
+                  >
+                    {room.roomType}
+                  </Badge>
+                </div>
+              </div>
+
+            ))}
+          </div>
+        )}
+
+        {/* Drawer */}
+        {selectedRoom && (
+          <Drawer
+            open={openDrawerId === selectedRoom.id}
+            onOpenChange={(open) =>
+              setOpenDrawerId(open ? selectedRoom.id : null)
+            }
           >
-            {paginatedRooms.map((room) => {
-              const value = `room-${room.id}`;
-              const isEditing = editingId === room.id;
-              return (
-                <AccordionItem
-                  key={value}
-                  value={value}
-                  className="border rounded-xl shadow"
-                >
-                  {/* Header */}
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline  cursor-pointer">
-                    <div className="flex w-full items-center justify-between">
-                      <div>
-                        <h2 className="text-2xl font-bold">
-                          {room.roomNumber}
-                        </h2>
-                        <Badge
-                          className={`text-lg mt-1 ${getRoomBadgeClasses(
-                            room.roomType
-                          )}`}
-                        >
-                          {room.roomType}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm">Floor: {room.floor}</p>
-                        <p className="text-sm">Capacity: {room.capacity}</p>
-                        <p className="text-sm">
-                          {room.isAvailable ? "Available" : "Unavailable"}
-                        </p>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
+            <DrawerContent className="max-w-full mx-auto rounded-t-2xl shadow-xl">
+              <div className="mx-auto w-full max-w-full grid-cols-2">
+                {/* Header */}
+                <DrawerHeader className="border-b pb-4">
+                  <DrawerTitle className="text-2xl font-bold">
+                    Room Details
+                  </DrawerTitle>
+                  <DrawerDescription className="text-muted-foreground">
+                    Full details for Room #{selectedRoom.roomNumber}
+                  </DrawerDescription>
+                </DrawerHeader>
+                {/* Body */}
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  {/* Image Carousel */}
+                  <div className="flex items-center justify-center">
+                    {selectedRoom.images ? (
+                      <Carousel className="w-full max-w-lg"> {/* bigger width */}
+                        <CarouselContent>
+                          {(
+                            Array.isArray(selectedRoom.images)
+                              ? selectedRoom.images
+                              : selectedRoom.images.split(",")
+                          )
+                            .map((img) => img.trim())
+                            .filter((img) => img.length > 0)
+                            .map((src, index) => (
+                              <CarouselItem key={index}>
+                                <div className="p-1 flex items-center justify-center">
+                                  <img
+                                    src={src}
+                                    alt={`Room image ${index + 1}`}
+                                    className="w-full h-[380px] object-contain rounded-xl shadow-md"
+                                  />
+                                </div>
+                              </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                      </Carousel>
+                    ) : (
+                      <p className="text-center text-muted-foreground">
+                        No images available.
+                      </p>
+                    )}
+                  </div>
 
-                  {/* Content */}
-                  <AccordionContent className="px-4 pb-4">
+                  {/* Divider + Text */}
+                  <div className="flex flex-col md:flex-row items-center w-full">
+                    {/* Taller vertical divider */}
+                    <div className="hidden md:block w-px bg-gray-300 mx-6 h-full"></div>
 
-                    <div className="flex gap-3">
-                      <DeletePopup
-                        id={`${room.id}`}
-                        message={`This will permanently delete Room #${room.roomNumber} (${room.roomType}). This action cannot be undone.`}
-                        Area="Admin"
-                        Controller="Room"
-                        Action="Remove"
-                        onDeleted={() => {
-                          setRooms((prev) =>
-                            prev.filter((r) => r.id !== room.id)
-                          );
-                        }}
-                      />
-                      <Button
-                        variant="secondary"
-                        className="cursor-pointer"
-                        onClick={() => {
-                          navigate(`/Rooms/Create/${room.id}`, {
-                            state: room.id
-                          });
-                        }}
-                      >
-                        Edit
-                      </Button>
+                    {/* Text Details */}
+                    <div className="space-y-2 text-2xl flex-1 font-[inter]">
+                      <p className="font-extrabold text-5xl mt-0 mb-25"><span className="font-extrabold"></span> {selectedRoom.roomNumber}</p>
+                      <p><span className="font-bold">Type:</span> {selectedRoom.roomType}</p>
+                      <p><span className="font-bold">Floor:</span> {selectedRoom.floor}</p>
+                      <p><span className="font-bold">Capacity:</span> {selectedRoom.capacity}</p>
+                      <p><span className="font-bold">Price per night:</span> ${selectedRoom.price}</p>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <DrawerFooter className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                  <DrawerClose asChild>
+                    <Button variant="outline" className="w-full">
+                      Close
+                    </Button>
+                  </DrawerClose>
+
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={() => {
+                      navigate(`/Rooms/Create/${selectedRoom.id}`, {
+                        state: selectedRoom.id
+                      });
+                    }}
+                  >
+                    Edit
+                  </Button>
+
+                  <DeletePopup
+                    id={`${selectedRoom.id}`}
+                    message={`This will permanently delete Room #${selectedRoom.roomNumber} (${selectedRoom.roomType}). This action cannot be undone.`}
+                    Area="Admin"
+                    Controller="Room"
+                    Action="Remove"
+                    onDeleted={() => {
+                      setRooms((prev) =>
+                        prev.filter((r) => r.id !== selectedRoom.id)
+                      );
+                    }}
+                  />
+                </DrawerFooter>
+
+              </div>
+            </DrawerContent>
+          </Drawer>
         )}
 
         {/* Pagination */}
@@ -263,7 +297,9 @@ const AllRooms = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                      setCurrentPage((prev) =>
+                        Math.min(prev + 1, totalPages)
+                      );
                     }}
                   />
                 </PaginationItem>
@@ -271,8 +307,9 @@ const AllRooms = () => {
             </Pagination>
           </div>
         )}
-      </div>
+      </div >
     </>
   );
 };
+
 export default AllRooms;
