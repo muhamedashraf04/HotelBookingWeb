@@ -106,7 +106,6 @@ const Nav: React.FC = () => {
         items: [
           { label: "Create", href: "/customer/create" },
           { label: "Remove", href: "/customer/remove" },
-          { label: "Get All", href: "/customer/get-all" },
         ],
       },
       {
