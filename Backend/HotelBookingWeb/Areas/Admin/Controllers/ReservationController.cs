@@ -21,11 +21,7 @@ public class ReservationController : Controller
         _logger = logger;
     }
 
-    [HttpGet]
-    public IActionResult Index()
-    {
-        return View();
-    }
+    
     [HttpGet]
     public IActionResult GetAll()
     {
@@ -298,6 +294,16 @@ public class ReservationController : Controller
         _unitOfWork.Reservations.Remove(id);
         _unitOfWork.Save();
         return Ok("Reservation deleted successfully.");
+    }
+
+    [HttpGet]
+    public IActionResult Get(int id)
+    {
+
+        var reservation = _unitOfWork.Reservations.Get(u => u.Id == id);
+        if (reservation == null) { return BadRequest(); }
+        return Ok(reservation);
+
     }
 }
 

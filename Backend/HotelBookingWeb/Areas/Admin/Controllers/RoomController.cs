@@ -160,7 +160,11 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             }
             else
             {
-
+                var reservation = _unitOfWork.Reservations.Get(u => u.RoomId == Id);
+                if ( reservation != null)
+                {
+                    return BadRequest("Can't Delete Room because there is a reservation");
+                }
                 var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
                 var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";
                 _cloudinary.DeleteResourcesByPrefix(prefix);
