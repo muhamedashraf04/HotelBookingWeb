@@ -201,8 +201,6 @@ public class ReservationController : Controller
             // If no existing reservations, room is free
             if (!reservations.Any())
             {
-                var room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
-                reservation.Dues = room.Price - reservation.Paid;
                 if (ModelState.IsValid)
                 {
                     _unitOfWork.Reservations.Create(reservation);
