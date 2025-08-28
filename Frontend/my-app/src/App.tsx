@@ -1,17 +1,6 @@
 "use client";
 
 import Header from "@/components/Header/Header";
-import { Button } from "@/components/ui/button";
-import "../styles/defaultschedule.css";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +11,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
-import axios from "axios";
 import { Url } from "../GlobalVariables";
 import ErrorToast from "../src/Toasts/ErrorToast";
-import Popup from "./DeletePopup";
+import "../styles/defaultschedule.css";
 
 type Reservation = {
   id: number;
@@ -264,7 +263,7 @@ export default function App() {
           <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-green-600"
             onClick={() => {
-              navigate(`/Reservations/CheckIn/${contextMenu.reservation!.id}`, {
+              navigate(`/CheckIn/${contextMenu.reservation!.id}`, {
                 state: contextMenu.reservation,
               });
             }}

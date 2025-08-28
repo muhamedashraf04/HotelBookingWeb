@@ -56,7 +56,7 @@ export default function CheckInPage() {
   useEffect(() => {
     if (!reservation && id) {
       axios
-        .get(`${Url}/Admin/Reservation/Get/${id}`)
+        .get(`${Url}/Admin/Reservation/Get/?id=${id}`)
         .then((res) => setReservation(res.data))
         .catch(() => toast.error("Failed to load reservation"));
     }
@@ -112,7 +112,7 @@ export default function CheckInPage() {
       });
 
       toast.success("Guest checked in successfully!");
-      navigate("/reservations");
+      navigate("/");
     } catch (err: any) {
       toast.error(err?.response?.data ?? "Failed to check in");
     } finally {
