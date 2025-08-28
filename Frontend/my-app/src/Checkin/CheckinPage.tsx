@@ -102,9 +102,9 @@ export default function CheckInPage() {
     setSaving(true);
     try {
       const formData = new FormData();
-      formData.append("id", reservation.id.toString());
-      formData.append("paid", paid.toString());
-      formData.append("discount", discount.toString());
+      formData.append("ReservationId", reservation.id.toString());
+      formData.append("Paid", paid.toString());
+      formData.append("Discount", discount.toString());
       images.forEach((file) => formData.append("uploadedFiles", file));
 
       await axios.patch(`${Url}/Admin/Checkin/In`, formData, {

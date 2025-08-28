@@ -114,10 +114,12 @@ export default function App() {
       const formattedEvents = reservationsWithNames.map((r) => {
         let cssClass = "";
 
-        if (r.status === "CheckedIn" || r.status === "Checked-In") {
+        if (r.status === "Checked-In") {
           cssClass = "checkedin-event";
         } else if (r.status === "Reserved") {
           cssClass = "reserved-event";
+        } else if (r.status === "Checked-Out") {
+          cssClass = "checkout-event";
         }
 
         return {
@@ -228,7 +230,7 @@ export default function App() {
                 reservation: clicked,
               });
             }}
-            startDate={DayPilot.Date.today()}
+            startDate={DayPilot.Date.today().addDays(-7)}
             days={days}
             scale="Day"
             timeHeaders={[
@@ -269,6 +271,16 @@ export default function App() {
             }}
           >
             ✅ Check-In
+          </button>
+          <button
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+            onClick={() => {
+              navigate(`/CheckOut/${contextMenu.reservation!.id}`, {
+                state: contextMenu.reservation,
+              });
+            }}
+          >
+            ⬜ Check-Out
           </button>
           <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100"
