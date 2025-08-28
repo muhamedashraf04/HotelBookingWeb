@@ -113,7 +113,7 @@ export default function CheckoutPage() {
       });
 
       toast.success("Guest checked out successfully!");
-      navigate("/checkout");
+      navigate("/");
     } catch (err: any) {
       toast.error(err?.response?.data ?? "Failed to check out");
     } finally {

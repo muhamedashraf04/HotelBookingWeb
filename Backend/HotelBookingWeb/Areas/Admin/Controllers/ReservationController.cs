@@ -101,11 +101,7 @@ public class ReservationController : Controller
         {
             int roomId = keyValuePair.Key;
             var intervals = keyValuePair.Value;
-            Console.WriteLine("#############");
-            Console.WriteLine(rsd.CheckInDate);
-            Console.WriteLine(intervals[0].CheckOutDate);
-            Console.WriteLine("#############");
-
+  
             bool canFit = false;
 
             // Case A: before first reservation
@@ -242,6 +238,11 @@ public class ReservationController : Controller
                 return BadRequest("Room is already booked in this interval.");
             }
 
+            var room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
+
+            float numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days;
+            reservation.Dues = room.Price * (numberOfNights);
+
             // Save new reservation
             if (ModelState.IsValid)
             {
@@ -272,6 +273,10 @@ public class ReservationController : Controller
         }
         if (ModelState.IsValid)
         {
+            var room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
+            int numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days +1;
+            reservation.Dues = (room.Price * numberOfNights);
+
             _unitOfWork.Reservations.Edit(reservation);
             _unitOfWork.Save();
             return Ok("Reservation updated successfully.");
