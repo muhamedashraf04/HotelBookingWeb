@@ -106,7 +106,6 @@ const Nav: React.FC = () => {
       items: [
         { label: "Create", href: "/customer/create" },
         { label: "Remove", href: "/customer/remove" },
-        { label: "Get All", href: "/customer/get-all" },
       ],
     },
     {
@@ -209,11 +208,6 @@ const Nav: React.FC = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-
-
-
-
-
             {/* Sections */}
             {menuSections.map((section) => {
               if (
@@ -254,9 +248,7 @@ const Nav: React.FC = () => {
               </NavigationMenuItem>
             )}
           </NavigationMenuList>
-
         </NavigationMenu>
-
       </div>
 
       {/* Right side */}

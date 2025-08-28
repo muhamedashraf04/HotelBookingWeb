@@ -3,7 +3,6 @@ using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
 using HotelBooking.Models.RoomModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 
 namespace HotelManagment.Controllers;
 
@@ -21,7 +20,7 @@ public class ReservationController : Controller
         _logger = logger;
     }
 
-    
+
     [HttpGet]
     public IActionResult GetAll()
     {
@@ -82,7 +81,7 @@ public class ReservationController : Controller
         }
 
         var reservations = _unitOfWork.Reservations.GetAll(
-            r => r.RoomType == rsd.RoomType
+            r => r.RoomType == rsd.RoomType && r.Status != "Checked-Out"
         );
         var roomReservations = reservations
             .GroupBy(r => r.RoomId)
@@ -101,7 +100,7 @@ public class ReservationController : Controller
         {
             int roomId = keyValuePair.Key;
             var intervals = keyValuePair.Value;
-  
+
             bool canFit = false;
 
             // Case A: before first reservation
@@ -190,18 +189,31 @@ public class ReservationController : Controller
         try
         {
             // Fetch all reservations for this room
-            var reservations = _unitOfWork.Reservations.GetAll(r => r.RoomId == reservation.RoomId)
+            var reservations = _unitOfWork.Reservations.GetAll(r => r.RoomId == reservation.RoomId && r.Status != "Checked-Out")
                                                        .OrderBy(r => r.CheckInDate)
                                                        .ToList();
-
+            var room = null as Room;
+            float numberOfNights = 0;
             // If no existing reservations, room is free
             if (!reservations.Any())
             {
                 if (ModelState.IsValid)
                 {
+                     room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
+
+                    numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days;
+                    reservation.Dues = room.Price * (numberOfNights);
+                    Console.WriteLine("######");
+                    Console.WriteLine(reservation.Dues);
+                    Console.WriteLine(room.Price);
+                    Console.WriteLine(numberOfNights);
+                    Console.WriteLine("######");
+
+
                     _unitOfWork.Reservations.Create(reservation);
                     _unitOfWork.Save();
                     return Ok("Reservation created successfully.");
+
                 }
                 return BadRequest("Invalid reservation data.");
             }
@@ -238,10 +250,16 @@ public class ReservationController : Controller
                 return BadRequest("Room is already booked in this interval.");
             }
 
-            var room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
+            room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
 
-            float numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days;
+            numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days;
             reservation.Dues = room.Price * (numberOfNights);
+            Console.WriteLine("######");
+            Console.WriteLine(reservation.Dues);
+            Console.WriteLine(room.Price);
+            Console.WriteLine(numberOfNights);
+            Console.WriteLine("######");
+
 
             // Save new reservation
             if (ModelState.IsValid)
@@ -274,7 +292,7 @@ public class ReservationController : Controller
         if (ModelState.IsValid)
         {
             var room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
-            int numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days +1;
+            int numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days + 1;
             reservation.Dues = (room.Price * numberOfNights);
 
             _unitOfWork.Reservations.Edit(reservation);

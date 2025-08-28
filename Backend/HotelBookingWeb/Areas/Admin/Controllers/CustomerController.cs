@@ -106,7 +106,11 @@ public class CustomerController : Controller
             return BadRequest("Id is required.");
 
         var removed = _unitOfWork.Customers.Remove(id.Value);
-
+        var reservation = _unitOfWork.Reservations.Get(u => u.CustomerId == id);
+        if (reservation != null)
+        {
+            return BadRequest("Can't Delete Room because there is a reservation");
+        }
         if (removed)
         {
             _unitOfWork.Save();

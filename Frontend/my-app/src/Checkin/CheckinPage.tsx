@@ -131,7 +131,7 @@ export default function CheckInPage() {
 
         {reservation && (
           <div className="p-4 border rounded space-y-2">
-            <h3 className="font-semibold">Customer</h3>
+            <h3 className="font-bold">Customer</h3>
             {customer ? (
               <div className="ml-4">
                 <p>Name: {customer.name}</p>
@@ -143,7 +143,7 @@ export default function CheckInPage() {
               <p>Loading customer...</p>
             )}
 
-            <h3 className="font-semibold mt-2">Room</h3>
+            <h3 className="font-bold mt-2">Room</h3>
             {room ? (
               <div className="ml-4">
                 <p>Room Number: {room.roomNumber}</p>
@@ -155,11 +155,12 @@ export default function CheckInPage() {
             )}
 
             <p>
-              <strong>Dates:</strong> {reservation.checkInDate} →{" "}
-              {reservation.checkOutDate}
+              <strong>Dates:</strong>{" "}
+              {new Date(reservation.checkInDate).toLocaleString()} →{" "}
+              {new Date(reservation.checkOutDate).toLocaleString()}
             </p>
             <p>
-              <strong>Req</strong> {reservation.dues}
+              <strong>Dues:</strong> {reservation.dues}
             </p>
             <p>
               <strong>Status:</strong> {reservation.status}

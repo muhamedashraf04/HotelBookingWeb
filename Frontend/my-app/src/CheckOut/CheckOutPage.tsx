@@ -154,8 +154,9 @@ export default function CheckoutPage() {
             )}
 
             <p>
-              <strong>Dates:</strong> {reservation.checkInDate} →{" "}
-              {reservation.checkOutDate}
+              <strong>Dates:</strong>{" "}
+              {new Date(reservation.checkInDate).toLocaleString()} →{" "}
+              {new Date(reservation.checkOutDate).toLocaleString()}
             </p>
             <p>
               <strong>Status:</strong> {reservation.status}
