@@ -99,9 +99,10 @@ export default function CreateRoom() {
           : "Single";
 
         setFormData({
+
           id: room.id ?? undefined,
           roomNumber: room.roomNumber ?? "",
-          roomType: safeRoomType as string,
+          roomType: room.roomType ?? "Single",
           floor: room.floor ?? 0,
           capacity: room.capacity ?? 0,
           isAvailable: room.isAvailable ?? false,
