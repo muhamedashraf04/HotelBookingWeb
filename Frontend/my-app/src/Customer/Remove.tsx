@@ -1,304 +1,431 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Url } from "../../GlobalVariables";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import SuccessToast from "../Toasts/SuccessToast";
+import ErrorToast from "../Toasts/ErrorToast";
+import LoadingToast from "../Toasts/LoadingToast";
 import Header from "@/components/Header/Header";
-import { useState, useEffect } from "react";
+
+/*
+  Full Remove & Edit page (single file)
+  - Matches backend routes:
+    GET  -> /Admin/Customer/GetCustomers
+    PUT  -> /Admin/Customer/Edit         (multipart/form-data)
+    DELETE-> /Admin/Customer/Remove/{id}
+  - Sends required fields matching Customer model (Name, PhoneNumber, Nationality, IdentificationType, IdentificationNumber, BirthDate, IsMarried)
+  - Sends uploadedFiles and deletedImages as the backend expects
+*/
 
 type Customer = {
-  id: number;
+  id: string;
   name: string;
-  email: string;
-  phone?: string;
+  phoneNumber: string;
+  address: string;
+  nationality: string;
+  identificationType: string;
+  identificationNumber: string;
+  identificationAttachment?: string | string[]; // backend may return single string or array
+  birthDate?: string; // yyyy-MM-dd
+  age?: number;
+  email?: string;
+  isMarried?: boolean;
+  marriageCertificateNumber?: string;
+  marriageCertificateAttachment?: string;
+  marriedToCustomerId?: string;
+  status?: string;
 };
 
-function RemoveCustomer(){
-   const [customers, setCustomers] = useState<Customer[]>([]);
-   const [search, setSearch] = useState("");
-   const [currentPage, setCurrentPage] = useState(1);
-   const [rowsPerPage] = useState(5);
-   const [loading, setLoading] = useState(false);
-   const [error, setError] = useState("");
-   const [form, setForm] = useState({ id: 0, name: "", email: "", phone: "" });
-   const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" });
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
 
-   
-   const fetchCustomers = async () => {
+  // --- For editing ---
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [deletedImages, setDeletedImages] = useState<string[]>([]);
+
+  // --- For deleting ---
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+
+  // Fetch all customers from backend
+  const fetchCustomers = async () => {
+    try {
       setLoading(true);
-      setError("");
+      const res = await axios.get(`${Url}/Admin/Customer/GetCustomers`);
+      setCustomers(res.data || []);
+    } catch (err: any) {
+      console.error(err);
+      ErrorToast(err?.message || "Failed to load customers");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchCustomers();
+  }, []);
+
+  // --- Helpers for images ---
+  const getImageList = (c: Customer): string[] => {
+    const att = (c as any).identificationAttachment ?? (c as any).identificationAttachments ?? c.identificationAttachment;
+    if (!att) return [];
+    if (Array.isArray(att)) return att;
+    if (typeof att === "string") {
       try {
-         const res = await fetch("http://localhost:5000/api/customers");
-         if (!res.ok) throw new Error("Failed to fetch customers");
-         const data = await res.json();
-         setCustomers(data);
-      } catch (err) {
-         setError((err as Error).message);
-      } finally {
-        setLoading(false);
+        const parsed = JSON.parse(att);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // not JSON
       }
-   };
+      return [att];
+    }
+    return [];
+  };
 
-   useEffect(() => {
-      fetchCustomers();
-   }, []);
+  // --- Handle file changes for edit ---
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
+    }
+  };
 
-   
-   const handleDelete = async (id:number) => {
-      if (!window.confirm("Are you sure you want to remove this customer?")) return;
+  const handleRemoveExistingImage = (url: string) => {
+    setDeletedImages((prev) => [...prev, url]);
+    if (editingCustomer) {
+      const currentImgs = getImageList(editingCustomer).filter((i) => i !== url);
+      setEditingCustomer({ ...editingCustomer, identificationAttachment: currentImgs } as Customer);
+    }
+  };
 
-      try {
-         await fetch(`http://localhost:5000/api/customers/${id}`, {
-            method: "DELETE",
-         });
+  const handleRemoveNewFile = (file: File) => {
+    setNewFiles((prev) => prev.filter((f) => f !== file));
+  };
 
-         
-         setCustomers(customers.filter((c) => c.id !== id));
-      } catch (err) {
-         setError("Error deleting customer:");
-      }
-   };
+  // --- Submit edit ---
+  const handleUpdate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editingCustomer) return;
 
-const handleSubmit = async (e:any) => {
-      e.preventDefault();
+    setLoading(true);
+    LoadingToast("Updating customer...");
 
-      
-      if (!form.name || !form.email || !form.phone) {
-         setError("All fields are required");
-         return;
-      }
-      if (!/\S+@\S+\.\S+/.test(form.email)) {
-         setError("Invalid email format");
-         return;
-      }
-      if (!/^\d+$/.test(form.phone)) {
-         setError("Phone must contain only numbers");
-         return;
-      }
+    try {
+      const formData = new FormData();
 
-      setError("");
-      try {
-         if (form.id) {
-            
-            if (!window.confirm("Are you sure you want to update this customer?")) return;
+// required + model-matching fields
+formData.append("Id", String(editingCustomer.id));
+formData.append("Name", editingCustomer.name ?? "");
+formData.append("Email", editingCustomer.email ?? "");
+formData.append("PhoneNumber", editingCustomer.phoneNumber ?? "");
+formData.append("Address", editingCustomer.address ?? "");
+formData.append("Nationality", editingCustomer.nationality ?? "");
+formData.append("IdentificationType", editingCustomer.identificationType ?? "");
+formData.append("IdentificationNumber", editingCustomer.identificationNumber ?? "");
 
-            const res = await fetch(`http://localhost:5000/api/customers/${form.id}`, {
-               method: "PUT",
-               headers: { "Content-Type": "application/json" },
-               body: JSON.stringify(form),
-            });
-            if (!res.ok) throw new Error("Failed to update customer");
-
-            setCustomers(customers.map((c) => (c.id === form.id ? form as Customer : c)));
-
-         } else {
-            
-            const res = await fetch("http://localhost:5000/api/customers", {
-               method: "POST",
-               headers: { "Content-Type": "application/json" },
-               body: JSON.stringify(form),
-            });
-            if (!res.ok) throw new Error("Failed to add customer");
-
-            const newCustomer = await res.json();
-            setCustomers([...customers, newCustomer]);
-         }
-         setForm({ id: 0, name: "", email: "", phone: "" });
-      } catch (err) {
-         setError((err as Error).message);
-      }
-   };
-
-   
-   const handleSort = (key:any) => {
-      let direction = "asc";
-      if (sortConfig.key === key && sortConfig.direction === "asc") {
-         direction = "desc";
-      }
-      setSortConfig({ key, direction });
-   };
-
-
-const filteredCustomers = customers.filter((c:any) =>
-      c.id?.toString().includes(search) ||
-      c.name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone?.toString().includes(search)
-   );
-
-const indexOfLast = currentPage * rowsPerPage;
-   const indexOfFirst = indexOfLast - rowsPerPage;
-   const currentCustomers = filteredCustomers.slice(indexOfFirst, indexOfLast);
-   const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage);
-
-   const exportCSV = () => {
-      const headers = ["ID", "Name", "Email", "Phone"];
-      const rows = customers.map((c) => [c.id, c.name, c.email, c.phone]);
-      const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "customers.csv";
-      a.click();
-   };
-
-   return(
-      <>
-         <Header/>
-         <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Customer Management</h2>
-
-{/* Error */}
-            {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</div>}
-
-            {/* Add / Edit Form */}
-            <form onSubmit={handleSubmit} className="mb-6 space-y-2">
-               <input
-                  type="text"
-                  placeholder="Name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="border px-3 py-2 rounded w-full"
-               />
-               <input
-                  type="email"
-                  placeholder="Email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="border px-3 py-2 rounded w-full"
-               />
-               <input
-                  type="text"
-                  placeholder="Phone"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="border px-3 py-2 rounded w-full"
-               />
-               <button
-                  type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-               >
-                  {form.id ? "Update Customer" : "Add Customer"}
-               </button>
-               {form.id && (
-                  <button
-                     type="button"
-                     onClick={() => setForm({ id: 0, name: "", email: "", phone: "" })}
-                     className="ml-2 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                  >
-                     Cancel
-                  </button>
-               )}
-            </form>
-
- {/* Search + Export */}
-            <div className="flex justify-between items-center mb-4">
-               <input
-                  type="text"
-                  placeholder="Search by ID, Name or Phone..."
-                  value={search}
-                  onChange={(e) => {
-                     setSearch(e.target.value);
-                     setCurrentPage(1);
-                  }}
-                  className="border px-3 py-2 rounded w-1/2"
-               />
-               <button
-                  onClick={exportCSV}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-               >
-                  Export CSV
-               </button>
-            </div>
-
-   
-            {/* Table */}
-            {loading ? (
-               <p>Loading customers...</p>
-            ) : currentCustomers.length === 0 ? (
-               <p>No customers found.</p>
-            ) : (
-               <table className="min-w-full border border-gray-200 shadow-lg rounded-lg">
-                  <thead>
-                     <tr className="bg-gray-100">
-                        {["id", "name", "email", "phone"].map((key) => (
-                           <th
-                              key={key}
-                              className="px-4 py-2 border cursor-pointer"
-                              onClick={() => handleSort(key)}
-                           >
-                              {key.toUpperCase()}{" "}
-                              {sortConfig.key === key ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
-                           </th>
-                        ))}
-                        <th className="px-4 py-2 border">Actions</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-
-
-                {currentCustomers.map((customer:any) => (
-                     <tr key={customer.id} className="hover:bg-gray-50">
-                           <td className="px-4 py-2 border">{customer.id}</td>
-                           <td className="px-4 py-2 border">{customer.name}</td>
-                           <td className="px-4 py-2 border">{customer.email}</td>
-                           <td className="px-4 py-2 border">{customer.phone}</td>
-                           <td className="px-4 py-2 border text-center space-x-2">
-
- <button
-                                 onClick={() => setForm(customer)}
-                                 className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                              >
-                                 Edit
-                              </button>
-
-                    
-                        <button
-                           onClick={() => handleDelete(customer.id)}
-                           className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        >
-                           Remove
-                        </button>
-                        </td>
-                        </tr>
-        
-                  
-                  
-                    
-                  ))}
-                  </tbody>
-                 </table>
-            )}
-               
- {/* Pagination */}
-            {totalPages > 1 && (
-               <div className="flex justify-between items-center mt-4">
-                  <button
-                     disabled={currentPage === 1}
-                     onClick={() => setCurrentPage(currentPage - 1)}
-                     className={`px-4 py-2 rounded ${
-                        currentPage === 1
-                           ? "bg-gray-300 cursor-not-allowed"
-                           : "bg-blue-500 text-white hover:bg-blue-600"
-                     }`}
-                  >
-                     Previous
-                  </button>
-                  <span>
-                     Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                     disabled={currentPage === totalPages}
-                     onClick={() => setCurrentPage(currentPage + 1)}
-                     className={`px-4 py-2 rounded ${
-                        currentPage === totalPages
-                           ? "bg-gray-300 cursor-not-allowed"
-                           : "bg-blue-500 text-white hover:bg-blue-600"
-                     }`}
-                  >
-                     Next
-                  </button>
-               </div>
-
-            )}
-         </div>
-      </>
-   );
+// BirthDate must be yyyy-MM-dd (ASP.NET Core DateOnly)
+if (editingCustomer.birthDate) {
+  const date = new Date(editingCustomer.birthDate);
+  formData.append("BirthDate", date.toISOString().split("T")[0]); 
 }
 
-export default RemoveCustomer;
+// Age (if you calculate client-side, otherwise server does it)
+if (editingCustomer.age !== undefined) {
+  formData.append("Age", String(editingCustomer.age));
+}
+
+// Required boolean
+formData.append("IsMarried", editingCustomer.isMarried ? "true" : "false");
+
+// Optional marriage fields
+formData.append("MarriageCertificateNumber", editingCustomer.marriageCertificateNumber ?? "");
+formData.append("MarriageCertificateAttachment", editingCustomer.marriageCertificateAttachment ?? "");
+formData.append("MarriedToCustomerId", editingCustomer.marriedToCustomerId ?? "");
+
+// Status (default Registered if not set)
+formData.append("status", editingCustomer.status ?? "Registered");
+
+// handle file uploads
+newFiles.forEach((file) => {
+  formData.append("uploadedFiles", file);
+});
+
+// deleted images (send JSON string)
+if (deletedImages.length > 0) {
+  formData.append("deletedImages", JSON.stringify(deletedImages));
+}
+
+      const res = await axios.put(`${Url}/Admin/Customer/Edit`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.status === 200) {
+        SuccessToast("Customer updated successfully");
+        setEditingCustomer(null);
+        setNewFiles([]);
+        setDeletedImages([]);
+        void fetchCustomers();
+      } else {
+        ErrorToast("Update failed");
+      }
+    } catch (err: any) {
+      console.error(err);
+      ErrorToast(err.message || "Error updating customer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Delete customer ---
+  const handleDelete = async () => {
+    if (!deletingCustomer) return;
+    setLoading(true);
+    LoadingToast("Deleting customer...");
+
+    try {
+      // Backend route: [HttpDelete("{id}")] under Admin/Customer/Remove
+      await axios.delete(`${Url}/Admin/Customer/Remove/?id=${deletingCustomer.id}`);
+      SuccessToast("Customer removed successfully");
+      setDeletingCustomer(null);
+      void fetchCustomers();
+    } catch (err: any) {
+      console.error(err);
+      ErrorToast(err.message || "Error deleting customer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- small helper to open edit and reset file states ---
+  const openEdit = (c: Customer) => {
+    setEditingCustomer({ ...c });
+    setNewFiles([]);
+    setDeletedImages([]);
+  };
+
+  return (
+   <>
+   <Header/>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Manage Customers</h1>
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full table-auto">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Email</th>
+              <th className="p-3 text-left">Phone</th>
+              <th className="p-3 text-left">Nationality</th>
+              <th className="p-3 text-left">ID Number</th>
+              <th className="p-3 text-left">Birth Date</th>
+              <th className="p-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customers.map((c) => (
+              <tr key={c.id} className="border-t hover:bg-gray-50">
+                <td className="p-3">{c.name}</td>
+                <td className="p-3">{c.email}</td>
+                <td className="p-3">{c.phoneNumber}</td>
+                <td className="p-3">{c.nationality}</td>
+                <td className="p-3">{c.identificationNumber}</td>
+                <td className="p-3">{c.birthDate}</td>
+                <td className="p-3 text-center">
+                  <div className="inline-flex gap-2">
+                    <Button size="sm" onClick={() => openEdit(c)}>
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => setDeletingCustomer(c)}>
+                      Remove
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingCustomer} onOpenChange={() => setEditingCustomer(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+          </DialogHeader>
+
+          {editingCustomer && (
+            <form className="space-y-4" onSubmit={handleUpdate}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Name</Label>
+                  <Input
+                    value={editingCustomer.name}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={editingCustomer.email ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Phone Number</Label>
+                  <Input
+                    value={editingCustomer.phoneNumber ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, phoneNumber: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Nationality</Label>
+                  <Input
+                    value={editingCustomer.nationality ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, nationality: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Identification Type</Label>
+                  <Input
+                    value={editingCustomer.identificationType ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, identificationType: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Identification Number</Label>
+                  <Input
+                    value={editingCustomer.identificationNumber ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, identificationNumber: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Address</Label>
+                  <Input
+                    value={editingCustomer.address ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Birth Date</Label>
+                  <Input
+                    type="date"
+                    value={editingCustomer.birthDate ?? ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, birthDate: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Is Married</Label>
+                  <div className="flex items-center gap-4 mt-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="isMarried"
+                        checked={!!editingCustomer.isMarried}
+                        onChange={() => setEditingCustomer({ ...editingCustomer, isMarried: true })}
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="isMarried"
+                        checked={!editingCustomer.isMarried}
+                        onChange={() => setEditingCustomer({ ...editingCustomer, isMarried: false })}
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+
+                {/* Existing images */}
+                <div className="md:col-span-2">
+                  <Label>Existing Identification Images</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {getImageList(editingCustomer).map((img) => (
+                      <div key={img} className="relative">
+                        <img src={img} alt="id" className="w-24 h-24 object-cover rounded" />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-0 right-0"
+                          onClick={() => handleRemoveExistingImage(img)}
+                        >
+                          X
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Upload New Images */}
+                <div className="md:col-span-2">
+                  <Label>Upload New Identification Images</Label>
+                  <Input type="file" multiple onChange={handleFileChange} />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newFiles.map((file, idx) => (
+                      <div key={idx} className="relative">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="preview"
+                          className="w-24 h-24 object-cover rounded"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-0 right-0"
+                          onClick={() => handleRemoveNewFile(file)}
+                        >
+                          X
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" onClick={() => { setEditingCustomer(null); setNewFiles([]); setDeletedImages([]); }} variant="outline">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Updating..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deletingCustomer} onOpenChange={() => setDeletingCustomer(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to remove <strong>{deletingCustomer?.name}</strong>?</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingCustomer(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={loading}>{loading ? "Deleting..." : "Delete"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+    </>
+  );
+}
