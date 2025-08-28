@@ -104,19 +104,16 @@ public class CheckinController : Controller
         }
         var ro = new ImageUtility(_cloudinary);
 
-        int numberOfNights = (reservation.CheckOutDate - reservation.CheckInDate).Days;
+        float numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days ;
         float totalCost = room.Price * numberOfNights;
         float totalAfterDisount = totalCost - (totalCost * (inDTO.Discount / 100));
-        Console.WriteLine("Number of nights" + numberOfNights); 
-        Console.WriteLine("Total Cost " + totalCost);
-        Console.WriteLine("total after Discout" + totalAfterDisount);
         reservation.ProofOfPayment = ro.GetImagesFromFolder(folderPath);
         reservation.Status = "Checked-In";
 
+        
         reservation.Paid += inDTO.Paid;
         reservation.Discount = inDTO.Discount;
         reservation.Dues = totalAfterDisount - reservation.Paid;
-        Console.WriteLine("Dues" + reservation.Dues);
 
         var customer = _unitOfWork.Customers.Get(u => u.Id == reservation.CustomerId);
         customer.status = reservation.Status;

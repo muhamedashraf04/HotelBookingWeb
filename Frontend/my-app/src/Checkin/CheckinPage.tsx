@@ -19,6 +19,7 @@ interface Reservation {
   paid: number;
   discount: number;
   status: string;
+  dues: number;
 }
 
 interface Customer {
@@ -112,6 +113,7 @@ export default function CheckInPage() {
       });
 
       toast.success("Guest checked in successfully!");
+      console.log("Navigating to /...");
       navigate("/");
     } catch (err: any) {
       toast.error(err?.response?.data ?? "Failed to check in");
@@ -155,6 +157,9 @@ export default function CheckInPage() {
             <p>
               <strong>Dates:</strong> {reservation.checkInDate} →{" "}
               {reservation.checkOutDate}
+            </p>
+            <p>
+              <strong>Req</strong> {reservation.dues}
             </p>
             <p>
               <strong>Status:</strong> {reservation.status}
