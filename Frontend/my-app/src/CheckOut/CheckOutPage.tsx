@@ -57,7 +57,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!reservation && id) {
       axios
-        .get(`${Url}/Admin/Reservation/Get/${id}`)
+        .get(`${Url}/Admin/Reservation/Get/?id=${id}`)
         .then((res) => setReservation(res.data))
         .catch(() => toast.error("Failed to load reservation"));
     }

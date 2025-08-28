@@ -99,11 +99,33 @@ public class CheckOutController : Controller
             }
         }
         var ro = new ImageUtility(_cloudinary);
+
         reservation.ProofOfPayment = ro.GetImagesFromFolder(folderPath);
         reservation.Status = "Checked-Out";
         var customer = _unitOfWork.Customers.Get(u => u.Id == reservation.CustomerId);
         customer.status = reservation.Status;
+
+        //var oldRes = new OldReservations
+        //{
+        //    CustomerId = reservation.CustomerId,
+        //    RoomId = reservation.RoomId,
+        //    RoomType = reservation.RoomType,
+        //    CheckInDate = reservation.CheckInDate,
+        //    CheckOutDate = reservation.CheckOutDate,
+        //    Paid = reservation.Paid,
+        //    Dues = reservation.Dues,
+        //    ProofOfPayment = reservation.ProofOfPayment,
+        //    Status = reservation.Status,
+        //    Discount = reservation.Discount,
+        //    NumberOfAdults = reservation.NumberOfAdults,
+        //    NumberOfChildren = reservation.NumberOfChildren,
+        //    NumberOfExtraBeds = reservation.NumberOfExtraBeds
+        //};
+
+        //_unitOfWork.OldReservations.Create(oldRes);
         _unitOfWork.Reservations.Edit(reservation);
+        _unitOfWork.Customers.Edit(customer);
+
         _unitOfWork.Save();
         return Ok("Checked-In Successfully.");
 
