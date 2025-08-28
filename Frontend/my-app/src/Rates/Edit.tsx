@@ -48,7 +48,11 @@ const EditRates = () => {
     setLoading(true);
     LoadingToast("Loading rates...");
     try {
-      const res = await axios.get(`${Url}/Admin/Rate/GetAll`);
+      const res = await axios.get(`${Url}/Admin/Rate/GetAll`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`, // if your endpoint requires auth
+        },
+      });
       if (res.status !== 200) throw new Error("Failed to fetch rates");
       setRates(res.data as Rate[]);
       SuccessToast("Loaded");
@@ -251,11 +255,11 @@ const EditRates = () => {
                                 setDraft((d) =>
                                   d
                                     ? {
-                                        ...d,
-                                        price: parseFloat(
-                                          e.target.value || "0"
-                                        ),
-                                      }
+                                      ...d,
+                                      price: parseFloat(
+                                        e.target.value || "0"
+                                      ),
+                                    }
                                     : d
                                 )
                               }

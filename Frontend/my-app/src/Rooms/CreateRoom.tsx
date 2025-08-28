@@ -31,6 +31,13 @@ interface RoomFormState {
   Images: string | null;
 }
 
+interface Rate {
+  id?: number;
+  type: string;
+  price: number;
+}
+
+
 export default function CreateRoom() {
   const [formData, setFormData] = useState<RoomFormState>({
     roomNumber: "",
@@ -50,13 +57,29 @@ export default function CreateRoom() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { id } = useParams<{ id: string }>();
   const [roomtypes, setroomtypes] = useState<string[]>([]);
+  const [rates, setrates] = useState<Rate[]>([]);
   useEffect(() => {
     const fetchrates = async () => {
-      const response = await axios.get(`${Url}/Admin/Rate/Getall`);
-      setroomtypes(response.data);
-    }
+      try {
+        const response = await axios.get(`${Url}/Admin/Rate/Getall`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`, // if your endpoint requires auth
+          },
+        });
+
+        setrates(response.data);
+
+        // Extract room types from rates
+        const types = response.data.map((rate: Rate) => rate.type);
+        setroomtypes(types);
+      } catch (error) {
+        console.error("Failed to fetch rates:", error);
+        toast.error("Failed to load rates");
+      }
+    };
+
     fetchrates();
-  }, [])
+  }, []);
   useEffect(() => {
     if (!id) return;
 
