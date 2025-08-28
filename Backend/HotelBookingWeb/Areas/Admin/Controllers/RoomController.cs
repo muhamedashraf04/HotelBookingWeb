@@ -2,12 +2,14 @@
 using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.RoomModels;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using System.Net;
 using HotelBooking.Utilities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using System.Net;
 using System.Security.Claims;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers
 {
@@ -70,8 +72,6 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                     }
                 }
             }
-
-            // --- Handle Uploads ---
             if (uploadedFiles != null && uploadedFiles.Count > 0)
             {
                 foreach (var file in uploadedFiles)
@@ -92,7 +92,6 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
             var ro = new ImageUtility(_cloudinary);
             room.Images = ro.GetImagesFromFolder(folderPath);
 
-            // ---- Now proceed with Room insert/update logic ----
             string RoomType = room.RoomType;
 
 
@@ -111,7 +110,7 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                         IsAvailable = room.IsAvailable,
                         RoomType = room.RoomType,
                         Images = room.Images,
-                        Price = _unitOfWork.Rates.Get(u=> u.Type == room.RoomType).Price,
+                        Price = _unitOfWork.Rates.Get(u => u.Type == room.RoomType).Price,
                         updatedBy = User.Identity?.Name,
                         createdBy = User.Identity?.Name
                     };
@@ -167,11 +166,16 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
                     return BadRequest("Can't Delete Room because there is a reservation");
                 }
                 var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
-                _cloudinary.DeleteFolder($"hotel_booking/rooms/{room.RoomNumber}");
+                var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";
+                _cloudinary.DeleteResourcesByPrefix(prefix);
+
                 _unitOfWork.Rooms.Remove(Id.Value);
+                _unitOfWork.Save();
+
                 return Ok();
             }
         }
+
         [HttpPatch]
         public async Task<IActionResult> Refresh()
         {
@@ -195,3 +199,4 @@ namespace HotelBookingWeb.Areas.Admin.Controllers
 
     }
 }
+
