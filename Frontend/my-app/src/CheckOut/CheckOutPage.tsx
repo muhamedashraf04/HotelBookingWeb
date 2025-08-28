@@ -165,22 +165,12 @@ export default function CheckoutPage() {
 
         <label className="block">
           <span className="block mb-2 font-medium">Paid Amount</span>
-          <Input
-            type="number"
-            value={paid}
-            onChange={(e) => setPaid(Number(e.target.value))}
-            required
-            disabled
-          />
+          <Input type="number" value={reservation?.paid} required disabled />
         </label>
 
         <label className="block">
           <span className="block mb-2 font-medium">Dues</span>
-          <Input
-            type="number"
-            value={dues}
-            onChange={(e) => setDues(Number(e.target.value))}
-          />
+          <Input type="number" value={reservation?.dues} disabled />
         </label>
 
         <div className="space-y-3">
