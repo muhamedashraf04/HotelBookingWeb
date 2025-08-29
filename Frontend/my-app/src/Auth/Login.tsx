@@ -28,20 +28,17 @@ function Login() {
     setLoading(true);
 
     try {
-      console.log("Before");
       const res = await axios.post(`${Url}/api/auth/login`, form);
 
-      console.log("After");
       Cookies.set("token", res.data.token, { expires: 1 });
-      console.log(res.data.token);
-      console.log("After2");
+
       toast.success("Login successful 🎉", {
         description: "Redirecting...",
       });
 
       setTimeout(() => {
         window.location.href = "/";
-      }, 5000);
+      }, 50);
     } catch (err: any) {
       if (err.response) {
         toast.error("Login failed", {
@@ -97,8 +94,9 @@ function Login() {
 
           <Button
             type="submit"
-            className={`w-full ${!loading ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
+            className={`w-full ${
+              !loading ? "cursor-pointer" : "cursor-not-allowed"
+            }`}
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}

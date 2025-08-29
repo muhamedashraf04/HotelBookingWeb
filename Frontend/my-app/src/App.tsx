@@ -263,24 +263,24 @@ export default function App() {
           onMouseLeave={() => setContextMenu(null)}
         >
           <button
-            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-green-600"
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100 "
             onClick={() => {
               navigate(`/CheckIn/${contextMenu.reservation!.id}`, {
                 state: contextMenu.reservation,
               });
             }}
           >
-            ✅ Check-In
+            Check-In
           </button>
           <button
-            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100 "
             onClick={() => {
               navigate(`/CheckOut/${contextMenu.reservation!.id}`, {
                 state: contextMenu.reservation,
               });
             }}
           >
-            ⬜ Check-Out
+            Check-Out
           </button>
           <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100"
@@ -291,16 +291,16 @@ export default function App() {
               setContextMenu(null);
             }}
           >
-            ✏️ Edit
+            Edit
           </button>
           <button
-            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-700"
             onClick={() => {
               handleDeleteClick(contextMenu.reservation!);
               setContextMenu(null);
             }}
           >
-            🗑️ Delete
+            Delete
           </button>
         </div>
       )}
