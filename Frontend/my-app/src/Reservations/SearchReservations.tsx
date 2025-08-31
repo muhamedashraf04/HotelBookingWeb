@@ -55,7 +55,6 @@ type Room = {
   floor: number;
   capacity: number;
   roomType: string;
-  isAvailable: boolean;
   price: number;
 };
 
@@ -527,9 +526,8 @@ const SearchReservations = () => {
                   <Button
                     className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors
       ${
-        selectedRoom.isAvailable
-          ? "cursor-pointer"
-          : "cursor-not-allowed opacity-70"
+          "cursor-pointer"
+          
       }`}
                     onClick={() => {
                       toast.loading(`Booking Room ${selectedRoom.roomNumber}`);
@@ -543,9 +541,8 @@ const SearchReservations = () => {
                         },
                       });
                     }}
-                    disabled={!selectedRoom.isAvailable}
                   >
-                    {selectedRoom.isAvailable ? "Book Now" : "Unavailable"}
+                    "Book Now"
                   </Button>
                 </DrawerFooter>
               </div>

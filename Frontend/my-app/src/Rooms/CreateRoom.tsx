@@ -24,7 +24,6 @@ interface RoomFormState {
   roomType: string;
   floor: number;
   capacity: number;
-  isAvailable: boolean;
   Price: number;
   Images: string | null;
 }
@@ -41,7 +40,6 @@ export default function CreateRoom() {
     roomType: "Single",
     floor: 0,
     capacity: 0,
-    isAvailable: false,
     Price: 0,
     Images: null,
   });
@@ -106,7 +104,6 @@ export default function CreateRoom() {
           roomType: safeRoomType,
           floor: room.floor ?? 0,
           capacity: room.capacity ?? 0,
-          isAvailable: room.isAvailable ?? false,
           Price: room.price ?? 0,
           Images: room.Images ?? null,
         });
@@ -196,7 +193,6 @@ export default function CreateRoom() {
       imageFormData.append("room.RoomType", formData.roomType);
       imageFormData.append("room.Floor", formData.floor.toString());
       imageFormData.append("room.Capacity", formData.capacity.toString());
-      imageFormData.append("room.IsAvailable", formData.isAvailable.toString());
       imageFormData.append("room.Price", formData.Price.toString());
 
       newImages.forEach((file) => imageFormData.append("uploadedFiles", file));
@@ -217,7 +213,6 @@ export default function CreateRoom() {
         roomType: "Single",
         floor: 0,
         capacity: 1,
-        isAvailable: true,
         Price: 0,
         Images: null,
       });
@@ -300,16 +295,6 @@ export default function CreateRoom() {
             />
           </label>
         </div>
-
-        <label className="flex items-center gap-2">
-          <input
-            name="isAvailable"
-            type="checkbox"
-            checked={formData.isAvailable}
-            onChange={handleChange}
-          />
-          <span>Available for booking</span>
-        </label>
 
         {/* Image Upload Section */}
         <div className="space-y-3">

@@ -143,7 +143,6 @@ namespace HotelBooking.DataAccess.Data
                 Floor = (i - 1) / 5 + 1,   // 5 rooms per floor
                 Capacity = 1,
                 RoomType = "Single",
-                IsAvailable = true,
                 Price = 0,
                 Images = "",
                 createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
@@ -158,7 +157,6 @@ namespace HotelBooking.DataAccess.Data
                 Floor = (i - 1) / 5 + 2,
                 Capacity = 2,
                 RoomType = "Double",
-                IsAvailable = true,
                 Price = 0,
                 Images = "",
                 createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
@@ -173,7 +171,6 @@ namespace HotelBooking.DataAccess.Data
                 Floor = (i - 1) / 5 + 3,
                 Capacity = 4,
                 RoomType = "Suite",
-                IsAvailable = true,
                 Price = 0,
                 Images = "",
                 createdAt = new DateTime(2025, 8, 25, 0, 0, 0),

@@ -18,9 +18,6 @@
 		<ProjectReference Include="..\HotelBooking.Models\HotelBooking.Models.csproj" />
 		<ProjectReference Include="..\HotelBooking.Utilities\HotelBooking.Utilities.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Migrations\" />
-	</ItemGroup>
 
 
 </Project>

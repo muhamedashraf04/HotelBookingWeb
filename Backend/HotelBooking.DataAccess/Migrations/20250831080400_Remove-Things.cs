@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBooking.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class RemoveThings : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,7 +26,8 @@ namespace HotelBooking.DataAccess.Migrations
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DiscountLimit = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -142,7 +143,6 @@ namespace HotelBooking.DataAccess.Migrations
                     Floor = table.Column<int>(type: "int", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
                     RoomType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
                     createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -168,7 +168,8 @@ namespace HotelBooking.DataAccess.Migrations
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DiscountLimit = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -177,8 +178,8 @@ namespace HotelBooking.DataAccess.Migrations
 
             migrationBuilder.InsertData(
                 table: "Admins",
-                columns: new[] { "Id", "Email", "PasswordHash", "Role", "UserName", "createdAt", "createdBy", "updatedAt", "updatedBy" },
-                values: new object[] { 1, "Admin@HMS.com", "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8", "Admin", "Admin", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" });
+                columns: new[] { "Id", "DiscountLimit", "Email", "PasswordHash", "Role", "UserName", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                values: new object[] { 1, 0f, "Admin@HMS.com", "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8", "Admin", "Admin", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" });
 
             migrationBuilder.InsertData(
                 table: "Customers",
@@ -215,39 +216,39 @@ namespace HotelBooking.DataAccess.Migrations
 
             migrationBuilder.InsertData(
                 table: "Rooms",
-                columns: new[] { "Id", "Capacity", "Floor", "Images", "IsAvailable", "Price", "RoomNumber", "RoomType", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                columns: new[] { "Id", "Capacity", "Floor", "Images", "Price", "RoomNumber", "RoomType", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 1, 1, 1, "", true, 0f, "S001", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 2, 1, 1, "", true, 0f, "S002", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 3, 1, 1, "", true, 0f, "S003", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 4, 1, 1, "", true, 0f, "S004", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 5, 1, 1, "", true, 0f, "S005", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 6, 1, 2, "", true, 0f, "S006", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 7, 1, 2, "", true, 0f, "S007", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 8, 1, 2, "", true, 0f, "S008", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 9, 1, 2, "", true, 0f, "S009", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 10, 1, 2, "", true, 0f, "S010", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 101, 2, 2, "", true, 0f, "D001", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 102, 2, 2, "", true, 0f, "D002", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 103, 2, 2, "", true, 0f, "D003", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 104, 2, 2, "", true, 0f, "D004", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 105, 2, 2, "", true, 0f, "D005", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 106, 2, 3, "", true, 0f, "D006", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 107, 2, 3, "", true, 0f, "D007", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 108, 2, 3, "", true, 0f, "D008", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 109, 2, 3, "", true, 0f, "D009", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 110, 2, 3, "", true, 0f, "D010", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 201, 4, 3, "", true, 0f, "SU001", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 202, 4, 3, "", true, 0f, "SU002", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 203, 4, 3, "", true, 0f, "SU003", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 204, 4, 3, "", true, 0f, "SU004", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 205, 4, 3, "", true, 0f, "SU005", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 206, 4, 4, "", true, 0f, "SU006", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 207, 4, 4, "", true, 0f, "SU007", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 208, 4, 4, "", true, 0f, "SU008", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 209, 4, 4, "", true, 0f, "SU009", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
-                    { 210, 4, 4, "", true, 0f, "SU010", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
+                    { 1, 1, 1, "", 0f, "S001", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 2, 1, 1, "", 0f, "S002", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 3, 1, 1, "", 0f, "S003", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 4, 1, 1, "", 0f, "S004", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 5, 1, 1, "", 0f, "S005", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 6, 1, 2, "", 0f, "S006", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 7, 1, 2, "", 0f, "S007", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 8, 1, 2, "", 0f, "S008", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 9, 1, 2, "", 0f, "S009", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 10, 1, 2, "", 0f, "S010", "Single", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 101, 2, 2, "", 0f, "D001", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 102, 2, 2, "", 0f, "D002", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 103, 2, 2, "", 0f, "D003", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 104, 2, 2, "", 0f, "D004", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 105, 2, 2, "", 0f, "D005", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 106, 2, 3, "", 0f, "D006", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 107, 2, 3, "", 0f, "D007", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 108, 2, 3, "", 0f, "D008", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 109, 2, 3, "", 0f, "D009", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 110, 2, 3, "", 0f, "D010", "Double", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 201, 4, 3, "", 0f, "SU001", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 202, 4, 3, "", 0f, "SU002", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 203, 4, 3, "", 0f, "SU003", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 204, 4, 3, "", 0f, "SU004", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 205, 4, 3, "", 0f, "SU005", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 206, 4, 4, "", 0f, "SU006", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 207, 4, 4, "", 0f, "SU007", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 208, 4, 4, "", 0f, "SU008", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 209, 4, 4, "", 0f, "SU009", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 210, 4, 4, "", 0f, "SU010", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
         }
 

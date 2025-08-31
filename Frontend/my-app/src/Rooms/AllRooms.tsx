@@ -42,7 +42,6 @@ export type Room = {
   roomNumber: string;
   floor: number;
   capacity: number;
-  isAvailable: boolean;
   roomType: string;
   price: number;
   images: string;

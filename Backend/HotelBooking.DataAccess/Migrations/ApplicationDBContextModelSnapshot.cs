@@ -30,6 +30,9 @@ namespace HotelBooking.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<float>("DiscountLimit")
+                        .HasColumnType("real");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -68,6 +71,7 @@ namespace HotelBooking.DataAccess.Migrations
                         new
                         {
                             Id = 1,
+                            DiscountLimit = 0f,
                             Email = "Admin@HMS.com",
                             PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
                             Role = "Admin",
@@ -86,6 +90,9 @@ namespace HotelBooking.DataAccess.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("DiscountLimit")
+                        .HasColumnType("real");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -528,9 +535,6 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
-
                     b.Property<float>("Price")
                         .HasColumnType("real");
 
@@ -567,7 +571,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 1,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S001",
                             RoomType = "Single",
@@ -580,7 +583,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 1,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S002",
                             RoomType = "Single",
@@ -593,7 +595,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 1,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S003",
                             RoomType = "Single",
@@ -606,7 +607,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 1,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S004",
                             RoomType = "Single",
@@ -619,7 +619,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 1,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S005",
                             RoomType = "Single",
@@ -632,7 +631,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S006",
                             RoomType = "Single",
@@ -645,7 +643,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S007",
                             RoomType = "Single",
@@ -658,7 +655,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S008",
                             RoomType = "Single",
@@ -671,7 +667,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S009",
                             RoomType = "Single",
@@ -684,7 +679,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 1,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "S010",
                             RoomType = "Single",
@@ -697,7 +691,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D001",
                             RoomType = "Double",
@@ -710,7 +703,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D002",
                             RoomType = "Double",
@@ -723,7 +715,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D003",
                             RoomType = "Double",
@@ -736,7 +727,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D004",
                             RoomType = "Double",
@@ -749,7 +739,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 2,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D005",
                             RoomType = "Double",
@@ -762,7 +751,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D006",
                             RoomType = "Double",
@@ -775,7 +763,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D007",
                             RoomType = "Double",
@@ -788,7 +775,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D008",
                             RoomType = "Double",
@@ -801,7 +787,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D009",
                             RoomType = "Double",
@@ -814,7 +799,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 2,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "D010",
                             RoomType = "Double",
@@ -827,7 +811,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU001",
                             RoomType = "Suite",
@@ -840,7 +823,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU002",
                             RoomType = "Suite",
@@ -853,7 +835,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU003",
                             RoomType = "Suite",
@@ -866,7 +847,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU004",
                             RoomType = "Suite",
@@ -879,7 +859,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 3,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU005",
                             RoomType = "Suite",
@@ -892,7 +871,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 4,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU006",
                             RoomType = "Suite",
@@ -905,7 +883,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 4,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU007",
                             RoomType = "Suite",
@@ -918,7 +895,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 4,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU008",
                             RoomType = "Suite",
@@ -931,7 +907,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 4,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU009",
                             RoomType = "Suite",
@@ -944,7 +919,6 @@ namespace HotelBooking.DataAccess.Migrations
                             Capacity = 4,
                             Floor = 4,
                             Images = "",
-                            IsAvailable = true,
                             Price = 0f,
                             RoomNumber = "SU010",
                             RoomType = "Suite",

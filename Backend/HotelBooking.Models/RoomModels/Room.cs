@@ -12,8 +12,6 @@ public class Room : BaseEntity
     public int Capacity { get; set; }
     [Required]
     public required string RoomType { get; set; }
-    public bool IsAvailable { get; set; }
-
     public float Price { get; set; } 
 
     public void SetPrice(float x)

@@ -41,7 +41,6 @@ type Room = {
   floor: number;
   capacity: number;
   roomType: string;
-  isAvailable: boolean;
 };
 
 interface ReservationUpdateDto {
@@ -356,15 +355,10 @@ const EditReservation = () => {
 
                   <AccordionContent className="mt-4 flex flex-col gap-4">
                     <Button
-                      className={`w-full ${
-                        room.isAvailable
-                          ? "cursor-pointer"
-                          : "cursor-not-allowed"
-                      }`}
+                      className={`w-full ${"cursor-pointer"}`}
                       onClick={() => updateReservation(room)}
-                      disabled={!room.isAvailable}
                     >
-                      {room.isAvailable ? "Update Reservation" : "Unavailable"}
+                      "Update Reservation"
                     </Button>
                   </AccordionContent>
                 </AccordionItem>

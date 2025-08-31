@@ -132,7 +132,6 @@ public class RoomController : Controller
                     Floor = room.Floor,
                     RoomNumber = room.RoomNumber,
                     Capacity = room.Capacity,
-                    IsAvailable = room.IsAvailable,
                     RoomType = room.RoomType,
                     Images = room.Images,
                     Price = _unitOfWork.Rates.Get(u => u.Type == room.RoomType).Price,
@@ -146,7 +145,6 @@ public class RoomController : Controller
             {
                 var rate = _unitOfWork.Rates.Get(u => u.Type == room.RoomType);
 
-                _room.IsAvailable = room.IsAvailable;
                 _room.Capacity = room.Capacity;
                 _room.Floor = room.Floor;
                 _room.RoomNumber = room.RoomNumber;
