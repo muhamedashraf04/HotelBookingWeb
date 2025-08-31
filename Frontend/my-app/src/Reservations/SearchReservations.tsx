@@ -224,6 +224,7 @@ const SearchReservations = () => {
       );
       if (response.status !== 200) throw new Error("Failed to fetch rooms");
 
+
       const data: Room[] = response.data;
 
       if (data.length === 0) {
@@ -630,8 +631,7 @@ const SearchReservations = () => {
                         {selectedRoom.capacity}
                       </p>
                       <p>
-                        <span className="font-bold">Price per night:</span> $
-                        {selectedRoom.price}
+                        <span className="font-bold">Price per night:</span> {selectedRoom.price} EGP
                       </p>
                     </div>
                   </div>
@@ -661,7 +661,7 @@ const SearchReservations = () => {
                       });
                     }}
                   >
-                    "Book Now"
+                    Book Now
                   </Button>
                 </DrawerFooter>
               </div>

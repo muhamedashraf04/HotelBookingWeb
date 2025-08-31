@@ -349,25 +349,11 @@ const AllRooms = () => {
                   <div className="flex flex-col md:flex-row items-center w-full">
                     <div className="hidden md:block w-px bg-gray-300 mx-6 h-full"></div>
                     <div className="space-y-2 text-2xl flex-1 font-[inter]">
-                      <p className="font-extrabold text-5xl mt-0 mb-25">
-                        {selectedRoom.roomNumber}
-                      </p>
-                      <p>
-                        <span className="font-bold">Type:</span>{" "}
-                        {selectedRoom.roomType}
-                      </p>
-                      <p>
-                        <span className="font-bold">Floor:</span>{" "}
-                        {selectedRoom.floor}
-                      </p>
-                      <p>
-                        <span className="font-bold">Capacity:</span>{" "}
-                        {selectedRoom.capacity}
-                      </p>
-                      <p>
-                        <span className="font-bold">Price per night:</span> $
-                        {selectedRoom.price}
-                      </p>
+                      <p className="font-extrabold text-5xl mt-0 mb-25"><span className="font-extrabold"></span> {selectedRoom.roomNumber}</p>
+                      <p><span className="font-bold">Type:</span> {selectedRoom.roomType}</p>
+                      <p><span className="font-bold">Floor:</span> {selectedRoom.floor}</p>
+                      <p><span className="font-bold">Capacity:</span> {selectedRoom.capacity}</p>
+                      <p><span className="font-bold">Price per night:</span> {selectedRoom.price} EGP</p>
                     </div>
                   </div>
                 </div>
