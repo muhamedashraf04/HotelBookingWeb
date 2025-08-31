@@ -211,7 +211,7 @@ const AllRooms = () => {
                       <p><span className="font-bold">Type:</span> {selectedRoom.roomType}</p>
                       <p><span className="font-bold">Floor:</span> {selectedRoom.floor}</p>
                       <p><span className="font-bold">Capacity:</span> {selectedRoom.capacity}</p>
-                      <p><span className="font-bold">Price per night:</span> ${selectedRoom.price}</p>
+                      <p><span className="font-bold">Price per night:</span> {selectedRoom.price} EGP</p>
                     </div>
                   </div>
                 </div>

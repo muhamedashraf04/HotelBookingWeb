@@ -17,6 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,16 +33,30 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { CalendarIcon } from "@radix-ui/react-icons";
+import axios from "axios";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+
+
 
 type Customer = {
   id: number;
   name: string;
+  birthDate: string;
+  email: string;
+  nationality: string;
+  address: string;
+  phoneNumber: string;
+  identificationType: string;
   identificationNumber: string;
+  isMarried: boolean;
 };
+
 
 function Booking() {
   const location = useLocation();
@@ -50,16 +72,32 @@ function Booking() {
   const [children, setChildren] = useState(0);
   const [extraBeds, setExtraBeds] = useState(0);
   const [customerOpen, setCustomerOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [marriageCertificateFile, setMarriageCertificateFile] = useState<File | null>(null);
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+
 
   // --- Create customer popup ---
   const [createOpen, setCreateOpen] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({
+  const [identificationFile, setIdentificationFile] = useState<File | null>(
+    null
+  );
+  const [newCustomer, setNewCustomer] = useState<Customer>({
+    id: 0,
     name: "",
+    birthDate: "",
+    email: "",
+    nationality: "",
+    address: "",
+    phoneNumber: "",
+    identificationType: "",
     identificationNumber: "",
+    isMarried: false,
   });
   const [isCreating, setIsCreating] = useState(false);
 
@@ -98,7 +136,6 @@ function Booking() {
       toast.error("Please select a customer");
       return;
     }
-
     const reservation = {
       customerId,
       roomId,
@@ -144,34 +181,82 @@ function Booking() {
     e.preventDefault();
     if (isCreating) return;
 
-    if (!newCustomer.name || !newCustomer.identificationNumber) {
-      toast.error("Please fill in all fields");
+    if (!identificationFile) {
+      toast.error("Identification file is required");
+      setIsCreating(false);
+      return;
+    }
+    if (newCustomer.isMarried && !marriageCertificateFile) {
+      toast.error("Marriage certificate is required for married customers");
+      setIsCreating(false);
       return;
     }
 
     setIsCreating(true);
     try {
-      const res = await fetch("http://localhost:5002/Admin/Customer/Create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCustomer),
-      });
+      const customerFormData = new FormData();
 
-      if (res.ok) {
-        toast.success("Customer created successfully!");
-        setCreateOpen(false);
-        setNewCustomer({ name: "", identificationNumber: "" });
-        await fetchCustomers(); // refresh list
-      } else {
-        const msg = await res.text();
-        toast.error(msg);
+      // 👇 Must prefix with "customer."
+      customerFormData.append("customer.Name", newCustomer.name);
+      customerFormData.append("customer.BirthDate", newCustomer.birthDate);
+      customerFormData.append("customer.Email", newCustomer.email);
+      customerFormData.append("customer.Nationality", newCustomer.nationality);
+      customerFormData.append("customer.Address", newCustomer.address);
+      customerFormData.append("customer.PhoneNumber", newCustomer.phoneNumber);
+      customerFormData.append(
+        "customer.IdentificationType",
+        newCustomer.identificationType
+      );
+      customerFormData.append("customer.IsMarried", String(newCustomer.isMarried));
+      customerFormData.append(
+        "customer.IdentificationNumber",
+        newCustomer.identificationNumber
+      );
+
+      if (identificationFile) {
+        customerFormData.append("IdentificationFile", identificationFile);
       }
+      if (marriageCertificateFile) {
+        customerFormData.append("MarriageCertificate", marriageCertificateFile);
+      }
+
+      await axios.post(
+        "http://localhost:5002/Admin/Customer/Register",
+        customerFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Customer registered successfully!");
+      setCreateOpen(false);
+
+      // Reset
+      setNewCustomer({
+        id: 0,
+        name: "",
+        birthDate: "",
+        email: "",
+        nationality: "",
+        address: "",
+        phoneNumber: "",
+        identificationType: "",
+        identificationNumber: "",
+        isMarried: false,
+      });
+      setIdentificationFile(null);
+      setMarriageCertificateFile(null);
+
+      await fetchCustomers();
     } catch (err: any) {
-      toast.error(err.message || "Failed to create customer");
+      toast.error(err?.response?.data ?? "Failed to register customer");
     } finally {
       setIsCreating(false);
     }
   };
+
 
   return (
     <>
@@ -228,14 +313,6 @@ function Booking() {
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <Label>Customer</Label>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCreateOpen(true)}
-                  type="button"
-                >
-                  <Plus className="h-4 w-4 mr-1" /> New Customer
-                </Button>
               </div>
               <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
                 <PopoverTrigger asChild>
@@ -284,7 +361,15 @@ function Booking() {
                 </PopoverContent>
               </Popover>
             </div>
-
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex justify-between items-center"
+              onClick={() => setCreateOpen(true)}
+              type="button"
+            >
+              <Plus className="h-4 w-4 mr-1" /> New Customer
+            </Button>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="adults">Adults</Label>
@@ -331,14 +416,16 @@ function Booking() {
           </Button>
         </form>
       </div>
-
-      {/* Create Customer Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Create Customer</DialogTitle>
+            <DialogTitle>Create New Customer</DialogTitle>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={handleCreateCustomer}>
+
+          <form
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            onSubmit={handleCreateCustomer}
+          >
             <div>
               <Label>Name</Label>
               <Input
@@ -349,9 +436,58 @@ function Booking() {
               />
             </div>
             <div>
-              <Label>Identification Number</Label>
+              <Label>Email</Label>
               <Input
-                value={newCustomer.identificationNumber}
+                type="email"
+                value={newCustomer.email ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, email: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label>Phone Number</Label>
+              <Input
+                value={newCustomer.phoneNumber ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label>Nationality</Label>
+              <Input
+                value={newCustomer.nationality ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, nationality: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label className="pl-1" htmlFor="IdentificationType">
+                Identification Type
+              </Label>
+              <Select
+                value={newCustomer.identificationType}
+                onValueChange={(value) =>
+                  setNewCustomer({ ...newCustomer, identificationType: value })
+                }>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="ID">ID</SelectItem>
+                    <SelectItem value="Passport">Passport</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="">Identification Number</Label>
+              <Input
+                value={newCustomer.identificationNumber ?? ""}
                 onChange={(e) =>
                   setNewCustomer({
                     ...newCustomer,
@@ -360,21 +496,144 @@ function Booking() {
                 }
               />
             </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setCreateOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? "Creating..." : "Create"}
-              </Button>
+            <div>
+              <Label>Address</Label>
+              <Input
+                value={newCustomer.address ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, address: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label className="pl-1" htmlFor="BirthDate">
+                Birth Date
+              </Label>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {birthDate ? (
+                      format(birthDate, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <div className="space-y-2">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+
+                      selected={birthDate}
+                      onSelect={(date) => {
+                        if (!date) return;
+
+                        setBirthDate(date);
+                        setNewCustomer({
+                          ...newCustomer,
+                          birthDate: date.toISOString().split("T")[0],
+                        });
+                        setIsCalendarOpen(false);
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+
+                        // Latest allowed date = today minus 18 years
+                        const latestValid = new Date(
+                          today.getFullYear() - 18,
+                          today.getMonth(),
+                          today.getDate()
+                        );
+                        return date > today || date > latestValid;
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="md:col-span-2">
+              <Label>Marriage Status</Label>
+              <div className="flex items-center gap-4 mt-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="IsMarried"
+                    checked={newCustomer.isMarried === true}
+                    onChange={() =>
+                      setNewCustomer({
+                        ...newCustomer,
+                        isMarried: true,
+                      })
+                    }
+                  />
+                  Married
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="IsMarried"
+                    checked={newCustomer.isMarried === false}
+                    onChange={() =>
+                      setNewCustomer({
+                        ...newCustomer,
+                        isMarried: false,
+                      })
+                    }
+                  />
+                  Single
+                </label>
+              </div>
+            </div>
+
+
+            {/* ✅ File uploads */}
+            <div>
+              <Label>Identification File</Label>
+              <Input
+                type="file"
+                onChange={(e) =>
+                  setIdentificationFile(e.target.files ? e.target.files[0] : null)
+                }
+              />
+            </div>
+
+            {newCustomer.isMarried && (
+              <div>
+                <Label>Marriage Certificate</Label>
+                <Input
+                  type="file"
+                  onChange={(e) =>
+                    setMarriageCertificateFile(
+                      e.target.files ? e.target.files[0] : null
+                    )
+                  }
+                />
+              </div>
+            )}
+
+            <DialogFooter className="block">
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <Button
+                  type="button"
+                  onClick={() => setCreateOpen(false)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating} className="w-full">
+                  {isCreating ? "Creating..." : "Create"}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog >
     </>
   );
 }
