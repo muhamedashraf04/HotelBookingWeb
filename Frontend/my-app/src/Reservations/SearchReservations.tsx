@@ -224,7 +224,6 @@ const SearchReservations = () => {
       );
       if (response.status !== 200) throw new Error("Failed to fetch rooms");
 
-
       const data: Room[] = response.data;
 
       if (data.length === 0) {
@@ -632,6 +631,7 @@ const SearchReservations = () => {
                       </p>
                       <p>
                         <span className="font-bold">Price per night:</span> {selectedRoom.price} EGP
+                        <span className="font-bold">Price per night:</span> {selectedRoom.price} EGP
                       </p>
                     </div>
                   </div>
@@ -647,7 +647,9 @@ const SearchReservations = () => {
 
                   <Button
                     className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors
-      ${"cursor-pointer"}`}
+      ${"cursor-pointer"
+
+                      }`}
                     onClick={() => {
                       toast.loading(`Booking Room ${selectedRoom.roomNumber}`);
                       navigate("/reservations/booking", {
@@ -661,6 +663,7 @@ const SearchReservations = () => {
                       });
                     }}
                   >
+                    Book Now
                     Book Now
                   </Button>
                 </DrawerFooter>
