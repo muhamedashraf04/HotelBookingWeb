@@ -79,6 +79,11 @@ public class ReservationController : Controller
         {
             return BadRequest("Check-in date must be before Check-out date.");
         }
+        var type = _unitOfWork.Rates.Get(u => u.Type == rsd.RoomType);
+        if ( type == null)
+        {
+            return BadRequest("Bad Type");
+        }
 
         var reservations = _unitOfWork.Reservations.GetAll(
             r => r.RoomType == rsd.RoomType && r.Status != "Checked-Out"

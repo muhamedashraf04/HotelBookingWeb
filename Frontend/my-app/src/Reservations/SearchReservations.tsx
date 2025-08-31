@@ -1,15 +1,10 @@
 "use client";
+import Cookies from "js-cookie";
 
 import Header from "@/components/Header/Header";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Carousel,
   CarouselContent,
@@ -17,6 +12,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Drawer,
   DrawerClose,
@@ -26,19 +29,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Check, ChevronDownIcon, ChevronsUpDown } from "lucide-react";
-import * as React from "react";
-import { toast, Toaster } from "sonner";
-import { Url } from "../../GlobalVariables.tsx";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,9 +38,15 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ErrorToast from "@/Toasts/ErrorToast.tsx";
+import LoadingToast from "@/Toasts/LoadingToast.tsx";
+import SuccessToast from "@/Toasts/SuccessToast.tsx";
+import axios from "axios";
+import { Check, ChevronDownIcon, ChevronsUpDown } from "lucide-react";
+import * as React from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import DeletePopup from "@/DeletePopup.tsx";
+import { toast, Toaster } from "sonner";
+import { Url } from "../../GlobalVariables.tsx";
 
 type Room = {
   id: number;
@@ -63,11 +59,11 @@ type Room = {
   price: number;
 };
 
-const roomTypes = [
-  { value: "Single", label: "Single" },
-  { value: "Double", label: "Double" },
-  { value: "Suite", label: "Suite" },
-];
+type RoomType = {
+  value: string;
+  label: string;
+};
+
 const getRoomBadgeClasses = (type: string) => {
   switch (type) {
     case "Double":
@@ -78,11 +74,13 @@ const getRoomBadgeClasses = (type: string) => {
       return "bg-emerald-100 text-emerald-950";
   }
 };
+
 const SearchReservations = () => {
   const [checkInDate, setCheckInDate] = React.useState<Date | undefined>();
   const [checkOutDate, setCheckOutDate] = React.useState<Date | undefined>();
   const [checkInOpen, setCheckInOpen] = React.useState(false);
   const [checkOutOpen, setCheckOutOpen] = React.useState(false);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
 
   const [checkInTime, setCheckInTime] = React.useState("12:00");
   const [checkOutTime, setCheckOutTime] = React.useState("12:00");
@@ -96,17 +94,64 @@ const SearchReservations = () => {
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
+  // set axios auth header from cookie once on mount
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+    fetchRates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // load rates
+  const fetchRates = async () => {
+    setLoading(true);
+    LoadingToast("Loading rates...");
+    try {
+      const res = await axios.get(`${Url}/Admin/Rate/GetAll`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`, // if your endpoint requires auth
+        },
+      });
+      if (res.status !== 200) throw new Error("Failed to fetch rates");
+
+      // map API data into {value,label}
+      const formatted: RoomType[] = res.data.map((rate: any) => ({
+        value: rate.id?.toString() ?? rate.name,
+        label: rate.name ?? rate.type,
+      }));
+
+      setRoomTypes(formatted);
+      SuccessToast("Loaded");
+    } catch (err: any) {
+      ErrorToast(err?.message || "Could not load rates");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const searchAvailableRooms = async () => {
-    if (
-      !checkInDate ||
-      !checkOutDate ||
-      !checkInTime ||
-      !checkOutTime ||
-      !roomType
-    ) {
-      toast.error(
-        "Please select all fields: check-in/out date & time, and room type."
-      );
+    if (!checkInDate) {
+      toast.error("Please select a check-in date.");
+      return;
+    }
+    if (!checkOutDate) {
+      toast.error("Please select a check-out date.");
+      return;
+    }
+    if (!checkInTime) {
+      toast.error("Please select a check-in time.");
+      return;
+    }
+    if (!checkOutTime) {
+      toast.error("Please select a check-out time.");
+      return;
+    }
+    if (!roomType) {
+      toast.error("Please select a room type.");
       return;
     }
 
@@ -140,8 +185,8 @@ const SearchReservations = () => {
     );
 
     const body = {
-      checkInDate: checkInUTC, // ✅ This date is correctly in UTC
-      checkOutDate: checkOutUTC, // ✅ This date is correctly in UTC
+      checkInDate: checkInUTC,
+      checkOutDate: checkOutUTC,
       roomType: roomType,
     };
 
@@ -151,10 +196,8 @@ const SearchReservations = () => {
         `${Url}/Admin/Reservation/Search`,
         body
       );
-      console.log(body);
-      console.log(response.data);
       if (response.status !== 200) throw new Error("Failed to fetch rooms");
-
+      
       const data: Room[] = response.data;
 
       if (data.length === 0) {
@@ -164,6 +207,8 @@ const SearchReservations = () => {
       setRooms(data);
     } catch (err: any) {
       ErrorToast(err.message || "Something went wrong.");
+      const data: Room[] = [];
+      setRooms(data);
     } finally {
       setLoading(false);
     }
@@ -188,6 +233,7 @@ const SearchReservations = () => {
     );
     return newDate;
   };
+
   return (
     <>
       <Header />
@@ -304,9 +350,8 @@ const SearchReservations = () => {
               className="w-32"
             />
           </div>
-
           {/* Room Type Combobox */}
-          <div className="flex flex-col gap-2 ">
+          <div className="flex flex-col gap-2">
             <Label className="font-semibold ml-1">Room Type</Label>
             <Popover open={roomTypeOpen} onOpenChange={setRoomTypeOpen}>
               <PopoverTrigger asChild>
@@ -316,9 +361,7 @@ const SearchReservations = () => {
                   aria-expanded={roomTypeOpen}
                   className="w-40 justify-between"
                 >
-                  {roomType
-                    ? roomTypes.find((r) => r.value === roomType)?.label
-                    : "Select type"}
+                  {roomType || "Select type"}
                   <ChevronsUpDown className="opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -331,11 +374,9 @@ const SearchReservations = () => {
                       {roomTypes.map((r) => (
                         <CommandItem
                           key={r.value}
-                          value={r.value}
-                          onSelect={(currentValue) => {
-                            setRoomType(
-                              currentValue === roomType ? "" : currentValue
-                            );
+                          value={r.label}
+                          onSelect={() => {
+                            setRoomType(r.label); // ✅ always store label
                             setRoomTypeOpen(false);
                           }}
                         >
@@ -343,7 +384,7 @@ const SearchReservations = () => {
                           <Check
                             className={cn(
                               "ml-auto",
-                              roomType === r.value ? "opacity-100" : "opacity-0"
+                              roomType === r.label ? "opacity-100" : "opacity-0"
                             )}
                           />
                         </CommandItem>
@@ -415,12 +456,11 @@ const SearchReservations = () => {
                   {/* Image Carousel */}
                   <div className="flex items-center justify-center">
                     {selectedRoom.images ? (
-                      <Carousel className="w-full max-w-lg"> {/* bigger width */}
+                      <Carousel className="w-full max-w-lg">
                         <CarouselContent>
-                          {(
-                            Array.isArray(selectedRoom.images)
-                              ? selectedRoom.images
-                              : selectedRoom.images.split(",")
+                          {(Array.isArray(selectedRoom.images)
+                            ? selectedRoom.images
+                            : selectedRoom.images.split(",")
                           )
                             .map((img) => img.trim())
                             .filter((img) => img.length > 0)
@@ -453,11 +493,25 @@ const SearchReservations = () => {
 
                     {/* Text Details */}
                     <div className="space-y-2 text-2xl flex-1 font-[inter]">
-                      <p className="font-extrabold text-5xl mt-0 mb-25"><span className="font-extrabold"></span> {selectedRoom.roomNumber}</p>
-                      <p><span className="font-bold">Type:</span> {selectedRoom.roomType}</p>
-                      <p><span className="font-bold">Floor:</span> {selectedRoom.floor}</p>
-                      <p><span className="font-bold">Capacity:</span> {selectedRoom.capacity}</p>
-                      <p><span className="font-bold">Price per night:</span> ${selectedRoom.price}</p>
+                      <p className="font-extrabold text-5xl mt-0 mb-25">
+                        {selectedRoom.roomNumber}
+                      </p>
+                      <p>
+                        <span className="font-bold">Type:</span>{" "}
+                        {selectedRoom.roomType}
+                      </p>
+                      <p>
+                        <span className="font-bold">Floor:</span>{" "}
+                        {selectedRoom.floor}
+                      </p>
+                      <p>
+                        <span className="font-bold">Capacity:</span>{" "}
+                        {selectedRoom.capacity}
+                      </p>
+                      <p>
+                        <span className="font-bold">Price per night:</span> $
+                        {selectedRoom.price}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -465,20 +519,18 @@ const SearchReservations = () => {
                 {/* Footer */}
                 <DrawerFooter className="flex flex-col md:flex-row items-center justify-end gap-4 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
                   <DrawerClose asChild>
-                    <Button
-                      variant="outline"
-                      className="flex-1 px-6 py-2"
-                    >
+                    <Button variant="outline" className="flex-1 px-6 py-2">
                       Close
                     </Button>
                   </DrawerClose>
 
                   <Button
                     className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors
-      ${selectedRoom.isAvailable
-                        ? "cursor-pointer"
-                        : "cursor-not-allowed opacity-70"
-                      }`}
+      ${
+        selectedRoom.isAvailable
+          ? "cursor-pointer"
+          : "cursor-not-allowed opacity-70"
+      }`}
                     onClick={() => {
                       toast.loading(`Booking Room ${selectedRoom.roomNumber}`);
                       navigate("/reservations/booking", {
@@ -496,13 +548,11 @@ const SearchReservations = () => {
                     {selectedRoom.isAvailable ? "Book Now" : "Unavailable"}
                   </Button>
                 </DrawerFooter>
-
               </div>
             </DrawerContent>
           </Drawer>
         )}
-      </div >
-
+      </div>
     </>
   );
 };

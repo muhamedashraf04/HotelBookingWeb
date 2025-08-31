@@ -28,13 +28,37 @@ public class RoomController : Controller
         _cloudinary = cloudinary;
 
     }
-
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles, [FromForm] string? deletedImages)
     {
         var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
         var uploadedUrls = new List<string>();
+
+        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+        if (uploadedFiles != null && uploadedFiles.Count > 0)
+        {
+            foreach (var file in uploadedFiles)
+            {
+                if (file.Length == 0)
+                {
+                    return BadRequest("One of the uploaded files is empty.");
+                }
+
+                if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
+                {
+                    return BadRequest($"File type {file.ContentType} is not allowed. Only image files are accepted.");
+                }
+
+                var extension = Path.GetExtension(file.FileName).ToLower();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest($"File extension {extension} is not allowed. Only image files are accepted.");
+                }
+            }
+        }
 
         if (!string.IsNullOrEmpty(deletedImages))
         {
@@ -72,6 +96,8 @@ public class RoomController : Controller
                 }
             }
         }
+
+        // ✅ Upload new images (already validated above)
         if (uploadedFiles != null && uploadedFiles.Count > 0)
         {
             foreach (var file in uploadedFiles)
@@ -89,11 +115,11 @@ public class RoomController : Controller
                 }
             }
         }
+
         var ro = new ImageUtility(_cloudinary);
         room.Images = ro.GetImagesFromFolder(folderPath);
 
         string RoomType = room.RoomType;
-
 
         if (ModelState.IsValid)
         {
@@ -137,6 +163,7 @@ public class RoomController : Controller
         }
         return BadRequest();
     }
+
     public IActionResult GetAll()
     {
         var rooms = _unitOfWork.Rooms.GetAll();

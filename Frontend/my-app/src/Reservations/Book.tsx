@@ -10,6 +10,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -17,7 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
@@ -47,6 +55,14 @@ function Booking() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // --- Create customer popup ---
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({
+    name: "",
+    identificationNumber: "",
+  });
+  const [isCreating, setIsCreating] = useState(false);
+
   const formatDateTimeLocal = (date: Date | string | undefined) => {
     if (!date) return "";
     const d = new Date(date);
@@ -56,21 +72,22 @@ function Booking() {
     )}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
   };
 
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5002/Admin/Customer/GetCustomers"
+      );
+      if (!res.ok) throw new Error("Failed to fetch customers");
+      const data = await res.json();
+      setCustomers(data);
+    } catch (err: any) {
+      toast.error(
+        err.message || "Something went wrong while fetching customers"
+      );
+    }
+  };
+
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:5002/Admin/Customer/GetCustomers"
-        );
-        if (!res.ok) throw new Error("Failed to fetch customers");
-        const data = await res.json();
-        setCustomers(data);
-      } catch (err: any) {
-        toast.error(
-          err.message || "Something went wrong while fetching customers"
-        );
-      }
-    };
     fetchCustomers();
   }, []);
 
@@ -120,6 +137,39 @@ function Booking() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isCreating) return;
+
+    if (!newCustomer.name || !newCustomer.identificationNumber) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const res = await fetch("http://localhost:5002/Admin/Customer/Create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newCustomer),
+      });
+
+      if (res.ok) {
+        toast.success("Customer created successfully!");
+        setCreateOpen(false);
+        setNewCustomer({ name: "", identificationNumber: "" });
+        await fetchCustomers(); // refresh list
+      } else {
+        const msg = await res.text();
+        toast.error(msg);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create customer");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -176,7 +226,17 @@ function Booking() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label>Customer</Label>
+              <div className="flex justify-between items-center">
+                <Label>Customer</Label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCreateOpen(true)}
+                  type="button"
+                >
+                  <Plus className="h-4 w-4 mr-1" /> New Customer
+                </Button>
+              </div>
               <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -263,7 +323,7 @@ function Booking() {
           </div>
 
           <Button
-            type="submit" // ✅ submit the form
+            type="submit"
             disabled={isSubmitting}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
           >
@@ -271,6 +331,50 @@ function Booking() {
           </Button>
         </form>
       </div>
+
+      {/* Create Customer Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Customer</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handleCreateCustomer}>
+            <div>
+              <Label>Name</Label>
+              <Input
+                value={newCustomer.name}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, name: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label>Identification Number</Label>
+              <Input
+                value={newCustomer.identificationNumber}
+                onChange={(e) =>
+                  setNewCustomer({
+                    ...newCustomer,
+                    identificationNumber: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCreateOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? "Creating..." : "Create"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

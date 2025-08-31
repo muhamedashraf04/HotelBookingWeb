@@ -11,14 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
-import { Upload, X } from "lucide-react";
-import { useRef, useState } from "react";
-import { toast, Toaster } from "sonner";
-import { useEffect } from "react";
-import { Url } from "../../GlobalVariables.tsx";
-import { useParams, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-
+import { Upload, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast, Toaster } from "sonner";
+import { Url } from "../../GlobalVariables.tsx";
 
 interface RoomFormState {
   id?: number;
@@ -37,7 +35,6 @@ interface Rate {
   price: number;
 }
 
-
 export default function CreateRoom() {
   const [formData, setFormData] = useState<RoomFormState>({
     roomNumber: "",
@@ -49,6 +46,9 @@ export default function CreateRoom() {
     Images: null,
   });
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
@@ -58,12 +58,13 @@ export default function CreateRoom() {
   const { id } = useParams<{ id: string }>();
   const [roomtypes, setroomtypes] = useState<string[]>([]);
   const [rates, setrates] = useState<Rate[]>([]);
+
   useEffect(() => {
     const fetchrates = async () => {
       try {
         const response = await axios.get(`${Url}/Admin/Rate/Getall`, {
           headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`, // if your endpoint requires auth
+            Authorization: `Bearer ${Cookies.get("token")}`,
           },
         });
 
@@ -80,10 +81,12 @@ export default function CreateRoom() {
 
     fetchrates();
   }, []);
+
   useEffect(() => {
     if (!id) return;
 
-    axios.get(`${Url}/Admin/Room/GetRoom?id=${id}`)
+    axios
+      .get(`${Url}/Admin/Room/GetRoom?id=${id}`)
       .then((res) => {
         const room = res.data;
 
@@ -92,30 +95,28 @@ export default function CreateRoom() {
           return;
         }
 
-        // ✅ Ensure roomType is always one of the allowed values
         const validRoomTypes = roomtypes;
         const safeRoomType = validRoomTypes.includes(room.roomType)
           ? room.roomType
           : "Single";
 
         setFormData({
-
           id: room.id ?? undefined,
           roomNumber: room.roomNumber ?? "",
-          roomType: room.roomType ?? "Single",
+          roomType: safeRoomType,
           floor: room.floor ?? 0,
           capacity: room.capacity ?? 0,
           isAvailable: room.isAvailable ?? false,
           Price: room.price ?? 0,
-          Images: room.Images ?? null
+          Images: room.Images ?? null,
         });
 
         setExistingImages(
           typeof room.images === "string" && room.images.trim().length > 0
             ? room.images
-              .split(",")
-              .map((img: string) => img.trim())
-              .filter((img: string) => img.length > 0)
+                .split(",")
+                .map((img: string) => img.trim())
+                .filter((img: string) => img.length > 0)
             : []
         );
       })
@@ -123,8 +124,7 @@ export default function CreateRoom() {
         console.error("Error loading room:", err);
         toast.error("Failed to load room data");
       });
-  }, [id]);
-
+  }, [id, roomtypes]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -137,7 +137,6 @@ export default function CreateRoom() {
     }));
   };
 
-  // dedicated handler for shadcn dropdown
   const handleRoomTypeChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -145,22 +144,40 @@ export default function CreateRoom() {
     }));
   };
 
+  // ✅ Enhanced validation for image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
     if (existingImages.length + newImages.length + files.length > 5) {
       toast.error("Maximum 5 images allowed");
       return;
     }
-    setNewImages((prev) => [...prev, ...files]);
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setNewImages((prev) => [...prev, ...validFiles]);
+    }
+
+    e.target.value = ""; // reset so same file can be chosen again
   };
 
   const handleDeleteImage = (image: string | File) => {
     if (typeof image === "string") {
-      // it's an existing image (URL)
       setExistingImages((prev) => prev.filter((img) => img !== image));
       setDeletedImages((prev) => [...prev, image]);
     } else {
-      // it's a new image (File)
       setNewImages((prev) => prev.filter((file) => file !== image));
     }
   };
@@ -174,7 +191,6 @@ export default function CreateRoom() {
     try {
       const imageFormData = new FormData();
 
-      // Append room fields
       imageFormData.append("room.Id", formData.id?.toString() ?? "0");
       imageFormData.append("room.RoomNumber", formData.roomNumber);
       imageFormData.append("room.RoomType", formData.roomType);
@@ -183,24 +199,18 @@ export default function CreateRoom() {
       imageFormData.append("room.IsAvailable", formData.isAvailable.toString());
       imageFormData.append("room.Price", formData.Price.toString());
 
-      // Append new uploaded files
-      newImages.forEach((file) =>
-        imageFormData.append("uploadedFiles", file)
-      );
+      newImages.forEach((file) => imageFormData.append("uploadedFiles", file));
 
-      // Append deleted images as JSON string
       if (deletedImages.length > 0) {
         imageFormData.append("deletedImages", JSON.stringify(deletedImages));
       }
 
-      // Send everything in one request
       await axios.post(`${Url}/Admin/Room/Upsert`, imageFormData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${Cookies.get("token")}`
+          Authorization: `Bearer ${Cookies.get("token")}`,
         },
       });
-
 
       setFormData({
         roomNumber: "",
@@ -209,19 +219,19 @@ export default function CreateRoom() {
         capacity: 1,
         isAvailable: true,
         Price: 0,
-        Images: null
+        Images: null,
       });
 
-      toast.success(id ? "Room updated successfully!" : "Room created successfully!");
+      toast.success(
+        id ? "Room updated successfully!" : "Room created successfully!"
+      );
       setTimeout(() => {
         navigate("/Rooms/AllRooms");
       }, 1000);
 
-
       setExistingImages([]);
       setNewImages([]);
       setDeletedImages([]);
-
     } catch (e: any) {
       toast.error(e?.response?.data ?? "Failed to create room");
     } finally {
@@ -229,16 +239,16 @@ export default function CreateRoom() {
     }
   };
 
-
   return (
     <>
       <Header />
       <Toaster />
       <form onSubmit={submit} className="max-w-2xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold"> {id ? "Update Room" : "Create Room"}</h1>
+        <h1 className="text-2xl font-bold">
+          {id ? "Update Room" : "Create Room"}
+        </h1>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Room Type with shadcn Select */}
           <label className="block">
             <span className="block mb-2 font-medium">Room Type</span>
             <Select
@@ -250,9 +260,11 @@ export default function CreateRoom() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-
-                  {roomtypes.map((type) => (<SelectItem value={type} >{type}</SelectItem>))}
-
+                  {roomtypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -320,7 +332,6 @@ export default function CreateRoom() {
 
           {(existingImages.length > 0 || newImages.length > 0) && (
             <div className="grid grid-cols-3 gap-2">
-              {/* Existing images */}
               {existingImages.map((url, index) => (
                 <div key={`existing-${index}`} className="relative">
                   <img
@@ -338,7 +349,6 @@ export default function CreateRoom() {
                 </div>
               ))}
 
-              {/* New images */}
               {newImages.map((file, index) => (
                 <div key={`new-${index}`} className="relative">
                   <img
@@ -360,7 +370,13 @@ export default function CreateRoom() {
         </div>
 
         <Button type="submit" disabled={saving} className="w-full">
-          {saving ? (id ? "Updating..." : "Creating...") : id ? "Update Room" : "Create Room"}
+          {saving
+            ? id
+              ? "Updating..."
+              : "Creating..."
+            : id
+            ? "Update Room"
+            : "Create Room"}
         </Button>
       </form>
     </>
