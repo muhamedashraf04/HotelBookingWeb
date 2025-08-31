@@ -16,7 +16,7 @@ namespace HotelBooking.Models.Auth
 
         public string PasswordHash { get; set; } = default!;
 
-        public string Role { get; set; }
+        public string Role { get; set; } = "User";
 
         public float DiscountLimit { get; set; } = 0;
     }

@@ -6,6 +6,7 @@ import Login from "./Auth/Login.tsx";
 import Register from "./Auth/Register.tsx";
 import CheckInPage from "./Checkin/CheckinPage.tsx";
 import CheckOutPage from "./CheckOut/CheckOutPage.tsx";
+import ConfigurationPage from "./Configuration/hotel-config.tsx";
 import Create from "./Customer/Create.tsx"; // Import your Create component
 import RemoveCustomer from "./Customer/Remove.tsx";
 import "./index.css";
@@ -49,6 +50,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/Checkout/:id" element={<CheckOutPage />} />{" "}
         {/* single checkout page */}
         <Route path="/Reservations/Checkin" element={<Checkin />} />
+        <Route path="/Configure" element={<ConfigurationPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

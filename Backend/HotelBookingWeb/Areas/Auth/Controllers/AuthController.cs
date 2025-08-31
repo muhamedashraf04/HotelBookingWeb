@@ -25,6 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [Authorize(Roles = "Admin")]
     public IActionResult Register(RegisterDto dto)
     {
         // check username
@@ -62,7 +63,6 @@ public class AuthController : ControllerBase
     [Authorize(Roles = "Admin")]
     public IActionResult RegisterAdmin(RegisterDto dto)
     {
-        // check username
         var usernameTaken =
             _unitOfWork.Admins.Get(a => a.UserName == dto.UserName) != null ||
             _unitOfWork.Users.Get(u => u.UserName == dto.UserName) != null;
@@ -70,7 +70,6 @@ public class AuthController : ControllerBase
         if (usernameTaken)
             return BadRequest("Username is already taken.");
 
-        // check email
         var emailTaken =
             _unitOfWork.Admins.Get(a => a.Email == dto.Email) != null ||
             _unitOfWork.Users.Get(u => u.Email == dto.Email) != null;
@@ -78,7 +77,6 @@ public class AuthController : ControllerBase
         if (emailTaken)
             return BadRequest("Email is already taken.");
         string currentAdminUserName = User.Identity?.Name;
-        // create admin
         var admin = new HotelBooking.Models.Auth.Admin
         {
             UserName = dto.UserName,
@@ -145,5 +143,110 @@ public class AuthController : ControllerBase
 
         return Ok(new { token = jwt });
     }
+    [HttpGet("getdiscountlimit")]
+    [Authorize]
+    public IActionResult GetDiscountLimit()
+    {
+        // Get the 'id' claim from the authenticated user's token.
+        var userIdClaim = User.FindFirst("id");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return BadRequest("User ID claim not found or is invalid.");
+        }
 
+        var user = _unitOfWork.Users.Get(u => u.Id == userId);
+        var admin = _unitOfWork.Admins.Get(a => a.Id == userId);
+        BaseUser foundUser = null as BaseUser;
+        if (user != null)
+        {
+            foundUser = user;
+        }
+        else if (admin != null)
+        {
+            foundUser = admin as BaseUser;
+        }
+
+        if (foundUser == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Return the user's specific discount limit.
+        return Ok(new { limit = foundUser.DiscountLimit });
+    }
+    [HttpGet("getalladmins")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult getalladmins()
+    {
+        var admins = _unitOfWork.Admins.GetAll().ToList();
+        // No need to check for null here. ToList() will return an empty list if no data is found.
+        return Ok(admins);
+    }
+
+    [HttpGet("getallusers")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult getallusers()
+    {
+        var users = _unitOfWork.Users.GetAll().ToList(); // Corrected variable name
+                                                         // No need to check for null here. ToList() will return an empty list if no data is found.
+        return Ok(users);
+    }
+    [HttpPut("update-user/{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult UpdateUser(int id, RegisterDto dto)
+    {
+        var user = _unitOfWork.Users.Get(u => u.Id == id);
+        if (user == null) return NotFound("User not found.");
+
+        user.UserName = dto.UserName;
+        user.Email = dto.Email;
+        user.PhoneNumber = dto.PhoneNumber;
+        if (!string.IsNullOrEmpty(dto.Password))
+            user.PasswordHash = PasswordHasher.Hash(dto.Password);
+
+        _unitOfWork.Users.Edit(user);
+        _unitOfWork.Save();
+        return Ok("User updated successfully.");
+    }
+
+    [HttpDelete("delete-user/{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult DeleteUser(int id)
+    {
+        var user = _unitOfWork.Users.Get(u => u.Id == id);
+        if (user == null) return NotFound("User not found.");
+
+        _unitOfWork.Users.Remove(id);
+        _unitOfWork.Save();
+        return Ok("User deleted successfully.");
+    }
+
+    [HttpPut("update-admin/{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult UpdateAdmin(int id, RegisterDto dto)
+    {
+        var admin = _unitOfWork.Admins.Get(a => a.Id == id);
+        if (admin == null) return NotFound("Admin not found.");
+
+        admin.UserName = dto.UserName;
+        admin.Email = dto.Email;
+        if (!string.IsNullOrEmpty(dto.Password))
+            admin.PasswordHash = PasswordHasher.Hash(dto.Password);
+
+        _unitOfWork.Admins.Edit(admin);
+        _unitOfWork.Save();
+        return Ok("Admin updated successfully.");
+    }
+
+    [HttpDelete("delete-admin/{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult DeleteAdmin(int id)
+    {
+        var admin = _unitOfWork.Admins.Get(a => a.Id == id);
+        if (admin == null) return NotFound("Admin not found.");
+
+        _unitOfWork.Admins.Remove(id);
+        _unitOfWork.Save();
+        return Ok("Admin deleted successfully.");
+    }
 }

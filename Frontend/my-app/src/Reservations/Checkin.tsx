@@ -31,10 +31,14 @@ type Reservation = {
   numberOfExtraBeds: number;
 };
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
 function Checkin() {
   const [loading, setLoading] = useState(false);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchReservations = async () => {
       try {
@@ -138,6 +142,66 @@ function Checkin() {
                     <p>Extra Beds: {reservation.numberOfExtraBeds}</p>
                     <p>Paid: ${reservation.paid}</p>
                     <p>Dues: ${reservation.dues}</p>
+
+                    {/* File Upload with Validation */}
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Upload Proof of Payment
+                      </label>
+                      <input
+                        type="file"
+                        accept={allowedTypes.join(",")}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          // Validate type
+                          if (!allowedTypes.includes(file.type)) {
+                            ErrorToast(
+                              "Invalid file type. Please upload JPG, PNG, GIF, or WebP."
+                            );
+                            e.target.value = "";
+                            return;
+                          }
+
+                          // Validate size
+                          if (file.size > MAX_FILE_SIZE) {
+                            ErrorToast("File size exceeds 5 MB limit.");
+                            e.target.value = "";
+                            return;
+                          }
+
+                          // ✅ File valid → send to backend
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          formData.append(
+                            "reservationId",
+                            reservation.id.toString()
+                          );
+
+                          axios
+                            .post(
+                              `${Url}/Admin/Checkin/UploadProof`,
+                              formData,
+                              {
+                                headers: {
+                                  "Content-Type": "multipart/form-data",
+                                },
+                              }
+                            )
+                            .then(() => {
+                              console.log("Uploaded successfully!");
+                            })
+                            .catch((err) => {
+                              ErrorToast(
+                                err.message || "Failed to upload file"
+                              );
+                            });
+                        }}
+                        className="block w-full border rounded-md p-2"
+                      />
+                    </div>
+
                     <Button
                       className="w-full"
                       disabled={reservation.status === "Checked-In"}
@@ -147,7 +211,7 @@ function Checkin() {
                         });
                       }}
                     >
-                      {reservation.status == "Checked-In"
+                      {reservation.status === "Checked-In"
                         ? "Already Checked-In"
                         : "Check In"}
                     </Button>

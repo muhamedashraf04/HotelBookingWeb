@@ -208,12 +208,7 @@ public class ReservationController : Controller
 
                     numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days;
                     reservation.Dues = room.Price * (numberOfNights);
-                    Console.WriteLine("######");
-                    Console.WriteLine(reservation.Dues);
-                    Console.WriteLine(room.Price);
-                    Console.WriteLine(numberOfNights);
-                    Console.WriteLine("######");
-
+                    
 
                     _unitOfWork.Reservations.Create(reservation);
                     _unitOfWork.Save();
@@ -259,11 +254,7 @@ public class ReservationController : Controller
 
             numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days;
             reservation.Dues = room.Price * (numberOfNights);
-            Console.WriteLine("######");
-            Console.WriteLine(reservation.Dues);
-            Console.WriteLine(room.Price);
-            Console.WriteLine(numberOfNights);
-            Console.WriteLine("######");
+
 
 
             // Save new reservation

@@ -31,7 +31,9 @@ function Login() {
       const res = await axios.post(`${Url}/api/auth/login`, form);
 
       Cookies.set("token", res.data.token, { expires: 1 });
-
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${res.data.token}`;
       toast.success("Login successful 🎉", {
         description: "Redirecting...",
       });

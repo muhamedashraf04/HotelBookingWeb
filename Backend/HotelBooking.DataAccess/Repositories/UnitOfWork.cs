@@ -18,6 +18,7 @@ namespace HotelBooking.DataAccess.Repositories
         public IAdminRepository Admins { get; set; }
 
         public IRateRepository Rates { get; set; }
+        public IConfigutaionRepository Configurations { get; set; }
 
 
         public ApplicationDBContext DbContext { get; set; } 
@@ -30,6 +31,7 @@ namespace HotelBooking.DataAccess.Repositories
             Users = new UserRepository(DbContext);
             Rooms = new RoomRepository(DbContext);
             Rates = new RateRepository(DbContext);
+            Configurations = new ConfigurationRepository(DbContext);
         }
         public void Save()
         {

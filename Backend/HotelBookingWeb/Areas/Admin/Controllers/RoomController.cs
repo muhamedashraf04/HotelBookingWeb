@@ -97,7 +97,6 @@ public class RoomController : Controller
             }
         }
 
-        // ✅ Upload new images (already validated above)
         if (uploadedFiles != null && uploadedFiles.Count > 0)
         {
             foreach (var file in uploadedFiles)

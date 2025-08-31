@@ -262,26 +262,34 @@ export default function App() {
           }}
           onMouseLeave={() => setContextMenu(null)}
         >
-          <button
-            className="block w-full px-4 py-2 text-left hover:bg-gray-100 "
-            onClick={() => {
-              navigate(`/CheckIn/${contextMenu.reservation!.id}`, {
-                state: contextMenu.reservation,
-              });
-            }}
-          >
-            Check-In
-          </button>
-          <button
-            className="block w-full px-4 py-2 text-left hover:bg-gray-100 "
-            onClick={() => {
-              navigate(`/CheckOut/${contextMenu.reservation!.id}`, {
-                state: contextMenu.reservation,
-              });
-            }}
-          >
-            Check-Out
-          </button>
+          {contextMenu.reservation?.status == "Reserved" ? (
+            <button
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100 "
+              onClick={() => {
+                navigate(`/CheckIn/${contextMenu.reservation!.id}`, {
+                  state: contextMenu.reservation,
+                });
+              }}
+            >
+              Check-In
+            </button>
+          ) : (
+            ""
+          )}
+          {contextMenu.reservation?.status == "Checked-In" ? (
+            <button
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100 "
+              onClick={() => {
+                navigate(`/CheckOut/${contextMenu.reservation!.id}`, {
+                  state: contextMenu.reservation,
+                });
+              }}
+            >
+              Check-Out
+            </button>
+          ) : (
+            ""
+          )}
           <button
             className="block w-full px-4 py-2 text-left hover:bg-gray-100"
             onClick={() => {

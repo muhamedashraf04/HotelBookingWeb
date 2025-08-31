@@ -17,6 +17,7 @@ namespace HotelBooking.DataAccess.Repositories.Interfaces
         IUserRepository Users { get; }
         IRateRepository Rates { get; }
         IAdminRepository Admins { get; }
+        IConfigutaionRepository Configurations { get; }
         
         ApplicationDBContext DbContext { get; }
         public void Save();

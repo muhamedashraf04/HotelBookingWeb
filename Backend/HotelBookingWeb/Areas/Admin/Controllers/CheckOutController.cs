@@ -64,19 +64,22 @@ public class CheckOutController : Controller
         {
             return BadRequest("Reservation data is required.");
         }
-        else
-        {
-            reservation = _unitOfWork.Reservations.Get(u => u.Id == id);
-            if (reservation == null)
-            {
-                return BadRequest("Reservation could not be found.");
 
-            }
-            if (reservation.Status == "Checked-Out")
-            {
-                return BadRequest("User Already Checked-Out.");
-            }
+        reservation = _unitOfWork.Reservations.Get(u => u.Id == id);
+        if (reservation == null)
+        {
+            return BadRequest("Reservation could not be found.");
+
         }
+        if (reservation.Status == "Checked-Out")
+        {
+            return BadRequest("User Already Checked-Out.");
+        }
+        if (reservation.Status != "Checked-In")
+        {
+            return BadRequest("User Not Checked-In");
+        }
+
 
         var folderPath = $"hotel_booking/Reservations/{reservation.Id}";
         var uploadedUrls = new List<string>();

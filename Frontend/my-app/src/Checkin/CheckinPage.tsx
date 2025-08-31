@@ -3,11 +3,12 @@ import Header from "@/components/Header/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
+import Cookies from "js-cookie";
 import { Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { toast, Toaster } from "sonner";
-import { Url } from "../../GlobalVariables.tsx";
+import { Toaster, toast } from "sonner";
+import { Url } from "../../GlobalVariables";
 
 interface Reservation {
   id: number;
@@ -26,7 +27,7 @@ interface Customer {
   identificationNumber: number;
   name: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
 }
 
 interface Room {
@@ -48,11 +49,14 @@ export default function CheckInPage() {
   const [room, setRoom] = useState<Room | null>(null);
 
   // Payment & discount states
-  const [paymentNow, setPaymentNow] = useState<number>(0); // amount paid at this check-in
+  const [paymentNow, setPaymentNow] = useState<number>(0);
   const [discountMode, setDiscountMode] = useState<"amount" | "percent">(
     "amount"
   );
-  const [discountValue, setDiscountValue] = useState<number>(0); // amount or percent depending on mode
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [discountLimit, setDiscountLimit] = useState<number>(100); // Default to 100% until fetched
+  const [isDiscountLimitLoading, setIsDiscountLimitLoading] =
+    useState<boolean>(true);
 
   // Images
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -65,40 +69,67 @@ export default function CheckInPage() {
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
   const MAX_IMAGES = 5;
 
-  // Load reservation if not passed through navigation
-  useEffect(() => {
-    if (!reservation && id) {
-      axios
-        .get(`${Url}/Admin/Reservation/Get/?id=${id}`)
-        .then((res) => setReservation(res.data))
-        .catch(() => toast.error("Failed to load reservation"));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  // Function to clamp a value between a min and max
+  const clamp = (v: number, min: number, max: number) =>
+    Math.min(Math.max(Number.isFinite(v) ? v : 0, min), max);
 
-  // Load customer and room once reservation is available
+  // Fetch the user's discount limit on component load
   useEffect(() => {
-    if (reservation?.customerId) {
-      axios
-        .get(`${Url}/Admin/Customer/Get/?id=${reservation.customerId}`)
-        .then((res) => setCustomer(res.data))
-        .catch(() => toast.error("Failed to load customer"));
-    }
-  }, [reservation?.customerId]);
+    const fetchDiscountLimit = async () => {
+      setIsDiscountLimitLoading(true);
+      try {
+        const res = await axios.get(`${Url}/api/Auth/GetDiscountLimit`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        });
 
+        setDiscountLimit(res.data.limit);
+      } catch (err) {
+        toast.error("Failed to load discount limit. Please try again.");
+        console.error("Failed to fetch discount limit:", err);
+      } finally {
+        setIsDiscountLimitLoading(false);
+      }
+    };
+
+    fetchDiscountLimit();
+  }, []);
+
+  // Load reservation, customer, and room data
   useEffect(() => {
-    if (reservation?.roomId) {
-      axios
-        .get(`${Url}/Admin/Room/GetRoom/?id=${reservation.roomId}`)
-        .then((res) => setRoom(res.data))
-        .catch(() => toast.error("Failed to load room"));
-    }
-  }, [reservation?.roomId]);
+    const fetchReservationData = async () => {
+      if (!id) return;
 
-  // If reservation contains existing images, set them
+      try {
+        if (!reservation) {
+          const res = await axios.get(`${Url}/Admin/Reservation/Get/?id=${id}`);
+          setReservation(res.data);
+          if (res.data?.customerId) {
+            const customerRes = await axios.get(
+              `${Url}/Admin/Customer/Get/?id=${res.data.customerId}`
+            );
+            setCustomer(customerRes.data);
+          }
+          if (res.data?.roomId) {
+            const roomRes = await axios.get(
+              `${Url}/Admin/Room/GetRoom/?id=${res.data.roomId}`
+            );
+            setRoom(roomRes.data);
+          }
+          // Set initial discount value from loaded reservation data
+          setDiscountValue(res.data.discount || 0);
+        }
+      } catch (error) {
+        toast.error("Failed to load reservation details.");
+      }
+    };
+    fetchReservationData();
+  }, [id, reservation]);
+
+  // Handle existing images from reservation data
   useEffect(() => {
     if (!reservation) return;
-    // reservation may provide images field; try to use `images` or `Images`
     const imgsAny = (reservation as any).images ?? (reservation as any).Images;
     if (typeof imgsAny === "string" && imgsAny.trim().length > 0) {
       setExistingImages(
@@ -110,25 +141,17 @@ export default function CheckInPage() {
     } else {
       setExistingImages([]);
     }
-
-    // If reservation has a previous discount, default UI to show that as amount (not overwriting)
-    setDiscountValue(reservation.discount || 0);
-    // reset paymentNow (we will compute totalPaidToSend on submit)
-    setPaymentNow(0);
   }, [reservation]);
 
-  // Derived monetary calculations (assume original total = paid + dues)
+  // Derived monetary calculations
   const originalTotal = reservation
     ? Number(reservation.paid || 0) + Number(reservation.dues || 0)
     : 0;
 
-  const clamp = (v: number, min: number, max: number) =>
-    Math.min(Math.max(Number.isFinite(v) ? v : 0, min), max);
-
   const computedDiscountAmount = (() => {
     if (!originalTotal) return 0;
     if (discountMode === "percent") {
-      const pct = clamp(discountValue, 0, 100);
+      const pct = clamp(discountValue, 0, discountLimit);
       return Math.round((pct / 100) * originalTotal * 100) / 100;
     } else {
       return clamp(discountValue, 0, originalTotal);
@@ -137,13 +160,11 @@ export default function CheckInPage() {
 
   const totalAfterDiscount =
     Math.round(Math.max(0, originalTotal - computedDiscountAmount) * 100) / 100;
-
   const totalPaidSoFar = reservation ? Number(reservation.paid || 0) : 0;
   const totalPaidAfterThis =
     Math.round(
       (totalPaidSoFar + clamp(paymentNow, 0, Number.MAX_SAFE_INTEGER)) * 100
     ) / 100;
-
   const remainingAfter =
     Math.round((totalAfterDiscount - totalPaidAfterThis) * 100) / 100;
   const changeToReturn = remainingAfter < 0 ? Math.abs(remainingAfter) : 0;
@@ -155,7 +176,7 @@ export default function CheckInPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (existingImages.length + newImages.length + files.length > MAX_IMAGES) {
-      toast.error(`Maximum ${MAX_IMAGES} images allowed`);
+      toast.error(`Maximum ${MAX_IMAGES} images allowed.`);
       e.target.value = "";
       return;
     }
@@ -188,20 +209,15 @@ export default function CheckInPage() {
 
   // remove an existing image (URL) or a new image (file)
   const handleDeleteImage = (image: string | number) => {
-    // if string => existingImages index, if number => index in newImages
     if (typeof image === "string") {
       setExistingImages((prev) => prev.filter((p) => p !== image));
     } else {
       const idx = image;
-      setNewImages((prev) => {
-        const removed = prev[idx];
-        // revoke preview url
-        setNewImagePreviews((prevPre) => {
-          const url = prevPre[idx];
-          if (url) URL.revokeObjectURL(url);
-          return prevPre.filter((_, i) => i !== idx);
-        });
-        return prev.filter((_, i) => i !== idx);
+      setNewImages((prev) => prev.filter((_, i) => i !== idx));
+      setNewImagePreviews((prevPre) => {
+        const url = prevPre[idx];
+        if (url) URL.revokeObjectURL(url);
+        return prevPre.filter((_, i) => i !== idx);
       });
     }
   };
@@ -211,8 +227,7 @@ export default function CheckInPage() {
     return () => {
       newImagePreviews.forEach((u) => URL.revokeObjectURL(u));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [newImagePreviews]);
 
   // Submit handler: send total paid (previous + now) & discount amount (money)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -223,29 +238,24 @@ export default function CheckInPage() {
     if (paymentNow < 0) return toast.error("Paid amount cannot be negative");
     if (
       discountMode === "percent" &&
-      (discountValue < 0 || discountValue > 100)
+      (discountValue < 0 || discountValue > discountLimit)
     )
-      return toast.error("Discount percent must be between 0 and 100");
+      return toast.error(
+        `Discount percent must be between 0 and ${discountLimit}%`
+      );
     if (
       discountMode === "amount" &&
       (discountValue < 0 || discountValue > originalTotal)
     )
-      return toast.error("Discount amount must be between 0 and subtotal");
+      return toast.error("Discount amount must be between 0 and the subtotal");
 
     setSaving(true);
     try {
       const formData = new FormData();
       formData.append("ReservationId", reservation.id.toString());
+      formData.append("Paid", totalPaidAfterThis.toString());
+      formData.append("Discount", computedDiscountAmount.toString());
 
-      // total paid to send (previous paid + paymentNow)
-      const totalPaidToSend = totalPaidAfterThis;
-      // discount to send (money)
-      const discountToSend = computedDiscountAmount;
-
-      formData.append("Paid", totalPaidToSend.toString());
-      formData.append("Discount", discountToSend.toString());
-
-      // append files
       newImages.forEach((f) => formData.append("uploadedFiles", f));
 
       await axios.patch(`${Url}/Admin/Checkin/In`, formData, {
@@ -265,249 +275,274 @@ export default function CheckInPage() {
     <>
       <Header />
       <Toaster />
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Check-In</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-3xl mx-auto p-6 space-y-6 bg-white rounded-lg shadow-lg"
+      >
+        <h1 className="text-3xl font-bold text-center text-gray-800">
+          Check-In Guest
+        </h1>
+        <p className="text-center text-gray-500 mb-6">
+          Complete the check-in process for the reservation.
+        </p>
 
-        {reservation ? (
-          <div className="p-4 border rounded space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-bold">Customer</h3>
+        {/* Reservation Details */}
+        <section className="p-5 border border-gray-200 rounded-xl space-y-4 bg-gray-50">
+          <h2 className="text-xl font-semibold text-gray-700 mb-3">
+            Reservation & Guest Information
+          </h2>
+          {reservation ? (
+            <div className="grid md:grid-cols-2 gap-5">
+              {/* Customer Details */}
+              <div className="space-y-2">
+                <h3 className="font-bold text-gray-600">Customer</h3>
                 {customer ? (
-                  <div className="ml-2">
-                    <p>Name: {customer.name}</p>
-                    <p>Email: {customer.email}</p>
-                    <p>ID: {customer.identificationNumber}</p>
-                    <p>Phone: {customer.phone}</p>
+                  <div className="ml-2 text-sm text-gray-800 space-y-1">
+                    <p>
+                      <span className="font-medium">Name:</span> {customer.name}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email:</span>{" "}
+                      {customer.email}
+                    </p>
+                    <p>
+                      <span className="font-medium">ID:</span>{" "}
+                      {customer.identificationNumber}
+                    </p>
+                    <p>
+                      <span className="font-medium">Phone:</span>{" "}
+                      {customer.phoneNumber}
+                    </p>
                   </div>
                 ) : (
-                  <p>Loading customer...</p>
+                  <p className="text-gray-500">Loading customer...</p>
                 )}
               </div>
-
-              <div>
-                <h3 className="font-bold">Room</h3>
+              {/* Room Details */}
+              <div className="space-y-2">
+                <h3 className="font-bold text-gray-600">Room</h3>
                 {room ? (
-                  <div className="ml-2">
-                    <p>Room Number: {room.roomNumber}</p>
-                    <p>Type: {room.roomType}</p>
-                    <p>Floor: {room.floor}</p>
+                  <div className="ml-2 text-sm text-gray-800 space-y-1">
+                    <p>
+                      <span className="font-medium">Room Number:</span>{" "}
+                      {room.roomNumber}
+                    </p>
+                    <p>
+                      <span className="font-medium">Type:</span> {room.roomType}
+                    </p>
+                    <p>
+                      <span className="font-medium">Floor:</span> {room.floor}
+                    </p>
                   </div>
                 ) : (
-                  <p>Loading room...</p>
+                  <p className="text-gray-500">Loading room...</p>
                 )}
               </div>
             </div>
+          ) : (
+            <p className="text-center text-gray-500">Loading reservation...</p>
+          )}
+        </section>
 
-            <p>
-              <strong>Dates:</strong>{" "}
-              {new Date(reservation.checkInDate).toLocaleString()} →{" "}
-              {new Date(reservation.checkOutDate).toLocaleString()}
+        {/* Financials Summary */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mt-6">
+          <div className="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200">
+            <p className="text-sm text-blue-700">Subtotal</p>
+            <p className="text-2xl font-bold text-blue-900">
+              {format(originalTotal)}
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="p-3 bg-gray-50 rounded">
-                <div className="text-sm text-muted-foreground">Subtotal</div>
-                <div className="text-lg font-semibold">
-                  {format(originalTotal)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  (Paid + Dues)
-                </div>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded">
-                <div className="text-sm text-muted-foreground">
-                  Previously Paid
-                </div>
-                <div className="text-lg font-semibold">
-                  {format(totalPaidSoFar)}
-                </div>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded">
-                <div className="text-sm text-muted-foreground">
-                  Original Dues
-                </div>
-                <div className="text-lg font-semibold">
-                  {format(reservation.dues)}
-                </div>
-              </div>
-            </div>
+            <p className="text-xs text-blue-500">
+              (Previous Paid + Original Dues)
+            </p>
           </div>
-        ) : (
-          <p>Loading reservation...</p>
-        )}
+          <div className="p-4 bg-yellow-50 rounded-lg shadow-sm border border-yellow-200">
+            <p className="text-sm text-yellow-700">Previously Paid</p>
+            <p className="text-2xl font-bold text-yellow-900">
+              {format(totalPaidSoFar)}
+            </p>
+          </div>
+          <div className="p-4 bg-red-50 rounded-lg shadow-sm border border-red-200">
+            <p className="text-sm text-red-700">Original Dues</p>
+            <p className="text-2xl font-bold text-red-900">
+              {format(reservation?.dues || 0)}
+            </p>
+          </div>
+        </section>
 
-        {/* Payment & Discount controls */}
-        <div className="p-4 border rounded space-y-4">
-          <h3 className="font-bold">Payment & Discount</h3>
+        {/* Payment & Discount Inputs */}
+        <section className="p-5 border border-gray-200 rounded-xl space-y-4 mt-6">
+          <h2 className="text-xl font-semibold text-gray-700">
+            Payment & Discount
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="block mb-2 font-medium">Amount to pay now</span>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={paymentNow}
-                onChange={(e) => setPaymentNow(Number(e.target.value || 0))}
-              />
-              <div className="text-xs text-muted-foreground mt-1">
-                Enter the cash/card amount collected at check-in.
-              </div>
+          <div className="space-y-2">
+            <label htmlFor="payment-now" className="font-medium block">
+              Amount to Pay Now
             </label>
-
-            <div>
-              <span className="block mb-2 font-medium">Discount</span>
-
-              <div className="flex gap-2 items-center mb-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="discountMode"
-                    checked={discountMode === "amount"}
-                    onChange={() => {
-                      setDiscountMode("amount");
-                      // if switching from percent to amount, try to keep monetary equivalent
-                      if (reservation) {
-                        const percentToAmount =
-                          (discountValue / 100) * originalTotal;
-                        setDiscountValue(
-                          Math.round(percentToAmount * 100) / 100
-                        );
-                      } else {
-                        setDiscountValue(0);
-                      }
-                    }}
-                  />
-                  <span>By amount</span>
-                </label>
-
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="discountMode"
-                    checked={discountMode === "percent"}
-                    onChange={() => {
-                      setDiscountMode("percent");
-                      if (reservation) {
-                        const amountToPercent = originalTotal
-                          ? (discountValue / originalTotal) * 100
-                          : 0;
-                        setDiscountValue(
-                          Math.round(amountToPercent * 100) / 100
-                        );
-                      } else {
-                        setDiscountValue(0);
-                      }
-                    }}
-                  />
-                  <span>By percentage</span>
-                </label>
-              </div>
-
-              {discountMode === "percent" ? (
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={clamp(discountValue, 0, 100)}
-                    onChange={(e) => setDiscountValue(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={clamp(discountValue, 0, 100)}
-                    onChange={(e) =>
-                      setDiscountValue(
-                        clamp(Number(e.target.value || 0), 0, 100)
-                      )
-                    }
-                    className="w-20"
-                  />
-                  <span className="text-sm">%</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min={0}
-                    max={originalTotal}
-                    step="0.01"
-                    value={clamp(discountValue, 0, originalTotal)}
-                    onChange={(e) =>
-                      setDiscountValue(
-                        clamp(Number(e.target.value || 0), 0, originalTotal)
-                      )
-                    }
-                    className="w-full"
-                  />
-                  <span className="text-sm">currency</span>
-                </div>
-              )}
-
-              <div className="text-xs text-muted-foreground mt-2">
-                Discount will be applied to the subtotal. Shown below as a
-                monetary value.
-              </div>
-            </div>
+            <Input
+              id="payment-now"
+              type="number"
+              min={0}
+              step="10"
+              value={paymentNow}
+              onChange={(e) =>
+                setPaymentNow(
+                  Number(
+                    Number(e.target.value) > originalTotal
+                      ? originalTotal
+                      : e.target.value || 0
+                  )
+                )
+              }
+              className="rounded-lg"
+            />
+            <p className="text-sm text-gray-500">
+              Enter the amount received from the customer at this time.
+            </p>
           </div>
 
-          {/* Summary */}
-          <div className="mt-4 p-3 bg-gray-50 rounded">
-            <div className="flex justify-between">
-              <div>Subtotal</div>
-              <div>{format(originalTotal)}</div>
-            </div>
-            <div className="flex justify-between mt-1">
-              <div>Discount</div>
-              <div>- {format(computedDiscountAmount)}</div>
-            </div>
-            <hr className="my-2" />
-            <div className="flex justify-between font-semibold">
-              <div>Total after discount</div>
-              <div>{format(totalAfterDiscount)}</div>
+          <div className="space-y-2">
+            <h3 className="font-medium">Discount</h3>
+            <p className="text-sm text-gray-500">
+              {isDiscountLimitLoading
+                ? "Loading discount limit..."
+                : `Your maximum discount limit is ${discountLimit}%.`}
+            </p>
+            <div className="flex gap-4 mb-2 items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="discountMode"
+                  checked={discountMode === "amount"}
+                  onChange={() => setDiscountMode("amount")}
+                  className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                />
+                <span>By Amount (EGP)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="discountMode"
+                  checked={discountMode === "percent"}
+                  onChange={() => setDiscountMode("percent")}
+                  className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                />
+                <span>By Percentage (%)</span>
+              </label>
             </div>
 
-            <div className="flex justify-between mt-2">
-              <div>Paid now</div>
-              <div>{format(clamp(paymentNow, 0, Number.MAX_SAFE_INTEGER))}</div>
-            </div>
-
-            <div className="flex justify-between mt-1">
-              <div>Total paid (previous + now)</div>
-              <div>{format(totalPaidAfterThis)}</div>
-            </div>
-
-            <div className="flex justify-between mt-2">
-              <div>Remaining due</div>
-              <div className={remainingDue === 0 ? "text-green-600" : ""}>
-                {remainingDue > 0 ? format(remainingDue) : "0.00"}
+            {discountMode === "percent" ? (
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={discountLimit}
+                  value={clamp(discountValue, 0, discountLimit)}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  disabled={isDiscountLimitLoading}
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  max={discountLimit}
+                  step="1"
+                  value={clamp(discountValue, 0, discountLimit)}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  className="w-20 rounded-lg"
+                  disabled={isDiscountLimitLoading}
+                />
+                <span className="text-lg font-semibold">%</span>
               </div>
-            </div>
-
-            {changeToReturn > 0 && (
-              <div className="mt-2 text-sm text-red-600">
-                Change to return: {format(changeToReturn)}
+            ) : (
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  min={0}
+                  max={originalTotal}
+                  step="0.01"
+                  value={discountValue}
+                  onChange={(e) =>
+                    setDiscountValue(
+                      Number(
+                        Number(e.target.value) > discountLimit
+                          ? discountLimit
+                          : e.target.value || 0
+                      )
+                    )
+                  }
+                  className="w-full rounded-lg"
+                />
+                <span className="text-lg font-semibold">EGP</span>
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Proof of payment images */}
-        <div className="space-y-3">
-          <span className="block font-medium">
-            Proof of Payment Images (max {MAX_IMAGES})
-          </span>
+        {/* Final Summary of Charges */}
+        <section className="mt-6 p-5 bg-gray-100 rounded-xl shadow-inner border border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-700 mb-3">
+            Final Summary
+          </h2>
+          <div className="flex justify-between items-center text-sm mb-1">
+            <span className="text-gray-600">Subtotal:</span>
+            <span className="font-mono text-gray-800">
+              EGP {format(originalTotal)}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-red-600 mb-2">
+            <span className="font-medium">Discount Applied:</span>
+            <span className="font-mono">
+              - EGP {format(computedDiscountAmount)}
+            </span>
+          </div>
+          <hr className="border-gray-300 mb-2" />
+          <div className="flex justify-between items-center text-lg font-bold text-gray-900 mb-4">
+            <span>Total After Discount:</span>
+            <span>EGP {format(totalAfterDiscount)}</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">
+                Total Paid (Previous + Now):
+              </span>
+              <span className="font-mono text-gray-800">
+                EGP {format(totalPaidAfterThis)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-lg font-semibold">
+              <span className="text-gray-600">Remaining Due:</span>
+              <span
+                className={`font-mono ${
+                  remainingDue === 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                EGP {remainingDue > 0 ? format(remainingDue) : "0.00"}
+              </span>
+            </div>
+            {changeToReturn > 0 && (
+              <div className="text-sm text-center text-green-600 font-bold mt-2">
+                Change to Return: EGP {format(changeToReturn)}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Proof of Payment Images */}
+        <section className="space-y-4 mt-6">
+          <h2 className="text-xl font-semibold text-gray-700">
+            Proof of Payment Images
+          </h2>
+          <p className="text-gray-500 text-sm">
+            Upload up to {MAX_IMAGES} images (max{" "}
+            {MAX_FILE_SIZE / (1024 * 1024)}MB each) as proof of payment.
+          </p>
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer"
+            className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-gray-50"
           >
-            <Upload className="w-6 h-6 mx-auto mb-2" />
-            <p>Click to upload images</p>
+            <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-gray-600 font-medium">Click or drag to upload</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -517,48 +552,51 @@ export default function CheckInPage() {
               className="hidden"
             />
           </div>
-
           {(existingImages.length > 0 || newImagePreviews.length > 0) && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {existingImages.map((url, idx) => (
-                <div key={`existing-${idx}`} className="relative">
+                <div key={`existing-${idx}`} className="relative group">
                   <img
                     src={url}
                     alt={`Existing ${idx}`}
-                    className="w-full h-20 object-cover rounded"
+                    className="w-full h-28 object-cover rounded-lg border border-gray-200"
                   />
                   <button
                     type="button"
                     onClick={() => handleDeleteImage(url)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                    className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}
-
               {newImagePreviews.map((preview, idx) => (
-                <div key={`new-${idx}`} className="relative">
+                <div key={`new-${idx}`} className="relative group">
                   <img
                     src={preview}
                     alt={`New ${idx}`}
-                    className="w-full h-20 object-cover rounded"
+                    className="w-full h-28 object-cover rounded-lg border border-gray-200"
                   />
                   <button
                     type="button"
                     onClick={() => handleDeleteImage(idx)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                    className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <Button type="submit" disabled={saving} className="w-full">
-          {saving ? "Checking In..." : "Submit Check-In"}
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={saving}
+          className="w-full text-lg py-3 rounded-l mt-6 cursor-pointer font-sans"
+        >
+          {saving ? "Processing Check-In..." : "Submit Check-In"}
         </Button>
       </form>
     </>

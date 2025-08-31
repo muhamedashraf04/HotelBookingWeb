@@ -20,7 +20,7 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Rate> Rates { get; set; }
         //public DbSet<OldReservations> OldReservations { get; set; }
-
+        public DbSet<Configuration> configurations { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -67,9 +67,32 @@ public class CheckinController : Controller
         {
             return BadRequest("Reservation data is required.");
         }
-        else
+
+        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+        if (uploadedFiles != null && uploadedFiles.Count > 0)
         {
-            reservation = _unitOfWork.Reservations.Get(u => u.Id == inDTO.ReservationId);
+            foreach (var file in uploadedFiles)
+            {
+                if (file.Length == 0)
+                {
+                    return BadRequest("One of the uploaded files is empty.");
+                }
+
+                if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
+                {
+                    return BadRequest($"File type {file.ContentType} is not allowed. Only image files are accepted.");
+                }
+
+                var extension = Path.GetExtension(file.FileName).ToLower();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest($"File extension {extension} is not allowed. Only image files are accepted.");
+                }
+            }
+        }
+        reservation = _unitOfWork.Reservations.Get(u => u.Id == inDTO.ReservationId);
             room = _unitOfWork.Rooms.Get(u => u.Id == reservation.RoomId);
             if (reservation == null)
             {
@@ -80,7 +103,7 @@ public class CheckinController : Controller
             {
                 return BadRequest("User Already Checked-In.");
             }
-        }
+        
 
         var folderPath = $"hotel_booking/Reservations/{reservation.Id}";
         var uploadedUrls = new List<string>();

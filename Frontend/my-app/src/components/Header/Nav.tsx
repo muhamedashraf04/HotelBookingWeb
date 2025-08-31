@@ -207,7 +207,16 @@ const Nav: React.FC = () => {
                 Home
               </NavigationMenuLink>
             </NavigationMenuItem>
-
+            {(role === "Admin" || role === "SuperAdmin") && (
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  href="/Configure/"
+                  className="text-xl font-bold px-3 py-2 rounded-md hover:bg-blue-300/20"
+                >
+                  Configure
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
             {/* Sections */}
             {menuSections.map((section) => {
               if (

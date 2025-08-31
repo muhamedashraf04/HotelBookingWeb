@@ -31,7 +31,7 @@ const NavbarAuthButtons = () => {
   };
 
   const buttonClass =
-    "cursor-pointer font-bold outline-4 outline-blue-500 bg-blue-500/30 hover:bg-blue-500/20 text-black";
+    "cursor-pointer font-bold outline-4 outline-blue-500 bg-blue-500/30 hover:bg-blue-500/20 text-black mr-5";
 
   return (
     <div className="flex gap-3 items-center">
@@ -49,9 +49,6 @@ const NavbarAuthButtons = () => {
         <>
           <Link to="/login">
             <Button className={buttonClass}>Login</Button>
-          </Link>
-          <Link to="/register">
-            <Button className="cursor-pointer font-bold">Register</Button>
           </Link>
         </>
       )}
