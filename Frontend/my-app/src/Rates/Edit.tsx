@@ -20,7 +20,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { HexColorPicker } from "react-colorful";
+import { Droplet } from "lucide-react";
+import { HexColorInput, HexColorPicker } from "react-colorful";
 
 // Types
 export type Rate = {
@@ -36,7 +37,7 @@ const ITEMS_PER_PAGE = 20;
 const DEFAULT_BG = "#111827"; // gray-900
 const DEFAULT_TEXT = "#ffffff"; // white
 
-// ---------- Reusable color popover (stays open while adjusting; closes on outside click) ----------
+// ---------- Reusable color popover with eyedropper ----------
 function ColorPopover({
   value,
   onChange,
@@ -47,6 +48,20 @@ function ColorPopover({
   label: string;
 }) {
   const [open, setOpen] = useState(false);
+
+  const handleEyedropper = async () => {
+    if ("EyeDropper" in window) {
+      try {
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
+        if (result?.sRGBHex) onChange(result.sRGBHex);
+      } catch (e) {
+        console.error("Eyedropper cancelled or failed:", e);
+      }
+    } else {
+      alert("Your browser does not support the EyeDropper API.");
+    }
+  };
 
   return (
     <div>
@@ -60,9 +75,27 @@ function ColorPopover({
             aria-label={`${label} color swatch`}
           />
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-2" align="start">
-          {/* Live updates; no auto-close here */}
+        <PopoverContent className="w-auto p-3 space-y-2" align="start">
+          {/* Color Picker */}
           <HexColorPicker color={value} onChange={onChange} />
+
+          {/* Input + Eyedropper */}
+          <div className="flex items-center gap-2">
+            <HexColorInput
+              color={value}
+              onChange={onChange}
+              prefixed
+              className="border rounded px-2 py-1 w-24"
+            />
+            <button
+              type="button"
+              onClick={handleEyedropper}
+              className="p-2 border rounded shadow-sm hover:bg-accent"
+              title="Pick from screen"
+            >
+              <Droplet className="w-4 h-4" />
+            </button>
+          </div>
         </PopoverContent>
       </Popover>
     </div>
@@ -151,7 +184,7 @@ const EditRates = () => {
     LoadingToast("Saving rate...");
     try {
       const payload = {
-        id: draft.id > 0 ? draft.id : undefined, // don't send negative temp id
+        id: draft.id > 0 ? draft.id : undefined,
         type: draft.type,
         price: draft.price,
         badgeBg: draft.badgeBg || DEFAULT_BG,
@@ -364,7 +397,6 @@ const EditRates = () => {
                     </div>
 
                     <div className="text-right">
-                      {/* Match AllRooms badge size */}
                       <Badge
                         className="text-lg"
                         style={{ backgroundColor: bg, color: fg }}
