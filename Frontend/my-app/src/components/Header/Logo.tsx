@@ -37,7 +37,7 @@ const Logo = () => {
   }, []);
 
   return (
-    <div className="logo w-auto h-22 p-2 ">
+    <div className="logo w-auto max-w-xs h-22 p-2 ">
       <a href="/app" target="_blank" rel="noopener noreferrer">
         {loading || !logoUrl ? (
           // Loading animation

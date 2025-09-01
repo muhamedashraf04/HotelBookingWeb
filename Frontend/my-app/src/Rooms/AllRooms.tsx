@@ -177,13 +177,13 @@ const AllRooms = () => {
 
     switch (typeIndex) {
       case 0: // First type (usually cheapest)
-        return "bg-emerald-100 text-emerald-950";
+        return "bg-blue-100 text-blue-900";
       case 1: // Second type
-        return "bg-emerald-400 text-emerald-950";
+        return "bg-blue-300 text-blue-900";
       case 2: // Third type
-        return "bg-emerald-600 text-emerald-50";
+        return "bg-sky-700 text-blue-100";
       case 3: // Fourth type
-        return "bg-emerald-800 text-emerald-50";
+        return "bg-blue-900 text-blue-200";
       default: // Any additional types
         return "bg-gray-100 text-gray-800";
     }
