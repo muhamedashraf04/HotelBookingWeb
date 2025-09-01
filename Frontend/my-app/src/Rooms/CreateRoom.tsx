@@ -22,8 +22,8 @@ interface RoomFormState {
   id?: number;
   roomNumber: string;
   roomType: string;
-  floor: number;
-  capacity: number;
+  floor: number | ""; // allow empty while typing
+  capacity: number | ""; // allow empty while typing
   Price: number;
   Images: string | null;
 }
@@ -38,11 +38,16 @@ export default function CreateRoom() {
   const [formData, setFormData] = useState<RoomFormState>({
     roomNumber: "",
     roomType: "Single",
-    floor: 0,
-    capacity: 0,
+    floor: "",
+    capacity: "",
     Price: 0,
     Images: null,
   });
+
+  // simple validation flags
+  const [errors, setErrors] = useState<{ floor?: string; capacity?: string }>(
+    {}
+  );
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -67,8 +72,6 @@ export default function CreateRoom() {
         });
 
         setrates(response.data);
-
-        // Extract room types from rates
         const types = response.data.map((rate: Rate) => rate.type);
         setroomtypes(types);
       } catch (error) {
@@ -102,8 +105,8 @@ export default function CreateRoom() {
           id: room.id ?? undefined,
           roomNumber: room.roomNumber ?? "",
           roomType: safeRoomType,
-          floor: room.floor ?? 0,
-          capacity: room.capacity ?? 0,
+          floor: typeof room.floor === "number" ? room.floor : "",
+          capacity: typeof room.capacity === "number" ? room.capacity : "",
           Price: room.price ?? 0,
           Images: room.Images ?? null,
         });
@@ -123,15 +126,48 @@ export default function CreateRoom() {
       });
   }, [id, roomtypes]);
 
+  // validate a single numeric field (must be positive integer)
+  const validateNumberField = (
+    name: "floor" | "capacity",
+    value: number | ""
+  ) => {
+    let msg: string | undefined = undefined;
+    if (value === "" || Number.isNaN(value)) {
+      msg = "Required";
+    } else if (typeof value === "number" && value < 1) {
+      msg = "Must be ≥ 1";
+    } else if (typeof value === "number" && !Number.isInteger(value)) {
+      msg = "Must be an integer";
+    }
+    setErrors((prev) => ({ ...prev, [name]: msg }));
+    return !msg;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+    const { name, value, type } = e.target as HTMLInputElement;
+    const isNumber = type === "number";
+
+    // allow empty string while typing; otherwise coerce to integer
+    let nextVal: any = value;
+    if (isNumber) {
+      if (value === "") {
+        nextVal = "";
+      } else {
+        const n = Number(value);
+        nextVal = Number.isNaN(n) ? "" : Math.trunc(n);
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : parseInt(value) || value,
+      [name]: isNumber ? nextVal : value,
     }));
+
+    if (name === "floor" || name === "capacity") {
+      validateNumberField(name, nextVal);
+    }
   };
 
   const handleRoomTypeChange = (value: string) => {
@@ -179,10 +215,23 @@ export default function CreateRoom() {
     }
   };
 
+  const validateAll = () => {
+    const fOK = validateNumberField("floor", formData.floor);
+    const cOK = validateNumberField("capacity", formData.capacity);
+    return fOK && cOK;
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.roomNumber.trim())
-      return toast.error("Room number is required");
+
+    if (!formData.roomNumber.trim()) {
+      toast.error("Room number is required");
+      return;
+    }
+    if (!validateAll()) {
+      toast.error("Please fix the highlighted fields");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -191,8 +240,8 @@ export default function CreateRoom() {
       imageFormData.append("room.Id", formData.id?.toString() ?? "0");
       imageFormData.append("room.RoomNumber", formData.roomNumber);
       imageFormData.append("room.RoomType", formData.roomType);
-      imageFormData.append("room.Floor", formData.floor.toString());
-      imageFormData.append("room.Capacity", formData.capacity.toString());
+      imageFormData.append("room.Floor", String(formData.floor));
+      imageFormData.append("room.Capacity", String(formData.capacity));
       imageFormData.append("room.Price", formData.Price.toString());
 
       newImages.forEach((file) => imageFormData.append("uploadedFiles", file));
@@ -211,8 +260,8 @@ export default function CreateRoom() {
       setFormData({
         roomNumber: "",
         roomType: "Single",
-        floor: 0,
-        capacity: 1,
+        floor: "",
+        capacity: "",
         Price: 0,
         Images: null,
       });
@@ -227,12 +276,28 @@ export default function CreateRoom() {
       setExistingImages([]);
       setNewImages([]);
       setDeletedImages([]);
+      setErrors({});
     } catch (e: any) {
       toast.error(e?.response?.data ?? "Failed to create room");
     } finally {
       setSaving(false);
     }
   };
+
+  // helper: label with optional black star when invalid
+  // helper: label with optional asterisk when invalid
+  const LabelWithStar = ({
+    text,
+    invalid,
+  }: {
+    text: string;
+    invalid?: boolean;
+  }) => (
+    <span className="block mb-2 font-medium">
+      {text}
+      {invalid && <span className="ml-1 text-red-600">*</span>}
+    </span>
+  );
 
   return (
     <>
@@ -276,23 +341,43 @@ export default function CreateRoom() {
           </label>
 
           <label className="block">
-            <span className="block mb-2 font-medium">Floor</span>
+            <LabelWithStar text="Floor" invalid={!!errors.floor} />
             <Input
               name="floor"
               type="number"
+              min={1}
+              step={1}
               value={formData.floor}
               onChange={handleChange}
+              aria-invalid={!!errors.floor}
+              className={
+                errors.floor ? "border-red-500 focus-visible:ring-red-500" : ""
+              }
             />
+            {errors.floor && (
+              <p className="mt-1 text-xs text-red-600">{errors.floor}</p>
+            )}
           </label>
 
           <label className="block">
-            <span className="block mb-2 font-medium">Capacity</span>
+            <LabelWithStar text="Capacity" invalid={!!errors.capacity} />
             <Input
               name="capacity"
               type="number"
+              min={1}
+              step={1}
               value={formData.capacity}
               onChange={handleChange}
+              aria-invalid={!!errors.capacity}
+              className={
+                errors.capacity
+                  ? "border-red-500 focus-visible:ring-red-500"
+                  : ""
+              }
             />
+            {errors.capacity && (
+              <p className="mt-1 text-xs text-red-600">{errors.capacity}</p>
+            )}
           </label>
         </div>
 
