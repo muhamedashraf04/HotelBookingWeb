@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Upload, X } from "lucide-react";
+
 import {
   Popover,
   PopoverContent,
@@ -28,39 +30,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import type { ChangeEvent, FormEvent } from "react";
-import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useState, useRef } from "react";
+import axios from "axios";
 import { Toaster, toast } from "sonner";
 import { Url } from "../../GlobalVariables";
 import countries from "world-countries";
 
 
-// Define a type for your form data
-type FormData = {
-  Name: string;
-  BirthDate: string;
-  Email: string;
-  Nationality: string;
-  Address: string;
-  PhoneNumber: string;
-  IdentificationType: string;
-  IdentificationNumber: string;
+
+type Customer = {
+  id: number;
+  name: string;
+  birthDate: string;
+  email: string;
+  nationality: string;
+  address: string;
+  phoneNumber: string;
+  identificationType: string;
+  identificationNumber: string;
+  isMarried: boolean;
+  identificationAttachment: string | null;
+  marriageCertificateAttachment: string | null;
 };
 
+
 const Create = () => {
-  // State to hold the form data
-  const [formData, setFormData] = useState<FormData>({
-    Name: "",
-    BirthDate: "",
-    Email: "",
-    Nationality: "",
-    Address: "",
-    PhoneNumber: "",
-    IdentificationType: "",
-    IdentificationNumber: "",
+
+  const [newCustomer, setNewCustomer] = useState<Customer>({
+    id: 0,
+    name: "",
+    birthDate: "",
+    email: "",
+    nationality: "",
+    address: "",
+    phoneNumber: "",
+    identificationType: "",
+    identificationNumber: "",
+    isMarried: false,
+    identificationAttachment: null,
+    marriageCertificateAttachment: null,
   });
+  const navigate = useNavigate();
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const idFileInputRef = useRef<HTMLInputElement>(null);
+  const marFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [IDexistingImages, setIDExistingImages] = useState<string[]>([]);
+  const [IDnewImages, setIDNewImages] = useState<File[]>([]);
+  const [IDdeletedImages, setIDDeletedImages] = useState<string[]>([]);
+
+  const [MARexistingImages, setMARExistingImages] = useState<string[]>([]);
+  const [MARnewImages, setMARNewImages] = useState<File[]>([]);
+  const [MARdeletedImages, setMARDeletedImages] = useState<string[]>([]);
+
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
   const nationalities = countries.map((c) => ({
     country: c.name.common,
@@ -71,104 +99,179 @@ const Create = () => {
     .filter((v, i, arr) => arr.indexOf(v) === i)
     .sort((a, b) => a.localeCompare(b));
 
-
-  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
-
-  // State to control the popover's open/closed state
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // State to hold the uploaded file. It can be a File or null.
-  const [identificationFile, setIdentificationFile] = useState<File | null>(
-    null
-  );
-
-  // State to show a loading indicator
   const [isLoading, setIsLoading] = useState(false);
 
   // Use a useEffect hook to update formData.BirthDate whenever the birthDate state changes
   useEffect(() => {
-    if (birthDate) {
-      // Format the Date object to a YYYY-MM-DD string
-      const formattedDate = format(birthDate, "yyyy-MM-dd");
-      setFormData((prevData) => ({
-        ...prevData,
-        BirthDate: formattedDate,
-      }));
-    } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        BirthDate: "",
-      }));
+    setIDExistingImages(
+      typeof newCustomer.identificationAttachment === "string" && newCustomer.identificationAttachment
+        .trim().length > 0
+        ? newCustomer.identificationAttachment
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
+        : []
+    );
+    setMARExistingImages(
+      typeof newCustomer.marriageCertificateAttachment === "string" && newCustomer.marriageCertificateAttachment
+        .trim().length > 0
+        ? newCustomer.marriageCertificateAttachment
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
+        : []
+    );
+  }, []);
+
+
+
+  const handleIdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    if (IDexistingImages.length + IDnewImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
     }
-  }, [birthDate]);
 
-  // Handle changes for all text inputs
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id as keyof FormData]: value,
-    }));
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setIDNewImages((prev) => [...prev, ...validFiles]);
+    }
+    e.target.value = "";
+  };
+  const handleMARImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    if (MARexistingImages.length + MARnewImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setMARNewImages((prev) => [...prev, ...validFiles]);
+    }
+    e.target.value = "";
   };
 
-  // Dedicated handler for the shadcn Select component
-  const handleIdentificationTypeChange = (value: string) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      IdentificationType: value,
-    }));
-  };
-
-  // Handle the file input change, using a type guard for safety
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setIdentificationFile(e.target.files[0]);
+  const handleDeleteImage = (image: string | File, type: "ID" | "MAR") => {
+    if (type === "ID") {
+      if (typeof image === "string") {
+        setIDExistingImages((prev) => prev.filter((img) => img !== image));
+        setIDDeletedImages((prev) => [...prev, image]);
+      } else {
+        setIDNewImages((prev) => prev.filter((file) => file !== image));
+      }
+    } else if (type === "MAR") {
+      if (typeof image === "string") {
+        setMARExistingImages((prev) => prev.filter((img) => img !== image));
+        setMARDeletedImages((prev) => [...prev, image]);
+      } else {
+        setMARNewImages((prev) => prev.filter((file) => file !== image));
+      }
     }
   };
 
-  // Handle the form submission
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (isLoading) return;
 
-    const formPayload = new FormData();
-    // Use Object.keys with the FormData type to safely iterate
-    (Object.keys(formData) as Array<keyof FormData>).forEach((key) => {
-      // PREPEND the "customer." prefix to the key
-      formPayload.append(`customer.${key}`, formData[key]);
-    });
-
-    if (identificationFile) {
-      // The file key does not need the "customer." prefix
-      formPayload.append("IdentificationFile", identificationFile);
+    if (IDnewImages.length === 0) {
+      toast.error("At least one Identification file is required");
+      return;
+    }
+    if (newCustomer.isMarried && MARnewImages.length === 0) {
+      toast.error("Marriage certificate is required for married customers");
+      return;
     }
 
+    setIsLoading(true);
     try {
-      const response = await fetch(`${Url}/Admin/Customer/Register`, {
-        method: "POST",
-        body: formPayload,
+      const customerFormData = new FormData();
+
+      customerFormData.append("customer.Name", newCustomer.name);
+      customerFormData.append("customer.BirthDate", newCustomer.birthDate);
+      customerFormData.append("customer.Email", newCustomer.email);
+      customerFormData.append("customer.Nationality", newCustomer.nationality);
+      customerFormData.append("customer.Address", newCustomer.address);
+      customerFormData.append("customer.PhoneNumber", newCustomer.phoneNumber);
+      customerFormData.append(
+        "customer.IdentificationType",
+        newCustomer.identificationType
+      );
+      customerFormData.append("customer.IsMarried", String(newCustomer.isMarried));
+      customerFormData.append(
+        "customer.IdentificationNumber",
+        newCustomer.identificationNumber
+      );
+
+      IDnewImages.forEach((file) => {
+        customerFormData.append("IdentificationFile", file);
       });
 
-      if (response.ok) {
-        // Show success toast
-        toast.success("Customer Added Successfully.", {
-          description: "Redirecting...",
+      if (newCustomer.isMarried) {
+        MARnewImages.forEach((file) => {
+          customerFormData.append("MarriageCertificate", file);
         });
-
-        // Wait a moment before redirecting to allow the toast to show
-        setTimeout(() => {
-          window.location.href = "/app"; // Redirect to the app page
-        }, 1500);
-      } else {
-        const errorData = await response.json();
-        // Show error toast
-        toast.error(
-          `Error: ${errorData.message || "Something went wrong."} 😟`
-        );
       }
-    } catch (error) {
-      // Show failure toast for network errors
-      toast.error("Failed to connect to the server.");
+
+      await axios.post(
+        `${Url}/Admin/Customer/Register`,
+        customerFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Customer registered successfully!");
+      navigate("/");
+      setNewCustomer({
+        id: 0,
+        name: "",
+        birthDate: "",
+        email: "",
+        nationality: "",
+        address: "",
+        phoneNumber: "",
+        identificationType: "",
+        identificationNumber: "",
+        isMarried: false,
+        identificationAttachment: null,
+        marriageCertificateAttachment: null,
+      });
+      setIDNewImages([]);
+      setMARNewImages([]);
+
+    } catch (err: any) {
+      toast.error(err?.response?.data);
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +283,7 @@ const Create = () => {
 
       <div className="min-h-screen flex items-center justify-center p-4">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleCreateCustomer}
           className="w-2xl space-y-6 rounded-lg border p-6 shadow-md"
         >
           <h1 className="text-2xl font-bold text-center">Register Customer</h1>
@@ -193,8 +296,10 @@ const Create = () => {
                 id="Name"
                 type="text"
                 placeholder="Name"
-                value={formData.Name}
-                onChange={handleChange}
+                value={newCustomer.name}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, name: e.target.value })
+                }
                 required
               />
             </div>
@@ -217,17 +322,41 @@ const Create = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
+                  <div className="space-y-2">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
 
-                  <Calendar
-                    mode="single"
-                    selected={birthDate}
-                    captionLayout="dropdown"
-                    onSelect={(date) => {
-                      setBirthDate(date);
-                      setIsCalendarOpen(false);
-                    }}
+                      selected={birthDate}
+                      onSelect={(date) => {
+                        if (!date) return;
 
-                  />
+                        // Format as YYYY-MM-DD in local timezone
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, "0");
+                        const day = String(date.getDate()).padStart(2, "0");
+                        const formatted = `${year}-${month}-${day}`;
+
+                        setBirthDate(date);
+                        setNewCustomer({
+                          ...newCustomer,
+                          birthDate: formatted,
+                        });
+                        setIsCalendarOpen(false);
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+
+                        // Latest allowed date = today minus 18 years
+                        const latestValid = new Date(
+                          today.getFullYear() - 18,
+                          today.getMonth(),
+                          today.getDate()
+                        );
+                        return date > today || date > latestValid;
+                      }}
+                    />
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
@@ -239,8 +368,10 @@ const Create = () => {
                 id="Email"
                 type="email"
                 placeholder="Email"
-                value={formData.Email}
-                onChange={handleChange}
+                value={newCustomer.email}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, email: e.target.value })
+                }
                 required
               />
             </div>
@@ -250,20 +381,18 @@ const Create = () => {
               </Label>
               <Select
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, Nationality: value }))
+                  setNewCustomer((prev) => ({ ...prev, nationality: value }))
                 }
-                value={formData.Nationality}
+                value={newCustomer.nationality}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select nationality" />
                 </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" position="popper">
+                <SelectContent className="max-h-60" position="popper">
                   {sortedNationalities.map((nat, idx) => (
                     <SelectItem
                       key={idx}
                       value={nat}
-
-                      onPointerMove={(e) => e.preventDefault()}
                     >
                       {nat}
                     </SelectItem>
@@ -276,12 +405,10 @@ const Create = () => {
                 Address
               </Label>
               <Input
-                id="Address"
-                type="text"
-                placeholder="Address"
-                value={formData.Address}
-                onChange={handleChange}
-                required
+                value={newCustomer.address ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, address: e.target.value })
+                }
               />
             </div>
             <div>
@@ -289,12 +416,10 @@ const Create = () => {
                 Phone Number
               </Label>
               <Input
-                id="PhoneNumber"
-                type="tel"
-                placeholder="Phone Number"
-                value={formData.PhoneNumber}
-                onChange={handleChange}
-                required
+                value={newCustomer.phoneNumber ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })
+                }
               />
             </div>
             <div>
@@ -302,9 +427,10 @@ const Create = () => {
                 Identification Type
               </Label>
               <Select
-                onValueChange={handleIdentificationTypeChange}
-                value={formData.IdentificationType}
-              >
+                value={newCustomer.identificationType}
+                onValueChange={(value) =>
+                  setNewCustomer({ ...newCustomer, identificationType: value })
+                }>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a type..." />
                 </SelectTrigger>
@@ -322,65 +448,143 @@ const Create = () => {
                 Identification Number
               </Label>
               <Input
-                id="IdentificationNumber"
-                type="text"
-                placeholder="Identification Number"
-                value={formData.IdentificationNumber}
-                onChange={handleChange}
-                required
+                value={newCustomer.identificationNumber ?? ""}
+                onChange={(e) =>
+                  setNewCustomer({
+                    ...newCustomer,
+                    identificationNumber: e.target.value,
+                  })
+                }
               />
+            </div>
+            <div className="md:col-span-2">
+              <Label>Marriage Status</Label>
+              <div className="flex items-center gap-4 mt-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="IsMarried"
+                    checked={newCustomer.isMarried === true}
+                    onChange={() =>
+                      setNewCustomer({
+                        ...newCustomer,
+                        isMarried: true,
+                      })
+                    }
+                  />
+                  Married
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="IsMarried"
+                    checked={newCustomer.isMarried === false}
+                    onChange={() =>
+                      setNewCustomer({
+                        ...newCustomer,
+                        isMarried: false,
+                      })
+                    }
+                  />
+                  Single
+                </label>
+              </div>
             </div>
 
-            <div>
-              <Label className="pl-1 mb-2.5" htmlFor="IdentificationFile">
-                Identification File (Image)
+            {/* {images} */}
+            <div
+              onClick={() => idFileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer justify-center">
+              <Upload className="w-6 h-6 mx-auto mb-2" />
+
+              <Label className="text-sm text-gray-600 justify-center">
+                Identification Files
               </Label>
-              <Input
-                id="IdentificationFile"
+              <input
+                ref={idFileInputRef}
                 type="file"
-                onChange={handleFileChange}
+                multiple
                 accept="image/*"
-                required
+                onChange={handleIdImageUpload}
+                className="hidden"
               />
             </div>
-          </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                className={`w-full ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
-                  }`}
-                disabled={isLoading}
-              >
-                {isLoading ? "Registering..." : "Register"}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Registration</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to register this customer?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="cursor-pointer">
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-green-500 hover:bg-green-700 text-white cursor-pointer"
-                  onClick={() => {
-                    // Trigger the original handleSubmit manually
-                    handleSubmit(
-                      new Event(
-                        "submit"
-                      ) as unknown as FormEvent<HTMLFormElement>
-                    );
-                  }}
+            {/* Preview List */}
+            <div className="flex flex-wrap gap-2">
+              {[...IDexistingImages, ...IDnewImages].map((img, index) => (
+                <div
+                  key={index}
+                  className="relative w-20 h-20 border rounded overflow-hidden"
                 >
-                  Confirm
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <img
+                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                    alt="preview"
+                    className="object-cover w-full h-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(img, "ID")}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            {newCustomer.isMarried && (
+              <>
+                <div
+                  onClick={() => marFileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer justify-center">
+                  <Upload className="w-6 h-6 mx-auto mb-2" />
+                  <Label className="text-sm text-gray-600 justify-center">
+                    Marriage Certificates              </Label>
+                  <input
+                    ref={marFileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleMARImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Preview List */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[...MARexistingImages, ...MARnewImages].map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative w-20 h-20 border rounded overflow-hidden"
+                    >
+                      <img
+                        src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                        alt="preview"
+                        className="object-cover w-full h-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteImage(img, "MAR");
+                        }}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <Button
+            type="submit"
+            className={`w-full ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
+            disabled={isLoading}
+          >
+            {isLoading ? "Registering..." : "Register"}
+          </Button>
         </form>
         <Toaster richColors />{" "}
       </div>

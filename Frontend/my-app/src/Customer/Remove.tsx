@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Url } from "../../GlobalVariables";
 import { Button } from "@/components/ui/button";
@@ -21,44 +21,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { CalendarIcon } from "@radix-ui/react-icons";
+
 import SuccessToast from "../Toasts/SuccessToast";
 import ErrorToast from "../Toasts/ErrorToast";
 import LoadingToast from "../Toasts/LoadingToast";
 import Header from "@/components/Header/Header";
 import countries from "world-countries";
+import { Upload, X } from "lucide-react";
+import { Toaster, toast } from "sonner";
 
 
 
 type Customer = {
-  id: string;
+  id: number;
   name: string;
-  phoneNumber: string;
-  address: string;
+  birthDate: string;
+  email: string;
   nationality: string;
+  address: string;
+  phoneNumber: string;
   identificationType: string;
   identificationNumber: string;
-  identificationAttachment?: string | string[]; // backend may return single string or array
-  birthDate?: string; // yyyy-MM-dd
-  age?: number;
-  email?: string;
-  isMarried?: boolean;
-  marriageCertificateNumber?: string;
-  marriageCertificateAttachment?: string;
-  marriedToCustomerId?: string;
-  status?: string;
+  isMarried: boolean;
+  identificationAttachment: string | null;
+  marriageCertificateAttachment: string | null;
 };
 
 export default function CustomersPage() {
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // --- For editing ---
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
-  const [deletedImages, setDeletedImages] = useState<string[]>([]);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // --- For deleting ---
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+
+  const idFileInputRef = useRef<HTMLInputElement>(null);
+  const marFileInputRef = useRef<HTMLInputElement>(null);
+
+
+  const [IDexistingImages, setIDExistingImages] = useState<string[]>([]);
+  const [IDnewImages, setIDNewImages] = useState<File[]>([]);
+  const [IDdeletedImages, setIDDeletedImages] = useState<string[]>([]);
+
+  const [MARexistingImages, setMARExistingImages] = useState<string[]>([]);
+  const [MARnewImages, setMARNewImages] = useState<File[]>([]);
+  const [MARdeletedImages, setMARDeletedImages] = useState<string[]>([]);
+
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const nationalities = countries.map((c) => ({
+    country: c.name.common,
+    nationality: c.demonyms?.eng?.m || c.name.common,
+  }));
+  const sortedNationalities = [...nationalities]
+    .map((n) => n.nationality)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .sort((a, b) => a.localeCompare(b));
 
   // Fetch all customers from backend
   const fetchCustomers = async () => {
@@ -73,160 +108,191 @@ export default function CustomersPage() {
       setLoading(false);
     }
   };
-  const nationalities = countries.map((c) => ({
-    country: c.name.common,
-    nationality: c.demonyms?.eng?.m || c.name.common,
-  }));
-  const sortedNationalities = [...nationalities]
-    .map((n) => n.nationality)
-    .filter((v, i, arr) => arr.indexOf(v) === i)
-    .sort((a, b) => a.localeCompare(b));
 
 
   useEffect(() => {
     void fetchCustomers();
+    setIDExistingImages(
+      typeof editingCustomer?.identificationAttachment === "string" && editingCustomer?.identificationAttachment.trim().length > 0
+        ? editingCustomer?.identificationAttachment
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
+        : []
+    );
+    setMARExistingImages(
+      typeof editingCustomer?.marriageCertificateAttachment === "string" && editingCustomer?.marriageCertificateAttachment.trim().length > 0
+        ? editingCustomer?.marriageCertificateAttachment
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
+        : []
+    );
   }, []);
 
-  // --- Helpers for images ---
-  const getImageList = (c: Customer): string[] => {
-    const att = (c as any).identificationAttachment ?? (c as any).identificationAttachments ?? c.identificationAttachment;
-    if (!att) return [];
-    if (Array.isArray(att)) return att;
-    if (typeof att === "string") {
-      try {
-        const parsed = JSON.parse(att);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        // not JSON
+  const handleDeleteCustomer = async () => {
+    if (!deletingCustomer) return;
+
+    try {
+      await axios.delete(`${Url}/Admin/Customer/Remove/${deletingCustomer.id}`);
+      SuccessToast("Customer deleted successfully!");
+      setDeletingCustomer(null);
+      await fetchCustomers(); // refresh table
+    } catch (err: any) {
+      toast.error(err?.response?.data || "Error deleting customer");
+    }
+  };
+
+
+  const handleIdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    if (IDexistingImages.length + IDnewImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
       }
-      return [att];
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
     }
-    return [];
+
+    if (validFiles.length > 0) {
+      setIDNewImages((prev) => [...prev, ...validFiles]);
+    }
+    e.target.value = "";
+  };
+  const handleMARImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    if (MARexistingImages.length + MARnewImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setMARNewImages((prev) => [...prev, ...validFiles]);
+    }
+    e.target.value = "";
   };
 
-  // --- Handle file changes for edit ---
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNewFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
+  const handleDeleteImage = (image: string | File, type: "ID" | "MAR") => {
+    if (type === "ID") {
+      if (typeof image === "string") {
+        setIDExistingImages((prev) => prev.filter((img) => img !== image));
+        setIDDeletedImages((prev) => [...prev, image]);
+      } else {
+        setIDNewImages((prev) => prev.filter((file) => file !== image));
+      }
+    } else if (type === "MAR") {
+      if (typeof image === "string") {
+        setMARExistingImages((prev) => prev.filter((img) => img !== image));
+        setMARDeletedImages((prev) => [...prev, image]);
+      } else {
+        setMARNewImages((prev) => prev.filter((file) => file !== image));
+      }
     }
   };
+  const handleEditCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer || isEditing) return;
 
-  const handleRemoveExistingImage = (url: string) => {
-    setDeletedImages((prev) => [...prev, url]);
-    if (editingCustomer) {
-      const currentImgs = getImageList(editingCustomer).filter((i) => i !== url);
-      setEditingCustomer({ ...editingCustomer, identificationAttachment: currentImgs } as Customer);
+    // --- Basic validation ---
+    if (IDexistingImages.length + IDnewImages.length === 0) {
+      toast.error("At least one Identification file is required");
+      return;
     }
-  };
+    if (editingCustomer.isMarried && MARexistingImages.length + MARnewImages.length === 0) {
+      toast.error("Marriage certificate is required for married customers");
+      return;
+    }
 
-  const handleRemoveNewFile = (file: File) => {
-    setNewFiles((prev) => prev.filter((f) => f !== file));
-  };
-
-  // --- Submit edit ---
-  const handleUpdate = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!editingCustomer) return;
-
-    setLoading(true);
-    LoadingToast("Updating customer...");
+    setIsEditing(true);
 
     try {
       const formData = new FormData();
+      formData.append("customer.Id", String(editingCustomer.id));
+      formData.append("customer.Name", editingCustomer.name || "");
+      formData.append("customer.BirthDate", editingCustomer.birthDate || "");
+      formData.append("customer.Email", editingCustomer.email || "");
+      formData.append("customer.Nationality", editingCustomer.nationality || "");
+      formData.append("customer.Address", editingCustomer.address || "");
+      formData.append("customer.PhoneNumber", editingCustomer.phoneNumber || "");
+      formData.append("customer.IdentificationType", editingCustomer.identificationType || "");
+      formData.append("customer.IdentificationNumber", editingCustomer.identificationNumber || "");
+      formData.append("customer.IsMarried", editingCustomer.isMarried ? "true" : "false");
 
-      // required + model-matching fields
-      formData.append("Id", String(editingCustomer.id));
-      formData.append("Name", editingCustomer.name ?? "");
-      formData.append("Email", editingCustomer.email ?? "");
-      formData.append("PhoneNumber", editingCustomer.phoneNumber ?? "");
-      formData.append("Address", editingCustomer.address ?? "");
-      formData.append("Nationality", editingCustomer.nationality ?? "");
-      formData.append("IdentificationType", editingCustomer.identificationType ?? "");
-      formData.append("IdentificationNumber", editingCustomer.identificationNumber ?? "");
+      IDnewImages.forEach((file) => formData.append("IdentificationFiles", file));
+      MARnewImages.forEach((file) => formData.append("MarriageCertificates", file));
 
-      // BirthDate must be yyyy-MM-dd (ASP.NET Core DateOnly)
-      if (editingCustomer.birthDate) {
-        const date = new Date(editingCustomer.birthDate);
-        formData.append("BirthDate", date.toISOString().split("T")[0]);
+
+      const allDeletedImages = [...IDdeletedImages, ...MARdeletedImages];
+      if (allDeletedImages.length > 0) {
+        formData.append("DeletedImages", JSON.stringify(allDeletedImages));
       }
-
-      // Age (if you calculate client-side, otherwise server does it)
-      if (editingCustomer.age !== undefined) {
-        formData.append("Age", String(editingCustomer.age));
-      }
-
-      // Required boolean
-      formData.append("IsMarried", editingCustomer.isMarried ? "true" : "false");
-
-      // Optional marriage fields
-      formData.append("MarriageCertificateNumber", editingCustomer.marriageCertificateNumber ?? "");
-      formData.append("MarriageCertificateAttachment", editingCustomer.marriageCertificateAttachment ?? "");
-      formData.append("MarriedToCustomerId", editingCustomer.marriedToCustomerId ?? "");
-
-      // Status (default Registered if not set)
-      formData.append("status", editingCustomer.status ?? "Registered");
-
-      // handle file uploads
-      newFiles.forEach((file) => {
-        formData.append("uploadedFiles", file);
+      await axios.post(`${Url}/Admin/Customer/Edit`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      // deleted images (send JSON string)
-      if (deletedImages.length > 0) {
-        formData.append("deletedImages", JSON.stringify(deletedImages));
-      }
+      SuccessToast("Customer updated successfully!");
+      setEditOpen(false);
 
-      const res = await axios.put(`${Url}/Admin/Customer/Edit`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
 
-      if (res.status === 200) {
-        SuccessToast("Customer updated successfully");
-        setEditingCustomer(null);
-        setNewFiles([]);
-        setDeletedImages([]);
-        void fetchCustomers();
-      } else {
-        ErrorToast("Update failed");
-      }
+      setIDNewImages([]);
+      setMARNewImages([]);
+      setIDDeletedImages([]);
+      setMARDeletedImages([]);
+      setEditingCustomer(null);
+
+      await fetchCustomers();
     } catch (err: any) {
       console.error(err);
-      ErrorToast(err.message || "Error updating customer");
+      toast.error(err.res?.data || err.message || "Error updating customer");
     } finally {
-      setLoading(false);
+      setIsEditing(false);
     }
   };
 
-  // --- Delete customer ---
-  const handleDelete = async () => {
-    if (!deletingCustomer) return;
-    setLoading(true);
-    LoadingToast("Deleting customer...");
-
-    try {
-      // Backend route: [HttpDelete("{id}")] under Admin/Customer/Remove
-      await axios.delete(`${Url}/Admin/Customer/Remove/?id=${deletingCustomer.id}`);
-      SuccessToast("Customer removed successfully");
-      setDeletingCustomer(null);
-      void fetchCustomers();
-    } catch (err: any) {
-      console.error(err);
-      ErrorToast(err.message || "Error deleting customer");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // --- small helper to open edit and reset file states ---
   const openEdit = (c: Customer) => {
     setEditingCustomer({ ...c });
-    setNewFiles([]);
-    setDeletedImages([]);
+    setBirthDate(c.birthDate ? new Date(c.birthDate) : undefined);
+    setMARDeletedImages([]);
+    setIDExistingImages(c.identificationAttachment?.split(",").map(s => s.trim()) || []);
+    setMARExistingImages(c.marriageCertificateAttachment?.split(",").map(s => s.trim()) || []);
+    setIDNewImages([]);
+    setMARNewImages([]);
+    setIDDeletedImages([]);
+    setEditOpen(true);
   };
 
   return (
     <>
       <Header />
+      <Toaster richColors />
+
       <div className="p-6 space-y-6">
         <h1 className="text-2xl font-bold">Manage Customers</h1>
 
@@ -270,192 +336,333 @@ export default function CustomersPage() {
         </div>
 
         {/* Edit Dialog */}
-        <Dialog open={!!editingCustomer} onOpenChange={() => setEditingCustomer(null)}>
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Edit Customer</DialogTitle>
             </DialogHeader>
 
-            {editingCustomer && (
-              <form className="space-y-4" onSubmit={handleUpdate}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Name</Label>
-                    <Input
-                      value={editingCustomer.name}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input
-                      type="email"
-                      value={editingCustomer.email ?? ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Phone Number</Label>
-                    <Input
-                      value={editingCustomer.phoneNumber ?? ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, phoneNumber: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Nationality</Label>
-                    <Select
-                      value={editingCustomer.nationality}
-                      onValueChange={(value) =>
-                        setEditingCustomer((prev) => ({ ...prev!, nationality: value }))
-                      }
+            <form
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              onSubmit={handleEditCustomer}
+            >
+              <div>
+                <Label>Name</Label>
+                <Input
+                  value={editingCustomer?.name}
+                  onChange={(e) => {
+                    if (!editingCustomer) { return };
+
+                    setEditingCustomer({ ...editingCustomer, name: e.target.value });
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={editingCustomer?.email ?? ""}
+                  onChange={(e) => {
+                    if (!editingCustomer) { return };
+                    setEditingCustomer({ ...editingCustomer, email: e.target.value })
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Phone Number</Label>
+                <Input
+                  value={editingCustomer?.phoneNumber ?? ""}
+                  onChange={(e) => {
+                    if (!editingCustomer) { return };
+                    setEditingCustomer({ ...editingCustomer, phoneNumber: e.target.value })
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Nationality</Label>
+                <Select
+                  onValueChange={(value) => {
+                    if (!editingCustomer) return;
+                    setEditingCustomer({ ...editingCustomer, nationality: value });
+                  }}
+                  value={editingCustomer?.nationality}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select nationality" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60" position="popper">
+                    {sortedNationalities.map((nat, idx) => (
+                      <SelectItem
+                        key={idx}
+                        value={nat}
+                      >
+                        {nat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="pl-1" htmlFor="IdentificationType">
+                  Identification Type
+                </Label>
+                <Select
+                  value={editingCustomer?.identificationType}
+                  onValueChange={(value) => {
+                    if (!editingCustomer) { return };
+                    setEditingCustomer({ ...editingCustomer, identificationType: value })
+                  }}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="ID">ID</SelectItem>
+                      <SelectItem value="Passport">Passport</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="">Identification Number</Label>
+                <Input
+                  value={editingCustomer?.identificationNumber ?? ""}
+                  onChange={(e) => {
+                    if (!editingCustomer) { return };
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      identificationNumber: e.target.value,
+                    })
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Address</Label>
+                <Input
+                  value={editingCustomer?.address ?? ""}
+                  onChange={(e) => {
+                    if (!editingCustomer) { return };
+                    setEditingCustomer({ ...editingCustomer, address: e.target.value })
+                  }}
+                />
+              </div>
+              <div>
+                <Label className="pl-1" htmlFor="BirthDate">
+                  Birth Date
+                </Label>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className="w-full justify-start text-left font-normal"
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select nationality" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto" position="popper">
-                        {sortedNationalities.map((nat, idx) => (
-                          <SelectItem
-                            key={idx}
-                            value={nat}
-                            // prevent scroll jumping but still allow hover shading
-                            onMouseMove={(e) => {
-                              e.preventDefault(); // stops jump
-                            }}
-                          >
-                            {nat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Identification Type</Label>
-                    <Input
-                      value={editingCustomer.identificationType ?? ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, identificationType: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Identification Number</Label>
-                    <Input
-                      value={editingCustomer.identificationNumber ?? ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, identificationNumber: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Address</Label>
-                    <Input
-                      value={editingCustomer.address ?? ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Birth Date</Label>
-                    <Input
-                      type="date"
-                      value={editingCustomer.birthDate ?? ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, birthDate: e.target.value })}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label>Is Married</Label>
-                    <div className="flex items-center gap-4 mt-2">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="isMarried"
-                          checked={!!editingCustomer.isMarried}
-                          onChange={() => setEditingCustomer({ ...editingCustomer, isMarried: true })}
-                        />
-                        Yes
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="isMarried"
-                          checked={!editingCustomer.isMarried}
-                          onChange={() => setEditingCustomer({ ...editingCustomer, isMarried: false })}
-                        />
-                        No
-                      </label>
-                    </div>
-                  </div>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {birthDate ? (
+                        format(birthDate, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <div className="space-y-2">
+                      <Calendar
+                        mode="single"
+                        captionLayout="dropdown"
 
-                  {/* Existing images */}
-                  <div className="md:col-span-2">
-                    <Label>Existing Identification Images</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {getImageList(editingCustomer).map((img) => (
-                        <div key={img} className="relative">
-                          <img src={img} alt="id" className="w-24 h-24 object-cover rounded" />
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="destructive"
-                            className="absolute top-0 right-0"
-                            onClick={() => handleRemoveExistingImage(img)}
-                          >
-                            X
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                        selected={birthDate}
+                        onSelect={(date) => {
+                          if (!date) return;
 
-                  {/* Upload New Images */}
-                  <div className="md:col-span-2">
-                    <Label>Upload New Identification Images</Label>
-                    <Input type="file" multiple onChange={handleFileChange} />
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {newFiles.map((file, idx) => (
-                        <div key={idx} className="relative">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt="preview"
-                            className="w-24 h-24 object-cover rounded"
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="destructive"
-                            className="absolute top-0 right-0"
-                            onClick={() => handleRemoveNewFile(file)}
-                          >
-                            X
-                          </Button>
-                        </div>
-                      ))}
+                          // Format as YYYY-MM-DD in local timezone
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const day = String(date.getDate()).padStart(2, "0");
+                          const formatted = `${year}-${month}-${day}`;
+
+                          setBirthDate(date);
+                          {
+                            if (!editingCustomer) { return };
+                            setEditingCustomer({
+                              ...editingCustomer,
+                              birthDate: formatted,
+                            });
+                            setIsCalendarOpen(false);
+                          }
+                        }}
+                        disabled={(date) => {
+                          const today = new Date();
+
+                          // Latest allowed date = today minus 18 years
+                          const latestValid = new Date(
+                            today.getFullYear() - 18,
+                            today.getMonth(),
+                            today.getDate()
+                          );
+                          return date > today || date > latestValid;
+                        }}
+                      />
                     </div>
-                  </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="md:col-span-2">
+                <Label>Marriage Status</Label>
+                <div className="flex items-center gap-4 mt-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="IsMarried"
+                      checked={editingCustomer?.isMarried === true}
+                      onChange={() => {
+                        if (!editingCustomer) { return };
+                        setEditingCustomer({
+                          ...editingCustomer,
+                          isMarried: true,
+                        })
+                      }}
+                    />
+                    Married
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="IsMarried"
+                      checked={editingCustomer?.isMarried === false}
+                      onChange={() => {
+                        if (!editingCustomer) { return };
+                        setEditingCustomer({
+                          ...editingCustomer,
+                          isMarried: false,
+                        })
+                      }}
+                    />
+                    Single
+                  </label>
                 </div>
+              </div>
 
-                <DialogFooter>
-                  <Button type="button" onClick={() => { setEditingCustomer(null); setNewFiles([]); setDeletedImages([]); }} variant="outline">
+
+              {/* File uploads */}
+              <div
+                onClick={() => idFileInputRef.current?.click()}
+                className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50">
+                <Label className="text-sm text-gray-600">
+                  Identification File
+                </Label>
+                <Upload className="w-5 h-5 text-gray-500" />
+
+                <input
+                  ref={idFileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleIdImageUpload}
+                  className="hidden"
+                />
+              </div>
+              {/* Preview List */}
+              <div className="flex flex-wrap gap-2">
+                {[...IDexistingImages, ...IDnewImages].map((img, index) => (
+                  <div
+                    key={index}
+                    className="relative w-20 h-20 border rounded overflow-hidden"
+                  >
+                    <img
+                      src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                      alt="preview"
+                      className="object-cover w-full h-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(img, "ID")}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {editingCustomer?.isMarried && (
+                <>
+                  <div
+                    onClick={() => marFileInputRef.current?.click()}
+                    className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50"
+                  >
+                    <Label className="text-sm text-gray-600">
+                      Marriage Certificate
+                    </Label>
+                    <Upload className="w-5 h-5 text-gray-500" />
+                    <input
+                      ref={marFileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleMARImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Preview List */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {[...MARexistingImages, ...MARnewImages].map((img, index) => (
+                      <div
+                        key={index}
+                        className="relative w-20 h-20 border rounded overflow-hidden"
+                      >
+                        <img
+                          src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                          alt="preview"
+                          className="object-cover w-full h-full"
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteImage(img, "MAR");
+                          }}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <DialogFooter className="block">
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <Button
+                    type="button"
+                    onClick={() => setEditOpen(false)}
+                    variant="outline"
+                    className="w-full"
+                  >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "Updating..." : "Save Changes"}
+                  <Button type="submit" disabled={isEditing} className="w-full">
+                    {isEditing ? "Editing..." : "Edit"}
                   </Button>
-                </DialogFooter>
-              </form>
-            )}
+                </div>
+              </DialogFooter>
+            </form>
           </DialogContent>
-        </Dialog>
-
-        {/* Delete confirmation dialog */}
+        </Dialog >
         <Dialog open={!!deletingCustomer} onOpenChange={() => setDeletingCustomer(null)}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Confirm Delete</DialogTitle>
             </DialogHeader>
-            <p>Are you sure you want to remove <strong>{deletingCustomer?.name}</strong>?</p>
+            <p>Are you sure you want to delete {deletingCustomer?.name}?</p>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDeletingCustomer(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={loading}>{loading ? "Deleting..." : "Delete"}</Button>
+              <Button onClick={() => setDeletingCustomer(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDeleteCustomer}>Delete</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </div >
     </>
   );
 }

@@ -6,10 +6,7 @@ using HotelBooking.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
-using System.Net;
 using System.Security.Claims;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers;
 
@@ -32,7 +29,7 @@ public class RoomController : Controller
     [Authorize(Roles = "Admin")]
     public IActionResult Upsert([FromForm] Room room, List<IFormFile>? uploadedFiles, [FromForm] string? deletedImages)
     {
-        if (uploadedFiles != null)
+        if (uploadedFiles != null || deletedImages != null)
         {
 
             var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
@@ -41,7 +38,7 @@ public class RoomController : Controller
             var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
-            if (uploadedFiles != null && uploadedFiles.Count > 0)
+            if (uploadedFiles.Count > 0)
             {
                 foreach (var file in uploadedFiles)
                 {
@@ -59,6 +56,17 @@ public class RoomController : Controller
                     if (!allowedExtensions.Contains(extension))
                     {
                         return BadRequest($"File extension {extension} is not allowed. Only image files are accepted.");
+                    }
+                    using var stream = file.OpenReadStream();
+                    var uploadResult = _cloudinary.Upload(new ImageUploadParams
+                    {
+                        File = new FileDescription(file.FileName, stream),
+                        Folder = folderPath
+                    });
+
+                    if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        uploadedUrls.Add(uploadResult.SecureUrl.ToString());
                     }
                 }
             }
@@ -99,24 +107,6 @@ public class RoomController : Controller
                     }
                 }
             }
-            if (uploadedFiles != null && uploadedFiles.Count > 0)
-            {
-                foreach (var file in uploadedFiles)
-                {
-                    using var stream = file.OpenReadStream();
-                    var uploadResult = _cloudinary.Upload(new ImageUploadParams
-                    {
-                        File = new FileDescription(file.FileName, stream),
-                        Folder = folderPath
-                    });
-
-                    if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        uploadedUrls.Add(uploadResult.SecureUrl.ToString());
-                    }
-                }
-            }
-
             var ro = new ImageUtility(_cloudinary);
             room.Images = ro.GetImagesFromFolder(folderPath);
         }
@@ -176,31 +166,31 @@ public class RoomController : Controller
         if (room == null) { return BadRequest(); }
         return Ok(room);
 
-        }
-        [HttpDelete]
-        public IActionResult Remove(int? Id)
+    }
+    [HttpDelete]
+    public IActionResult Remove(int? Id)
+    {
+        if (Id == null)
         {
-            if (Id == null)
+            return BadRequest();
+        }
+        else
+        {
+            var reservation = _unitOfWork.Reservations.Get(u => u.RoomId == Id);
+            if (reservation != null)
             {
-                return BadRequest();
+                return BadRequest("Can't Delete Room because there is a reservation");
             }
-            else
+            var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
+            var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";
+            _cloudinary.DeleteResourcesByPrefix(prefix);
+            var res = _unitOfWork.Reservations.Get(u => u.Id == Id);
+            if (res != null)
             {
-                var reservation = _unitOfWork.Reservations.Get(u => u.RoomId == Id);
-                if ( reservation != null)
-                {
-                    return BadRequest("Can't Delete Room because there is a reservation");
-                }
-                var room = _unitOfWork.Rooms.Get(u => u.Id == Id);
-                var prefix = $"hotel_booking/rooms/{room.RoomNumber}/";
-                _cloudinary.DeleteResourcesByPrefix(prefix);
-                var res = _unitOfWork.Reservations.Get(u => u.Id == Id);
-                if (res != null)
-                { 
-                    return BadRequest("Room is in Reservation");
-                }
-                _unitOfWork.Rooms.Remove(Id.Value);
-                _unitOfWork.Save();
+                return BadRequest("Room is in Reservation");
+            }
+            _unitOfWork.Rooms.Remove(Id.Value);
+            _unitOfWork.Save();
 
             return Ok();
         }

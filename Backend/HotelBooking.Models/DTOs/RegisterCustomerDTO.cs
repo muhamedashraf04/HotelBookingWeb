@@ -11,7 +11,8 @@ namespace HotelBooking.Models.DTOs
     public class RegisterCustomerDTO
     {
         public Customer? customer { get; set; }
-        public IFormFile? IdentificationFile { get; set; }
-        public IFormFile? MarriageCertificate { get; set; }
+        public List<IFormFile>? IdentificationFile { get; set; }
+        public List<IFormFile>? MarriageCertificate { get; set; }
+        public string? deletedImages { get; set; }
     }
 }

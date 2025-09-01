@@ -630,7 +630,6 @@ const SearchReservations = () => {
                       </p>
                       <p>
                         <span className="font-bold">Price per night:</span> {selectedRoom.price} EGP
-                        <span className="font-bold">Price per night:</span> {selectedRoom.price} EGP
                       </p>
                     </div>
                   </div>

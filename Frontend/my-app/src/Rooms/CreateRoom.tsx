@@ -114,9 +114,9 @@ export default function CreateRoom() {
         setExistingImages(
           typeof room.images === "string" && room.images.trim().length > 0
             ? room.images
-                .split(",")
-                .map((img: string) => img.trim())
-                .filter((img: string) => img.length > 0)
+              .split(",")
+              .map((img: string) => img.trim())
+              .filter((img: string) => img.length > 0)
             : []
         );
       })
@@ -302,7 +302,7 @@ export default function CreateRoom() {
   return (
     <>
       <Header />
-      <Toaster />
+      <Toaster richColors />
       <form onSubmit={submit} className="max-w-2xl mx-auto p-6 space-y-6">
         <h1 className="text-2xl font-bold">
           {id ? "Update Room" : "Create Room"}
@@ -445,8 +445,8 @@ export default function CreateRoom() {
               ? "Updating..."
               : "Creating..."
             : id
-            ? "Update Room"
-            : "Create Room"}
+              ? "Update Room"
+              : "Create Room"}
         </Button>
       </form>
     </>

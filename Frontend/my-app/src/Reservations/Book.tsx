@@ -10,6 +10,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Upload, X } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
@@ -36,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import axios from "axios";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { format } from "date-fns";
@@ -56,6 +58,8 @@ type Customer = {
   identificationType: string;
   identificationNumber: string;
   isMarried: boolean;
+  identificationAttachment: string | null;
+  marriageCertificateAttachment: string | null;
 };
 
 
@@ -64,6 +68,9 @@ function Booking() {
   const navigate = useNavigate();
   const { roomNumber, roomType, checkIn, checkOut, roomId } =
     location.state || {};
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerId, setCustomerId] = useState<number | null>(null);
@@ -74,20 +81,22 @@ function Booking() {
   const [extraBeds, setExtraBeds] = useState(0);
   const [customerOpen, setCustomerOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const idFileInputRef = useRef<HTMLInputElement>(null);
+  const marFileInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  );
+  const [IDexistingImages, setIDExistingImages] = useState<string[]>([]);
+  const [IDnewImages, setIDNewImages] = useState<File[]>([]);
+  const [IDdeletedImages, setIDDeletedImages] = useState<string[]>([]);
+
+  const [MARexistingImages, setMARExistingImages] = useState<string[]>([]);
+  const [MARnewImages, setMARNewImages] = useState<File[]>([]);
+  const [MARdeletedImages, setMARDeletedImages] = useState<string[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [marriageCertificateFile, setMarriageCertificateFile] = useState<File | null>(null);
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
-
-  // --- Create customer popup ---
   const [createOpen, setCreateOpen] = useState(false);
-  const [identificationFile, setIdentificationFile] = useState<File | null>(
-    null
-  );
+  const [isCreating, setIsCreating] = useState(false);
   const [newCustomer, setNewCustomer] = useState<Customer>({
     id: 0,
     name: "",
@@ -99,8 +108,9 @@ function Booking() {
     identificationType: "",
     identificationNumber: "",
     isMarried: false,
+    identificationAttachment: null,
+    marriageCertificateAttachment: null,
   });
-  const [isCreating, setIsCreating] = useState(false);
 
   const formatDateTimeLocal = (date: Date | string | undefined) => {
     if (!date) return "";
@@ -137,6 +147,24 @@ function Booking() {
 
   useEffect(() => {
     fetchCustomers();
+    setIDExistingImages(
+      typeof newCustomer.identificationAttachment === "string" && newCustomer.identificationAttachment
+        .trim().length > 0
+        ? newCustomer.identificationAttachment
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
+        : []
+    );
+    setMARExistingImages(
+      typeof newCustomer.marriageCertificateAttachment === "string" && newCustomer.marriageCertificateAttachment
+        .trim().length > 0
+        ? newCustomer.marriageCertificateAttachment
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
+        : []
+    );
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -187,18 +215,87 @@ function Booking() {
     }
   };
 
+  const handleIdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    if (IDexistingImages.length + IDnewImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setIDNewImages((prev) => [...prev, ...validFiles]);
+    }
+    e.target.value = "";
+  };
+  const handleMARImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+
+    if (MARexistingImages.length + MARnewImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`❌ ${file.name} is not a valid image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setMARNewImages((prev) => [...prev, ...validFiles]);
+    }
+    e.target.value = "";
+  };
+
+  const handleDeleteImage = (image: string | File, type: "ID" | "MAR") => {
+    if (type === "ID") {
+      if (typeof image === "string") {
+        setIDExistingImages((prev) => prev.filter((img) => img !== image));
+        setIDDeletedImages((prev) => [...prev, image]);
+      } else {
+        setIDNewImages((prev) => prev.filter((file) => file !== image));
+      }
+    } else if (type === "MAR") {
+      if (typeof image === "string") {
+        setMARExistingImages((prev) => prev.filter((img) => img !== image));
+        setMARDeletedImages((prev) => [...prev, image]);
+      } else {
+        setMARNewImages((prev) => prev.filter((file) => file !== image));
+      }
+    }
+  };
+
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isCreating) return;
 
-    if (!identificationFile) {
-      toast.error("Identification file is required");
-      setIsCreating(false);
+    if (IDnewImages.length === 0) {
+      toast.error("At least one Identification file is required");
       return;
     }
-    if (newCustomer.isMarried && !marriageCertificateFile) {
+    if (newCustomer.isMarried && MARnewImages.length === 0) {
       toast.error("Marriage certificate is required for married customers");
-      setIsCreating(false);
       return;
     }
 
@@ -206,7 +303,6 @@ function Booking() {
     try {
       const customerFormData = new FormData();
 
-      // 👇 Must prefix with "customer."
       customerFormData.append("customer.Name", newCustomer.name);
       customerFormData.append("customer.BirthDate", newCustomer.birthDate);
       customerFormData.append("customer.Email", newCustomer.email);
@@ -223,11 +319,14 @@ function Booking() {
         newCustomer.identificationNumber
       );
 
-      if (identificationFile) {
-        customerFormData.append("IdentificationFile", identificationFile);
-      }
-      if (marriageCertificateFile) {
-        customerFormData.append("MarriageCertificate", marriageCertificateFile);
+      IDnewImages.forEach((file) => {
+        customerFormData.append("IdentificationFile", file);
+      });
+
+      if (newCustomer.isMarried) {
+        MARnewImages.forEach((file) => {
+          customerFormData.append("MarriageCertificate", file);
+        });
       }
 
       await axios.post(
@@ -243,7 +342,6 @@ function Booking() {
       toast.success("Customer registered successfully!");
       setCreateOpen(false);
 
-      // Reset
       setNewCustomer({
         id: 0,
         name: "",
@@ -255,13 +353,15 @@ function Booking() {
         identificationType: "",
         identificationNumber: "",
         isMarried: false,
+        identificationAttachment: null,
+        marriageCertificateAttachment: null,
       });
-      setIdentificationFile(null);
-      setMarriageCertificateFile(null);
+      setIDNewImages([]);
+      setMARNewImages([]);
 
       await fetchCustomers();
     } catch (err: any) {
-      toast.error(err?.response?.data ?? "Failed to register customer");
+      toast.error(err?.response?.data);
     } finally {
       setIsCreating(false);
     }
@@ -475,13 +575,11 @@ function Booking() {
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select nationality" />
                 </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto" position="popper">
+                <SelectContent className="max-h-60" position="popper">
                   {sortedNationalities.map((nat, idx) => (
                     <SelectItem
                       key={idx}
                       value={nat}
-
-                      onPointerMove={(e) => e.preventDefault()}
                     >
                       {nat}
                     </SelectItem>
@@ -559,10 +657,16 @@ function Booking() {
                       onSelect={(date) => {
                         if (!date) return;
 
+                        // Format as YYYY-MM-DD in local timezone
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, "0");
+                        const day = String(date.getDate()).padStart(2, "0");
+                        const formatted = `${year}-${month}-${day}`;
+
                         setBirthDate(date);
                         setNewCustomer({
                           ...newCustomer,
-                          birthDate: date.toISOString().split("T")[0],
+                          birthDate: formatted,
                         });
                         setIsCalendarOpen(false);
                       }}
@@ -617,30 +721,95 @@ function Booking() {
             </div>
 
 
-            {/* ✅ File uploads */}
-            <div>
-              <Label>Identification File</Label>
-              <Input
+            {/* File uploads */}
+            <div
+              onClick={() => idFileInputRef.current?.click()}
+              className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50">
+              <Label className="text-sm text-gray-600">
+                Identification File
+              </Label>
+              <Upload className="w-5 h-5 text-gray-500" />
+
+              <input
+                ref={idFileInputRef}
                 type="file"
-                onChange={(e) =>
-                  setIdentificationFile(e.target.files ? e.target.files[0] : null)
-                }
+                multiple
+                accept="image/*"
+                onChange={handleIdImageUpload}
+                className="hidden"
               />
             </div>
-
+            {/* Preview List */}
+            <div className="flex flex-wrap gap-2">
+              {[...IDexistingImages, ...IDnewImages].map((img, index) => (
+                <div
+                  key={index}
+                  className="relative w-20 h-20 border rounded overflow-hidden"
+                >
+                  <img
+                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                    alt="preview"
+                    className="object-cover w-full h-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(img, "ID")}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
             {newCustomer.isMarried && (
-              <div>
-                <Label>Marriage Certificate</Label>
-                <Input
-                  type="file"
-                  onChange={(e) =>
-                    setMarriageCertificateFile(
-                      e.target.files ? e.target.files[0] : null
-                    )
-                  }
-                />
-              </div>
+              <>
+                <div
+                  onClick={() => marFileInputRef.current?.click()}
+                  className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50"
+                >
+                  <Label className="text-sm text-gray-600">
+                    Marriage Certificate
+                  </Label>
+                  <Upload className="w-5 h-5 text-gray-500" />
+                  <input
+                    ref={marFileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleMARImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Preview List */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[...MARexistingImages, ...MARnewImages].map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative w-20 h-20 border rounded overflow-hidden"
+                    >
+                      <img
+                        src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                        alt="preview"
+                        className="object-cover w-full h-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteImage(img, "MAR");
+                        }}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
+
+
 
             <DialogFooter className="block">
               <div className="grid grid-cols-2 gap-4 mt-4">
