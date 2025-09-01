@@ -30,7 +30,7 @@ public class CustomerController : Controller
 
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return BadRequest("Error happened during creation, Revise form data and try again");
         }
 
         string message = "Customer Registered Successfully";
