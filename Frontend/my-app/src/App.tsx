@@ -30,6 +30,7 @@ import { Url } from "../GlobalVariables";
 import ErrorToast from "../src/Toasts/ErrorToast";
 import "../styles/defaultschedule.css";
 
+
 type Reservation = {
   id: number;
   customerId: number;

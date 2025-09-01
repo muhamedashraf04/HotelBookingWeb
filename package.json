@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "react-country-region-selector": "^4.0.2",
+    "react-international-phone": "^4.6.0",
+    "react-phone-input-2": "^2.15.1",
+    "react-select": "^5.10.2",
+    "react-select-country-list": "^2.2.3",
+    "sonner": "^2.0.7"
+  }
+}

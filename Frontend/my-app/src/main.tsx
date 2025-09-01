@@ -6,7 +6,6 @@ import Login from "./Auth/Login.tsx";
 import Register from "./Auth/Register.tsx";
 import CheckInPage from "./Checkin/CheckinPage.tsx";
 import CheckOutPage from "./CheckOut/CheckOutPage.tsx";
-import Create from "./Customer/Create.tsx"; // Import your Create component
 import RemoveCustomer from "./Customer/Remove.tsx";
 import "./index.css";
 import EditRates from "./Rates/Edit.tsx";
@@ -18,6 +17,9 @@ import RemoveReservation from "./Reservations/Remove.tsx";
 import SearchReservations from "./Reservations/SearchReservations.tsx";
 import AllRooms from "./Rooms/AllRooms.tsx";
 import CreateRoom from "./Rooms/CreateRoom.tsx";
+import "react-international-phone/style.css";
+import GuestRegistrationForm from "./Customer/Create.tsx";
+
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -25,7 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/App" element={<App />} />
-        <Route path="/Customer/Create" element={<Create />} />
+        <Route path="/Customer/Create" element={<GuestRegistrationForm />} />
         <Route path="/Rooms/Create/:id?" element={<CreateRoom />} />
         <Route path="/Rooms/AllRooms" element={<AllRooms />} />
         <Route path="/Reservations/Search" element={<SearchReservations />} />
