@@ -135,7 +135,6 @@ const SearchReservations = () => {
   // load rates
   const fetchRates = async () => {
     setLoading(true);
-    LoadingToast("Loading rates...");
     try {
       const res = await axios.get(`${Url}/Admin/Rate/GetAll`, {
         headers: {
@@ -151,7 +150,6 @@ const SearchReservations = () => {
       }));
 
       setRoomTypes(formatted);
-      SuccessToast("Loaded");
     } catch (err: any) {
       ErrorToast(err?.message || "Could not load rates");
     } finally {
@@ -550,7 +548,7 @@ const SearchReservations = () => {
               )}
               days={days}
               onEventClick={handleEventClick}
-              onEventRightClick={() => {}}
+              onEventRightClick={() => { }}
             />
           </div>
         </div>
@@ -647,13 +645,7 @@ const SearchReservations = () => {
                   </DrawerClose>
 
                   <Button
-                    className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors
-      ${"cursor-pointer"
-
-                      }`}
-      ${"cursor-pointer"
-
-                      }`}
+                    className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors ${"cursor-pointer"}`}
                     onClick={() => {
                       toast.loading(`Booking Room ${selectedRoom.roomNumber}`);
                       navigate("/reservations/booking", {
