@@ -49,6 +49,7 @@ public class AuthController : ControllerBase
             UserName = dto.UserName,
             Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
+            DiscountLimit = dto.DicountLimit,
             PasswordHash = PasswordHasher.Hash(dto.Password),
             Role = "User",
             createdBy = "Self"
@@ -82,6 +83,7 @@ public class AuthController : ControllerBase
             UserName = dto.UserName,
             Email = dto.Email,
             PasswordHash = PasswordHasher.Hash(dto.Password),
+            DiscountLimit = dto.DicountLimit,
             Role = "Admin",
             createdBy = currentAdminUserName
         };
@@ -197,9 +199,12 @@ public class AuthController : ControllerBase
     {
         var user = _unitOfWork.Users.Get(u => u.Id == id);
         if (user == null) return NotFound("User not found.");
-
+       
+        
         user.UserName = dto.UserName;
         user.Email = dto.Email;
+        user.DiscountLimit = dto.DicountLimit;
+
         user.PhoneNumber = dto.PhoneNumber;
         if (!string.IsNullOrEmpty(dto.Password))
             user.PasswordHash = PasswordHasher.Hash(dto.Password);
@@ -230,9 +235,15 @@ public class AuthController : ControllerBase
 
         admin.UserName = dto.UserName;
         admin.Email = dto.Email;
+        admin.DiscountLimit = dto.DicountLimit;
         if (!string.IsNullOrEmpty(dto.Password))
+        {
             admin.PasswordHash = PasswordHasher.Hash(dto.Password);
-
+        }
+        else
+        {
+            admin.PasswordHash = admin.PasswordHash;
+        }
         _unitOfWork.Admins.Edit(admin);
         _unitOfWork.Save();
         return Ok("Admin updated successfully.");

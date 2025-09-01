@@ -1,7 +1,6 @@
 using CloudinaryDotNet;
 using HotelBooking.DataAccess.Data;
 using HotelBooking.DataAccess.Repositories;
-using HotelBooking.DataAccess.Repositories.HotelBooking.DataAccess.Repositories;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBookingWeb;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,22 +10,21 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
+// ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: "MyAllowSpecificOrigins",
-                      policy =>
-                      {
-                          // put your frontend url
-                          policy.WithOrigins("http://localhost:5173")
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
-                      });
+    options.AddPolicy("MyAllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173") // frontend URLs
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // needed if using cookies/auth headers
+    });
 });
 
-// Add services to the container.
+// ===== Database =====
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -38,6 +36,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     )
 );
 
+// ===== Cloudinary =====
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddSingleton(provider =>
@@ -46,8 +45,11 @@ builder.Services.AddSingleton(provider =>
     var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
     return new Cloudinary(account);
 });
+
+// ===== Unit of Work =====
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+// ===== JWT Auth =====
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
 builder.Services.AddAuthentication(options =>
@@ -63,7 +65,6 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
@@ -71,6 +72,8 @@ builder.Services.AddAuthentication(options =>
         )
     };
 });
+
+// ===== Authorization =====
 builder.Services.AddAuthorization(options =>
 {
     options.DefaultPolicy = new AuthorizationPolicyBuilder()
@@ -80,20 +83,24 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("Admin"));
 });
+
 builder.Services.AddControllers();
+
 var app = builder.Build();
 
+// ===== Middleware Pipeline =====
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-app.UseCors("MyAllowSpecificOrigins");
+
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors("MyAllowSpecificOrigins"); // must be after UseRouting, before Auth
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 
+app.MapControllers();
 
 app.Run();
