@@ -136,6 +136,7 @@ export default function CreateRoom() {
       msg = "Required";
     } else if (typeof value === "number" && value < 1) {
       msg = "Must be ≥ 1";
+      
     } else if (typeof value === "number" && !Number.isInteger(value)) {
       msg = "Must be an integer";
     }

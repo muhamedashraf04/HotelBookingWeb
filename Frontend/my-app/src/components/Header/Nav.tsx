@@ -187,11 +187,11 @@ const Nav: React.FC = () => {
   return (
     <nav
       className="w-full flex flex-wrap items-center justify-between sticky top-0 z-50 
-                    backdrop-blur-[25px] px-6 py-3 shadow-lg mb-6 bg-white/5"
+                    backdrop-blur-[25px] px-6 py-3 shadow-lg mb-6 bg-blue-500/10"
     >
       <div className="flex items-center gap-6">
         {/* Logo */}
-        <div className="p-0 mr-3">
+        <div className="p-0 mr-0">
           <Logo />
         </div>
 

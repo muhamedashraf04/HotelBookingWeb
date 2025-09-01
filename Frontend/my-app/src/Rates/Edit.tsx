@@ -14,14 +14,60 @@ import Cookies from "js-cookie";
 import { useEffect, useMemo, useState } from "react";
 import { Url } from "../../GlobalVariables.tsx";
 
+// shadcn popover + react-colorful
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { HexColorPicker } from "react-colorful";
+
 // Types
 export type Rate = {
   id: number;
   type: string;
   price: number;
+  badgeBg?: string; // hex color like "#111827"
+  badgeText?: string; // hex color like "#ffffff"
 };
 
 const ITEMS_PER_PAGE = 20;
+
+const DEFAULT_BG = "#111827"; // gray-900
+const DEFAULT_TEXT = "#ffffff"; // white
+
+// ---------- Reusable color popover (stays open while adjusting; closes on outside click) ----------
+function ColorPopover({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (hex: string) => void;
+  label: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div>
+      <div className="text-sm mb-1">{label}</div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="h-10 w-16 rounded border shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            style={{ backgroundColor: value }}
+            aria-label={`${label} color swatch`}
+          />
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-2" align="start">
+          {/* Live updates; no auto-close here */}
+          <HexColorPicker color={value} onChange={onChange} />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
 
 const EditRates = () => {
   const [rates, setRates] = useState<Rate[]>([]);
@@ -29,7 +75,7 @@ const EditRates = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState<Rate | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isSaving, setIsSaving] = useState(false); // prevents spamming
+  const [isSaving, setIsSaving] = useState(false);
 
   // set axios auth header from cookie once on mount
   useEffect(() => {
@@ -50,11 +96,16 @@ const EditRates = () => {
     try {
       const res = await axios.get(`${Url}/Admin/Rate/GetAll`, {
         headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`, // if your endpoint requires auth
+          Authorization: `Bearer ${Cookies.get("token")}`,
         },
       });
       if (res.status !== 200) throw new Error("Failed to fetch rates");
-      setRates(res.data as Rate[]);
+      const normalized: Rate[] = (res.data as Rate[]).map((r) => ({
+        ...r,
+        badgeBg: r.badgeBg || DEFAULT_BG,
+        badgeText: r.badgeText || DEFAULT_TEXT,
+      }));
+      setRates(normalized);
       SuccessToast("Loaded");
     } catch (err: any) {
       ErrorToast(err?.message || "Could not load rates");
@@ -103,9 +154,10 @@ const EditRates = () => {
         id: draft.id > 0 ? draft.id : undefined, // don't send negative temp id
         type: draft.type,
         price: draft.price,
+        badgeBg: draft.badgeBg || DEFAULT_BG,
+        badgeText: draft.badgeText || DEFAULT_TEXT,
       };
       const res = await axios.post(`${Url}/Admin/Rate/Upsert`, payload);
-      // If backend returns created/updated object use it, otherwise re-fetch
       if (res?.data && res.data.id) {
         const returned = res.data as Rate;
         setRates((prev) => prev.map((x) => (x.id === draft.id ? returned : x)));
@@ -122,9 +174,14 @@ const EditRates = () => {
   };
 
   const addNew = async () => {
-    // use a unique negative id for temp item to avoid collisions
     const tempId = -Date.now();
-    const newRate: Rate = { id: tempId, type: "", price: 0 };
+    const newRate: Rate = {
+      id: tempId,
+      type: "",
+      price: 0,
+      badgeBg: DEFAULT_BG,
+      badgeText: DEFAULT_TEXT,
+    };
     setRates((p) => [newRate, ...p]);
     setCurrentPage(1);
     startEdit(newRate);
@@ -147,9 +204,10 @@ const EditRates = () => {
       const res = await axios.post(`${Url}/Admin/Rate/Upsert`, {
         type: draft.type,
         price: draft.price,
+        badgeBg: draft.badgeBg || DEFAULT_BG,
+        badgeText: draft.badgeText || DEFAULT_TEXT,
       });
 
-      // If API returns created rate, use it; otherwise re-fetch full list
       if (res?.data && res.data.id) {
         const created = res.data as Rate;
         setRates((prev) => [
@@ -157,7 +215,6 @@ const EditRates = () => {
           ...prev.filter((r) => !(r.id < 0) && r.id !== created.id),
         ]);
       } else {
-        // backend didn't return created object — re-fetch to ensure UI consistency
         await fetchRates();
       }
 
@@ -227,13 +284,20 @@ const EditRates = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {paginated.map((r) => {
               const isEditing = editingId === r.id;
+              const bg = isEditing
+                ? draft?.badgeBg || DEFAULT_BG
+                : r.badgeBg || DEFAULT_BG;
+              const fg = isEditing
+                ? draft?.badgeText || DEFAULT_TEXT
+                : r.badgeText || DEFAULT_TEXT;
+
               return (
                 <div
                   key={r.id + "-" + r.type}
                   className="border rounded-xl p-4 shadow"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
                       {isEditing ? (
                         <>
                           <input
@@ -255,16 +319,38 @@ const EditRates = () => {
                                 setDraft((d) =>
                                   d
                                     ? {
-                                      ...d,
-                                      price: parseFloat(
-                                        e.target.value || "0"
-                                      ),
-                                    }
+                                        ...d,
+                                        price: parseFloat(
+                                          e.target.value || "0"
+                                        ),
+                                      }
                                     : d
                                 )
                               }
                             />
                             <span className="text-sm">EGP</span>
+                          </div>
+
+                          {/* Two popover color pickers; close by clicking outside */}
+                          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <ColorPopover
+                              label="Badge background"
+                              value={bg}
+                              onChange={(hex) =>
+                                setDraft((d) =>
+                                  d ? { ...d, badgeBg: hex } : d
+                                )
+                              }
+                            />
+                            <ColorPopover
+                              label="Badge text"
+                              value={fg}
+                              onChange={(hex) =>
+                                setDraft((d) =>
+                                  d ? { ...d, badgeText: hex } : d
+                                )
+                              }
+                            />
                           </div>
                         </>
                       ) : (
@@ -278,7 +364,15 @@ const EditRates = () => {
                     </div>
 
                     <div className="text-right">
-                      <Badge className="text-sm">{r.type}</Badge>
+                      {/* Match AllRooms badge size */}
+                      <Badge
+                        className="text-lg"
+                        style={{ backgroundColor: bg, color: fg }}
+                        title={`${r.type} (${bg} / ${fg})`}
+                      >
+                        {isEditing ? draft?.type || "Type" : r.type}
+                      </Badge>
+
                       <div className="mt-3 flex flex-col items-end gap-2">
                         {isEditing ? (
                           <>

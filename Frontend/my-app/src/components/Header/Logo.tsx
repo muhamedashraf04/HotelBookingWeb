@@ -40,7 +40,7 @@ const Logo = () => {
     typeof window !== "undefined" ? localStorage.getItem("hotelLogo") : null;
 
   return (
-    <div className="logo w-auto h-22 p-2">
+    <div className="logo w-auto max-w-xs h-22 p-2 ">
       <a href="/app" target="_blank" rel="noopener noreferrer">
         {loading && !storedLogo ? (
           // Spinner if nothing stored and still fetching
