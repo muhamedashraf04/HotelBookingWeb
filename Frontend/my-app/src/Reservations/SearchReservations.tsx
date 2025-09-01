@@ -5,6 +5,7 @@ import Header from "@/components/Header/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import Schedule from "../Schedule/Schedule.tsx";
 import {
   Carousel,
   CarouselContent,
@@ -62,6 +63,24 @@ type RoomType = {
   value: string;
   label: string;
 };
+type Reservation = {
+  id: number;
+  customerId: number;
+  customerName?: string;
+  roomId: number;
+  roomType: string;
+  checkInDate: string;
+  checkOutDate: string;
+  numberOfAdults: number;
+  numberOfChildren: number;
+  numberOfExtraBeds: number;
+  status: string;
+};
+
+type Customer = {
+  id: number;
+  name: string;
+};
 
 const getRoomBadgeClasses = (type: string) => {
   switch (type) {
@@ -91,6 +110,14 @@ const SearchReservations = () => {
   const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const [rooms, setRooms] = React.useState<Room[]>([]);
   const [loading, setLoading] = React.useState(false);
+
+  const [resources, setResources] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [days, setDays] = useState(30);
+  const [selectedReservation, setSelectedReservation] =
+    useState<Reservation | null>(null);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+
   const navigate = useNavigate();
 
   // set axios auth header from cookie once on mount
@@ -196,7 +223,7 @@ const SearchReservations = () => {
         body
       );
       if (response.status !== 200) throw new Error("Failed to fetch rooms");
-      
+
       const data: Room[] = response.data;
 
       if (data.length === 0) {
@@ -211,6 +238,12 @@ const SearchReservations = () => {
     } finally {
       setLoading(false);
     }
+  };
+  const handleEventClick = (args: any) => {
+    const clicked = reservations.find((r) => r.id === args.e.data.id);
+    if (!clicked) return;
+    setSelectedReservation(clicked);
+    setOpenDrawerId(clicked.id);
   };
 
   const getDateTime = (date: Date | undefined, time: string) => {
@@ -232,6 +265,75 @@ const SearchReservations = () => {
     );
     return newDate;
   };
+  const fetchData = async () => {
+    try {
+      const roomRes = await axios.get(`${Url}/Admin/Room/GetAll`);
+      const formattedRooms = roomRes.data.map((room: any) => ({
+        id: room.id,
+        name: `${room.roomNumber} (${room.roomType})`,
+      }));
+      setResources(formattedRooms);
+
+      const resRes = await axios.get(`${Url}/Admin/Reservation/GetAll`);
+      const customersRes = await axios.get(
+        `${Url}/Admin/Customer/GetCustomers`
+      );
+      const customers: Customer[] = customersRes.data;
+
+      const reservationsWithNames: Reservation[] = resRes.data.map(
+        (r: Reservation) => {
+          const customer = customers.find((c) => c.id === r.customerId);
+          return {
+            ...r,
+            customerName: customer ? customer.name : r.customerId.toString(),
+          };
+        }
+      );
+
+      const formattedEvents = reservationsWithNames.map((r) => {
+        let cssClass = "";
+        if (r.status === "Checked-In") cssClass = "checkedin-event";
+        else if (r.status === "Reserved") cssClass = "reserved-event";
+        else if (r.status === "Checked-Out") cssClass = "checkout-event";
+
+        return {
+          id: r.id,
+          text: `${r.customerName} (${r.roomType})`,
+          start: r.checkInDate,
+          end: r.checkOutDate,
+          resource: r.roomId,
+          cssClass,
+        };
+      });
+
+      setReservations(reservationsWithNames);
+      setEvents(formattedEvents);
+
+      if (formattedEvents.length > 0) {
+        const furthest = new Date(
+          Math.max(
+            ...formattedEvents.map((r: any) => new Date(r.end).getTime())
+          )
+        );
+        const today = new Date();
+        const diffDays = Math.ceil(
+          (furthest.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        setDays(Math.max(diffDays, 25) + 5);
+      } else {
+        setDays(30);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error fetching data");
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const filteredResources = roomType
+    ? resources.filter((r) => r.name.includes(`(${roomType})`))
+    : resources;
 
   return (
     <>
@@ -404,6 +506,7 @@ const SearchReservations = () => {
             </Button>
           </div>
         </div>
+
         {/* Results */}
 
         <div className="grid md:grid-cols-10 gap-6">
@@ -430,6 +533,25 @@ const SearchReservations = () => {
               </div>
             </div>
           ))}
+        </div>
+        <hr className="my-15 border-t border-grey-200 w-full border-3" />
+        <div className="flex justify-center mt-10">
+          <div
+            style={{
+              width: "1000px",
+              height: `${resources.length * 40}px`,
+            }}
+          >
+            <Schedule
+              resources={filteredResources}
+              events={events.filter((e) =>
+                !roomType ? true : e.text.includes(`(${roomType})`)
+              )}
+              days={days}
+              onEventClick={handleEventClick}
+              onEventRightClick={() => {}}
+            />
+          </div>
         </div>
         {/* Drawer */}
         {selectedRoom && (
@@ -525,10 +647,7 @@ const SearchReservations = () => {
 
                   <Button
                     className={`flex-1 px-6 py-2 font-semibold shadow-sm transition-colors
-      ${
-          "cursor-pointer"
-          
-      }`}
+      ${"cursor-pointer"}`}
                     onClick={() => {
                       toast.loading(`Booking Room ${selectedRoom.roomNumber}`);
                       navigate("/reservations/booking", {

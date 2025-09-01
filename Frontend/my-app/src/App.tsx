@@ -21,7 +21,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +28,7 @@ import { toast, Toaster } from "sonner";
 import { Url } from "../GlobalVariables";
 import ErrorToast from "../src/Toasts/ErrorToast";
 import "../styles/defaultschedule.css";
+import Schedule from "./Schedule/Schedule";
 
 type Reservation = {
   id: number;
@@ -219,7 +219,11 @@ export default function App() {
       <Toaster richColors />
       <div className="flex justify-center mt-6">
         <div style={{ width: "1000px", height: `${resources.length * 40}px` }}>
-          <DayPilotScheduler
+          <Schedule
+            resources={resources}
+            events={events}
+            days={days}
+            onEventClick={handleEventClick}
             onEventRightClick={(args) => {
               args.originalEvent.preventDefault();
               const clicked = reservations.find((r) => r.id === args.e.data.id);
@@ -230,20 +234,6 @@ export default function App() {
                 reservation: clicked,
               });
             }}
-            startDate={DayPilot.Date.today().addDays(-7)}
-            days={days}
-            scale="Day"
-            timeHeaders={[
-              { groupBy: "Month" },
-              { groupBy: "Day", format: "d" },
-            ]}
-            resources={resources}
-            events={events}
-            rowMarginBottom={20}
-            onEventClick={handleEventClick}
-            eventMoveHandling="Disabled"
-            eventResizeHandling="Disabled"
-            theme="defaultschedule"
           />
         </div>
       </div>
