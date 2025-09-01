@@ -90,6 +90,15 @@ public class CustomerController : Controller
 
         return Ok(message);
     }
+    [HttpPost]
+    public IActionResult Edit([FromForm] RegisterCustomerDTO registerCustomerDTO)
+    {
+        if (ModelState.IsValid)
+        {
+            return Ok((ModelState));
+        }
+        return Ok("ana gowa");
+    }
 
 
     [HttpGet]
