@@ -30,95 +30,96 @@ public class RoomController : Controller
     }
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public IActionResult Upsert([FromForm] Room room, List<IFormFile> uploadedFiles, [FromForm] string? deletedImages)
+    public IActionResult Upsert([FromForm] Room room, List<IFormFile>? uploadedFiles, [FromForm] string? deletedImages)
     {
-        var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
-        var uploadedUrls = new List<string>();
-
-        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-        if (uploadedFiles != null && uploadedFiles.Count > 0)
+        if (uploadedFiles != null)
         {
-            foreach (var file in uploadedFiles)
+
+            var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
+            var uploadedUrls = new List<string>();
+
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+            if (uploadedFiles != null && uploadedFiles.Count > 0)
             {
-                if (file.Length == 0)
+                foreach (var file in uploadedFiles)
                 {
-                    return BadRequest("One of the uploaded files is empty.");
-                }
-
-                if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
-                {
-                    return BadRequest($"File type {file.ContentType} is not allowed. Only image files are accepted.");
-                }
-
-                var extension = Path.GetExtension(file.FileName).ToLower();
-                if (!allowedExtensions.Contains(extension))
-                {
-                    return BadRequest($"File extension {extension} is not allowed. Only image files are accepted.");
-                }
-            }
-        }
-
-        if (!string.IsNullOrEmpty(deletedImages))
-        {
-            var urlsToDelete = System.Text.Json.JsonSerializer.Deserialize<List<string>>(deletedImages);
-
-            if (urlsToDelete != null && urlsToDelete.Any())
-            {
-                var publicIds = new List<string>();
-
-                foreach (var url in urlsToDelete)
-                {
-                    var uri = new Uri(url);
-                    var segments = uri.AbsolutePath.Split('/');
-
-                    var startIndex = Array.IndexOf(segments, "hotel_booking");
-                    if (startIndex != -1)
+                    if (file.Length == 0)
                     {
-                        var publicId = string.Join("/", segments.Skip(startIndex));
-                        publicId = Path.Combine(
-                            Path.GetDirectoryName(publicId) ?? string.Empty,
-                            Path.GetFileNameWithoutExtension(publicId)
-                        ).Replace("\\", "/");
-
-                        publicIds.Add(publicId);
+                        return BadRequest("One of the uploaded files is empty.");
                     }
-                }
 
-                if (publicIds.Count > 0)
-                {
-                    var deletionResult = _cloudinary.DeleteResources(publicIds.ToArray());
-                    if (deletionResult.StatusCode != System.Net.HttpStatusCode.OK)
+                    if (!allowedContentTypes.Contains(file.ContentType.ToLower()))
                     {
-                        return BadRequest("Failed to delete some images.");
+                        return BadRequest($"File type {file.ContentType} is not allowed. Only image files are accepted.");
+                    }
+
+                    var extension = Path.GetExtension(file.FileName).ToLower();
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        return BadRequest($"File extension {extension} is not allowed. Only image files are accepted.");
                     }
                 }
             }
-        }
 
-        // ✅ Upload new images (already validated above)
-        if (uploadedFiles != null && uploadedFiles.Count > 0)
-        {
-            foreach (var file in uploadedFiles)
+            if (!string.IsNullOrEmpty(deletedImages))
             {
-                using var stream = file.OpenReadStream();
-                var uploadResult = _cloudinary.Upload(new ImageUploadParams
-                {
-                    File = new FileDescription(file.FileName, stream),
-                    Folder = folderPath
-                });
+                var urlsToDelete = System.Text.Json.JsonSerializer.Deserialize<List<string>>(deletedImages);
 
-                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                if (urlsToDelete != null && urlsToDelete.Any())
                 {
-                    uploadedUrls.Add(uploadResult.SecureUrl.ToString());
+                    var publicIds = new List<string>();
+
+                    foreach (var url in urlsToDelete)
+                    {
+                        var uri = new Uri(url);
+                        var segments = uri.AbsolutePath.Split('/');
+
+                        var startIndex = Array.IndexOf(segments, "hotel_booking");
+                        if (startIndex != -1)
+                        {
+                            var publicId = string.Join("/", segments.Skip(startIndex));
+                            publicId = Path.Combine(
+                                Path.GetDirectoryName(publicId) ?? string.Empty,
+                                Path.GetFileNameWithoutExtension(publicId)
+                            ).Replace("\\", "/");
+
+                            publicIds.Add(publicId);
+                        }
+                    }
+
+                    if (publicIds.Count > 0)
+                    {
+                        var deletionResult = _cloudinary.DeleteResources(publicIds.ToArray());
+                        if (deletionResult.StatusCode != System.Net.HttpStatusCode.OK)
+                        {
+                            return BadRequest("Failed to delete some images.");
+                        }
+                    }
                 }
             }
+            if (uploadedFiles != null && uploadedFiles.Count > 0)
+            {
+                foreach (var file in uploadedFiles)
+                {
+                    using var stream = file.OpenReadStream();
+                    var uploadResult = _cloudinary.Upload(new ImageUploadParams
+                    {
+                        File = new FileDescription(file.FileName, stream),
+                        Folder = folderPath
+                    });
+
+                    if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        uploadedUrls.Add(uploadResult.SecureUrl.ToString());
+                    }
+                }
+            }
+
+            var ro = new ImageUtility(_cloudinary);
+            room.Images = ro.GetImagesFromFolder(folderPath);
         }
-
-        var ro = new ImageUtility(_cloudinary);
-        room.Images = ro.GetImagesFromFolder(folderPath);
-
         string RoomType = room.RoomType;
 
         if (ModelState.IsValid)
