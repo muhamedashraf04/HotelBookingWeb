@@ -41,6 +41,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import countries from "world-countries";
 
 
 
@@ -109,6 +110,15 @@ function Booking() {
       d.getUTCDate()
     )}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
   };
+  const nationalities = countries.map((c) => ({
+    country: c.name.common,
+    nationality: c.demonyms?.eng?.m || c.name.common,
+  }));
+  const sortedNationalities = [...nationalities]
+    .map((n) => n.nationality)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .sort((a, b) => a.localeCompare(b));
+
 
   const fetchCustomers = async () => {
     try {
@@ -456,12 +466,28 @@ function Booking() {
             </div>
             <div>
               <Label>Nationality</Label>
-              <Input
-                value={newCustomer.nationality ?? ""}
-                onChange={(e) =>
-                  setNewCustomer({ ...newCustomer, nationality: e.target.value })
+              <Select
+                onValueChange={(value) =>
+                  setNewCustomer((prev) => ({ ...prev, nationality: value }))
                 }
-              />
+                value={newCustomer.nationality}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select nationality" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" position="popper">
+                  {sortedNationalities.map((nat, idx) => (
+                    <SelectItem
+                      key={idx}
+                      value={nat}
+
+                      onPointerMove={(e) => e.preventDefault()}
+                    >
+                      {nat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label className="pl-1" htmlFor="IdentificationType">

@@ -1,3 +1,4 @@
+
 import Header from "@/components/Header/Header";
 import {
   AlertDialog,
@@ -33,6 +34,8 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { Url } from "../../GlobalVariables";
+import countries from "world-countries";
+
 
 // Define a type for your form data
 type FormData = {
@@ -59,7 +62,16 @@ const Create = () => {
     IdentificationNumber: "",
   });
 
-  // State to hold the Date object for the calendar component
+  const nationalities = countries.map((c) => ({
+    country: c.name.common,
+    nationality: c.demonyms?.eng?.m || c.name.common,
+  }));
+  const sortedNationalities = [...nationalities]
+    .map((n) => n.nationality)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .sort((a, b) => a.localeCompare(b));
+
+
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
   // State to control the popover's open/closed state
@@ -236,14 +248,28 @@ const Create = () => {
               <Label className="pl-1 mb-2.5" htmlFor="Nationality">
                 Nationality
               </Label>
-              <Input
-                id="Nationality"
-                type="text"
-                placeholder="Nationality"
+              <Select
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, Nationality: value }))
+                }
                 value={formData.Nationality}
-                onChange={handleChange}
-                required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select nationality" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto" position="popper">
+                  {sortedNationalities.map((nat, idx) => (
+                    <SelectItem
+                      key={idx}
+                      value={nat}
+
+                      onPointerMove={(e) => e.preventDefault()}
+                    >
+                      {nat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Address">
