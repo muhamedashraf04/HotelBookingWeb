@@ -5,7 +5,6 @@ import Header from "@/components/Header/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import Schedule from "../Schedule/Schedule.tsx";
 import {
   Carousel,
   CarouselContent,
@@ -39,8 +38,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ErrorToast from "@/Toasts/ErrorToast.tsx";
-import LoadingToast from "@/Toasts/LoadingToast.tsx";
-import SuccessToast from "@/Toasts/SuccessToast.tsx";
 import axios from "axios";
 import { Check, ChevronDownIcon, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
@@ -48,6 +45,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 import { Url } from "../../GlobalVariables.tsx";
+import Schedule from "../Schedule/Schedule.tsx";
 
 type Room = {
   id: number;
@@ -82,16 +80,16 @@ type Customer = {
   name: string;
 };
 
-const getRoomBadgeClasses = (type: string) => {
-  switch (type) {
-    case "Double":
-      return "bg-emerald-600 text-emerald-50";
-    case "Suite":
-      return "bg-emerald-800 text-emerald-50";
-    default:
-      return "bg-emerald-100 text-emerald-950";
-  }
+type Rate = {
+  id?: number;
+  type: string;
+  price: number;
+  badgeBg?: string;
+  badgeText?: string;
 };
+
+const DEFAULT_BADGE_BG = "#e5e7eb";
+const DEFAULT_BADGE_FG = "#1f2937";
 
 const SearchReservations = () => {
   const [checkInDate, setCheckInDate] = React.useState<Date | undefined>();
@@ -119,6 +117,32 @@ const SearchReservations = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
   const navigate = useNavigate();
+
+  const [rateColors, setRateColors] = useState<
+    Record<string, { bg: string; fg: string }>
+  >({});
+
+  useEffect(() => {
+    const loadRateColors = async () => {
+      try {
+        const res = await axios.get(`${Url}/Admin/Rate/GetAll`);
+        const rates = (res.data as Rate[]) ?? [];
+        const map: Record<string, { bg: string; fg: string }> = {};
+        for (const r of rates) {
+          map[r.type] = {
+            bg: r.badgeBg || DEFAULT_BADGE_BG,
+            fg: r.badgeText || DEFAULT_BADGE_FG,
+          };
+        }
+        setRateColors(map);
+      } catch (_) {
+        // هيتصرف بالـdefaults لو فشل
+      }
+    };
+    loadRateColors();
+  }, []);
+  const getTypeColors = (type: string) =>
+    rateColors[type] ?? { bg: DEFAULT_BADGE_BG, fg: DEFAULT_BADGE_FG };
 
   // set axios auth header from cookie once on mount
   useEffect(() => {
@@ -221,7 +245,6 @@ const SearchReservations = () => {
         body
       );
       if (response.status !== 200) throw new Error("Failed to fetch rooms");
-
 
       const data: Room[] = response.data;
 
@@ -524,11 +547,22 @@ const SearchReservations = () => {
                 <h2 className="text-2xl font-bold mb-2 text-center">
                   {room.roomNumber}
                 </h2>
-                <Badge
-                  className={`text-lg ${getRoomBadgeClasses(room.roomType)}`}
-                >
-                  {room.roomType}
-                </Badge>
+                {(() => {
+                  const c = getTypeColors(room.roomType);
+                  return (
+                    <Badge
+                      className="text-lg"
+                      style={{
+                        backgroundColor: c.bg,
+                        color: c.fg,
+                        border: "1px solid rgba(0,0,0,0.08)",
+                      }}
+                      title={`${room.roomType} (${c.bg} / ${c.fg})`}
+                    >
+                      {room.roomType}
+                    </Badge>
+                  );
+                })()}
               </div>
             </div>
           ))}
@@ -548,7 +582,7 @@ const SearchReservations = () => {
               )}
               days={days}
               onEventClick={handleEventClick}
-              onEventRightClick={() => { }}
+              onEventRightClick={() => {}}
             />
           </div>
         </div>
@@ -629,7 +663,8 @@ const SearchReservations = () => {
                         {selectedRoom.capacity}
                       </p>
                       <p>
-                        <span className="font-bold">Price per night:</span> {selectedRoom.price} EGP
+                        <span className="font-bold">Price per night:</span>{" "}
+                        {selectedRoom.price} EGP
                       </p>
                     </div>
                   </div>
