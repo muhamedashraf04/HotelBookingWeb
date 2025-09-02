@@ -372,7 +372,6 @@ function Booking() {
     <>
       <Header />
       <div className="min-h-screen flex items-center justify-center p-4 bg-transparent">
-        <Toaster richColors />
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-md space-y-6 rounded-lg border p-6 shadow-md bg-white"
