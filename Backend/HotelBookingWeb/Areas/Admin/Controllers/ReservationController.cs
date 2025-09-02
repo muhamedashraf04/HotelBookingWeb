@@ -308,7 +308,7 @@ public class ReservationController : Controller
     {
         if (id <= 0)
         {
-            return BadRequest("Omda");
+            return BadRequest("Invalid reservation ID.");
         }
         var reservation = _unitOfWork.Reservations.Get(r => r.Id == id);
         if (reservation == null)
