@@ -44,10 +44,9 @@ public class AuthController : ControllerBase
             UserName = dto.UserName,
             Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
-            DiscountLimit = dto.DicountLimit,
+            DiscountLimit = dto.discountLimit,
             PasswordHash = PasswordHasher.Hash(dto.Password),
             Role = dto.role,
-            DiscountLimit = dto.discountLimit,
             createdBy = createdBy
         };
 
@@ -78,9 +77,8 @@ public class AuthController : ControllerBase
             Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
             PasswordHash = PasswordHasher.Hash(dto.Password),
-            DiscountLimit = dto.DicountLimit,
-            Role = "Admin",
             DiscountLimit = dto.discountLimit,
+            Role = "Admin",
             createdBy = createdBy
         };
 
@@ -203,11 +201,11 @@ public class AuthController : ControllerBase
     {
         var user = _unitOfWork.Users.Get(u => u.Id == id);
         if (user == null) return NotFound("User not found.");
-       
-        
+
+
         user.UserName = dto.UserName;
         user.Email = dto.Email;
-        user.DiscountLimit = dto.DicountLimit;
+        user.DiscountLimit = dto.discountLimit;
 
         user.PhoneNumber = dto.PhoneNumber;
         user.DiscountLimit = dto.discountLimit;
@@ -248,21 +246,22 @@ public class AuthController : ControllerBase
         {
             admin.PasswordHash = PasswordHasher.Hash(dto.Password);
 
-        _unitOfWork.Users.Edit(admin);
-        _unitOfWork.Save();
-        return Ok("Admin updated successfully.");
+            _unitOfWork.Users.Edit(admin);
+            _unitOfWork.Save();
+            return Ok("Admin updated successfully.");
+        }
+        return Ok("No changes made to admin."); // man3rfsh kan feh eh "bad or ok" ya ga7sh 
     }
+        [HttpDelete("delete-admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult DeleteAdmin(int id)
+        {
+            var admin = _unitOfWork.Users.Get(u => u.Id == id);
+            if (admin == null) return NotFound("Admin not found.");
+            if (admin.Role != "Admin") return BadRequest("User is not an admin.");
 
-    [HttpDelete("delete-admin/{id}")]
-    [Authorize(Roles = "Admin")]
-    public IActionResult DeleteAdmin(int id)
-    {
-        var admin = _unitOfWork.Users.Get(u => u.Id == id);
-        if (admin == null) return NotFound("Admin not found.");
-        if (admin.Role != "Admin") return BadRequest("User is not an admin.");
-
-        _unitOfWork.Users.Remove(id);
-        _unitOfWork.Save();
-        return Ok("Admin deleted successfully.");
+            _unitOfWork.Users.Remove(id);
+            _unitOfWork.Save();
+            return Ok("Admin deleted successfully.");
+        }
     }
-}
