@@ -64,7 +64,7 @@ function ColorPopover({
   };
 
   return (
-    <div>
+    <div> 
       <div className="text-sm mb-1">{label}</div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
