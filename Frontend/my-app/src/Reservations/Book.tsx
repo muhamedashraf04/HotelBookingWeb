@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
 
 import {
   Dialog,
@@ -71,6 +71,7 @@ function Booking() {
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerId, setCustomerId] = useState<number | null>(null);
@@ -289,7 +290,22 @@ function Booking() {
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isCreating) return;
+    const newErrors: { [key: string]: string } = {};
 
+    if (!newCustomer.name.trim()) newErrors.name = "Name is required";
+    if (!newCustomer.email.trim()) newErrors.email = "Email is required";
+    if (!newCustomer.identificationType) newErrors.identificationType = "ID type is required";
+    if (!newCustomer.identificationNumber.trim()) newErrors.identificationNumber = "ID number is required";
+    if (!newCustomer.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+    if (!newCustomer.nationality.trim()) newErrors.nationality = "Nationality is required";
+    if (IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
+    if (newCustomer.isMarried && MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fill all required fields");
+      return;
+    }
     if (IDnewImages.length === 0) {
       toast.error("At least one Identification file is required");
       return;
@@ -299,6 +315,7 @@ function Booking() {
       return;
     }
 
+    setErrors({});
     setIsCreating(true);
     try {
       const customerFormData = new FormData();
@@ -537,35 +554,41 @@ function Booking() {
             onSubmit={handleCreateCustomer}
           >
             <div>
-              <Label>Name</Label>
+              <Label>Name *</Label>
               <Input
                 value={newCustomer.name}
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, name: e.target.value })
                 }
+                className={errors.name ? "border-red-500" : ""}
               />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>Email *</Label>
               <Input
                 type="email"
                 value={newCustomer.email ?? ""}
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, email: e.target.value })
                 }
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
             <div>
-              <Label>Phone Number</Label>
+              <Label>Phone Number *</Label>
               <Input
                 value={newCustomer.phoneNumber ?? ""}
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })
                 }
+                className={errors.phoneNumber ? "border-red-500" : ""}
               />
+              {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
             </div>
             <div>
-              <Label>Nationality</Label>
+              <Label>Nationality *</Label>
               <Select
                 onValueChange={(value) =>
                   setNewCustomer((prev) => ({ ...prev, nationality: value }))
@@ -586,10 +609,11 @@ function Booking() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
             </div>
             <div>
               <Label className="pl-1" htmlFor="IdentificationType">
-                Identification Type
+                Identification Type *
               </Label>
               <Select
                 value={newCustomer.identificationType}
@@ -607,9 +631,10 @@ function Booking() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}
             </div>
             <div>
-              <Label className="">Identification Number</Label>
+              <Label className="">Identification Number *</Label>
               <Input
                 value={newCustomer.identificationNumber ?? ""}
                 onChange={(e) =>
@@ -618,10 +643,12 @@ function Booking() {
                     identificationNumber: e.target.value,
                   })
                 }
+                className={errors.identificationNumber ? "border-red-500" : ""}
               />
+              {errors.identificationNumber && <p className="text-red-500 text-sm">{errors.identificationNumber}</p>}
             </div>
             <div>
-              <Label>Address</Label>
+              <Label>Address (optional)</Label>
               <Input
                 value={newCustomer.address ?? ""}
                 onChange={(e) =>
@@ -631,7 +658,7 @@ function Booking() {
             </div>
             <div>
               <Label className="pl-1" htmlFor="BirthDate">
-                Birth Date
+                Birth Date *
               </Label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
@@ -745,8 +772,7 @@ function Booking() {
                 <div
                   key={index}
                   className="relative w-20 h-20 border rounded overflow-hidden"
-                >
-                  <img
+                ><img
                     src={typeof img === "string" ? img : URL.createObjectURL(img)}
                     alt="preview"
                     className="object-cover w-full h-full"
