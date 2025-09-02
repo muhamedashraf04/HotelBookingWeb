@@ -812,11 +812,8 @@ function Booking() {
                 <div
                   key={index}
                   className="relative w-20 h-20 border rounded overflow-hidden"
-                >
-                  <img
-                    src={
-                      typeof img === "string" ? img : URL.createObjectURL(img)
-                    }
+                ><img
+                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
                     alt="preview"
                     className="object-cover w-full h-full"
                   />
