@@ -35,8 +35,8 @@ public class RoomController : Controller
             var folderPath = $"hotel_booking/rooms/{room.RoomNumber}";
             var uploadedUrls = new List<string>();
 
-            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf" };
 
             if (uploadedFiles.Count > 0)
             {

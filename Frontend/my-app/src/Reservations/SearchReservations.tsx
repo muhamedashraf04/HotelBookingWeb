@@ -693,7 +693,7 @@ const SearchReservations = () => {
                       });
                     }}
                   >
-                    Book Now Book Now
+                    Book Now
                   </Button>
                 </DrawerFooter>
               </div>
