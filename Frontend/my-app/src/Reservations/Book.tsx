@@ -565,6 +565,7 @@ function Booking() {
                 className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
             </div>
             <div>
               <Label>Email *</Label>
@@ -777,11 +778,8 @@ function Booking() {
                 <div
                   key={index}
                   className="relative w-20 h-20 border rounded overflow-hidden"
-                >
-                  <img
-                    src={
-                      typeof img === "string" ? img : URL.createObjectURL(img)
-                    }
+                ><img
+                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
                     alt="preview"
                     className="object-cover w-full h-full"
                   />
