@@ -1,21 +1,10 @@
 
 import Header from "@/components/Header/Header";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
 
 import {
   Popover,
@@ -30,10 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import type { FormEvent } from "react";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
@@ -103,6 +91,9 @@ const Create = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+
   // Use a useEffect hook to update formData.BirthDate whenever the birthDate state changes
   useEffect(() => {
     setIDExistingImages(
@@ -138,7 +129,7 @@ const Create = () => {
 
     for (const file of files) {
       if (!allowedTypes.includes(file.type)) {
-        toast.error(`❌ ${file.name} is not a valid image type.`);
+        toast.error(`${file.name} is not a valid image type.`);
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
@@ -151,6 +142,7 @@ const Create = () => {
     if (validFiles.length > 0) {
       setIDNewImages((prev) => [...prev, ...validFiles]);
     }
+
     e.target.value = "";
   };
   const handleMARImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,11 +156,11 @@ const Create = () => {
 
     for (const file of files) {
       if (!allowedTypes.includes(file.type)) {
-        toast.error(`❌ ${file.name} is not a valid image type.`);
+        toast.error(`${file.name} is not a valid image type.`);
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
-        toast.error(`⚠️ ${file.name} exceeds 5 MB.`);
+        toast.error(` ${file.name} exceeds 5 MB.`);
         continue;
       }
       validFiles.push(file);
@@ -202,6 +194,23 @@ const Create = () => {
     e.preventDefault();
     if (isLoading) return;
 
+
+    const newErrors: { [key: string]: string } = {};
+
+    if (!newCustomer.name.trim()) newErrors.name = "Name is required";
+    if (!newCustomer.email.trim()) newErrors.email = "Email is required";
+    if (!newCustomer.identificationType) newErrors.identificationType = "ID type is required";
+    if (!newCustomer.identificationNumber.trim()) newErrors.identificationNumber = "ID number is required";
+    if (!newCustomer.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+    if (!newCustomer.nationality.trim()) newErrors.nationality = "Nationality is required";
+    if (IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
+    if (newCustomer.isMarried && MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fill all required fields");
+      return;
+    }
     if (IDnewImages.length === 0) {
       toast.error("At least one Identification file is required");
       return;
@@ -211,6 +220,7 @@ const Create = () => {
       return;
     }
 
+    setErrors({});
     setIsLoading(true);
     try {
       const customerFormData = new FormData();
@@ -290,7 +300,7 @@ const Create = () => {
           <div className="space-y-4">
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Name">
-                Name
+                Name *
               </Label>
               <Input
                 id="Name"
@@ -300,12 +310,13 @@ const Create = () => {
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, name: e.target.value })
                 }
-                required
+                className={errors.name ? "border-red-500" : ""}
               />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="BirthDate">
-                Birth Date
+                Birth Date *
               </Label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
@@ -362,7 +373,7 @@ const Create = () => {
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Email">
-                Email
+                Email *
               </Label>
               <Input
                 id="Email"
@@ -372,12 +383,13 @@ const Create = () => {
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, email: e.target.value })
                 }
-                required
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Nationality">
-                Nationality
+                Nationality *
               </Label>
               <Select
                 onValueChange={(value) =>
@@ -385,7 +397,7 @@ const Create = () => {
                 }
                 value={newCustomer.nationality}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full ">
                   <SelectValue placeholder="Select nationality" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60" position="popper">
@@ -399,10 +411,11 @@ const Create = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Address">
-                Address
+                Address (Optional)
               </Label>
               <Input
                 value={newCustomer.address ?? ""}
@@ -413,18 +426,20 @@ const Create = () => {
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="PhoneNumber">
-                Phone Number
+                Phone Number *
               </Label>
               <Input
                 value={newCustomer.phoneNumber ?? ""}
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })
                 }
+                className={errors.phoneNumber ? "border-red-500" : ""}
               />
+              {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="IdentificationType">
-                Identification Type
+                Identification Type *
               </Label>
               <Select
                 value={newCustomer.identificationType}
@@ -442,10 +457,10 @@ const Create = () => {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+              {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}            </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="IdentificationNumber">
-                Identification Number
+                Identification Number *
               </Label>
               <Input
                 value={newCustomer.identificationNumber ?? ""}
@@ -455,7 +470,9 @@ const Create = () => {
                     identificationNumber: e.target.value,
                   })
                 }
+                className={errors.identificationNumber ? "border-red-500" : ""}
               />
+              {errors.identificationNumber && <p className="text-red-500 text-sm">{errors.identificationNumber}</p>}
             </div>
             <div className="md:col-span-2">
               <Label>Marriage Status</Label>

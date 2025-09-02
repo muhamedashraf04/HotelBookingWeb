@@ -26,7 +26,7 @@ public class CustomerController : Controller
     public IActionResult Register([FromForm] RegisterCustomerDTO registerCustomerDTO)
     {
         Customer? customer = registerCustomerDTO.customer;
-        var folderPath = $"hotel_booking/Customers/{customer.Name}";
+        var folderPath = $"hotel_booking/Customers/{customer.Name}|{customer.IdentificationNumber}";
         List<IFormFile>? IDFile = registerCustomerDTO.IdentificationFile;
         List<IFormFile>? MarriageCertificateFile = registerCustomerDTO.MarriageCertificate;
         var cust = new ImageUtility(_cloudinary);
@@ -151,7 +151,7 @@ public class CustomerController : Controller
         List<IFormFile>? MarriageCertificateFile = registerCustomerDTO.MarriageCertificate;
         string? deleted = registerCustomerDTO.deletedImages;
         var cust = new ImageUtility(_cloudinary);
-        var folderPath = $"hotel_booking/Customers/{customer.Name}";
+        var folderPath = $"hotel_booking/Customers/{customer.Name}|{customer.IdentificationNumber}";
         var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
@@ -307,7 +307,7 @@ public class CustomerController : Controller
         }
 
         var cust = _unitOfWork.Customers.Get(u => u.Id == id);
-        var prefix = $"hotel_booking/Customers/{cust.Name}/";
+        var prefix = $"hotel_booking/Customers/{cust.Name}|{cust.IdentificationNumber}/";
         _cloudinary.DeleteResourcesByPrefix(prefix + "ID");
         _cloudinary.DeleteResourcesByPrefix(prefix + "MarriageCert");
 
