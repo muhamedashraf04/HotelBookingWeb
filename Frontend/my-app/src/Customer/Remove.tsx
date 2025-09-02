@@ -59,6 +59,7 @@ export default function CustomersPage() {
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -217,18 +218,33 @@ export default function CustomersPage() {
   const handleEditCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCustomer || isEditing) return;
+    setIsEditing(true);
+    const newErrors: { [key: string]: string } = {};
 
-    // --- Basic validation ---
-    if (IDexistingImages.length + IDnewImages.length === 0) {
+    if (editingCustomer.email?.trim() === "") newErrors.email = "Email is required";
+    if (!editingCustomer.identificationType) newErrors.identificationType = "ID type is required";
+    if (editingCustomer.phoneNumber?.trim() === "") newErrors.phoneNumber = "Phone number is required";
+    if (!editingCustomer.nationality) newErrors.nationality = "Nationality is required";
+
+    if (IDexistingImages.length + IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
+    if (editingCustomer.isMarried && MARexistingImages.length + MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fill all required fields");
+      return;
+    }
+    if (IDexistingImages.length === 0) {
       toast.error("At least one Identification file is required");
       return;
     }
-    if (editingCustomer.isMarried && MARexistingImages.length + MARnewImages.length === 0) {
+    if (editingCustomer.isMarried && MARexistingImages.length === 0) {
       toast.error("Marriage certificate is required for married customers");
       return;
     }
 
-    setIsEditing(true);
+    setErrors({});
+    setEditOpen(true);
 
     try {
       const formData = new FormData();
@@ -347,18 +363,18 @@ export default function CustomersPage() {
               onSubmit={handleEditCustomer}
             >
               <div>
-                <Label>Name</Label>
+                <Label>Name *</Label>
                 <Input
+                  disabled
                   value={editingCustomer?.name}
                   onChange={(e) => {
                     if (!editingCustomer) { return };
-
                     setEditingCustomer({ ...editingCustomer, name: e.target.value });
                   }}
                 />
               </div>
               <div>
-                <Label>Email</Label>
+                <Label>Email *</Label>
                 <Input
                   type="email"
                   value={editingCustomer?.email ?? ""}
@@ -366,20 +382,24 @@ export default function CustomersPage() {
                     if (!editingCustomer) { return };
                     setEditingCustomer({ ...editingCustomer, email: e.target.value })
                   }}
+                  className={errors.email ? "border-red-500" : ""}
                 />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
               </div>
               <div>
-                <Label>Phone Number</Label>
+                <Label>Phone Number *</Label>
                 <Input
                   value={editingCustomer?.phoneNumber ?? ""}
                   onChange={(e) => {
                     if (!editingCustomer) { return };
                     setEditingCustomer({ ...editingCustomer, phoneNumber: e.target.value })
                   }}
+                  className={errors.phoneNumber ? "border-red-500" : ""}
                 />
+                {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
               </div>
               <div>
-                <Label>Nationality</Label>
+                <Label>Nationality *</Label>
                 <Select
                   onValueChange={(value) => {
                     if (!editingCustomer) return;
@@ -401,10 +421,11 @@ export default function CustomersPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
               </div>
               <div>
                 <Label className="pl-1" htmlFor="IdentificationType">
-                  Identification Type
+                  Identification Type *
                 </Label>
                 <Select
                   value={editingCustomer?.identificationType}
@@ -423,10 +444,12 @@ export default function CustomersPage() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}
               </div>
               <div>
-                <Label className="">Identification Number</Label>
+                <Label className="">Identification Number *</Label>
                 <Input
+                  disabled
                   value={editingCustomer?.identificationNumber ?? ""}
                   onChange={(e) => {
                     if (!editingCustomer) { return };
@@ -438,7 +461,7 @@ export default function CustomersPage() {
                 />
               </div>
               <div>
-                <Label>Address</Label>
+                <Label>Address (Optional)</Label>
                 <Input
                   value={editingCustomer?.address ?? ""}
                   onChange={(e) => {
@@ -449,7 +472,7 @@ export default function CustomersPage() {
               </div>
               <div>
                 <Label className="pl-1" htmlFor="BirthDate">
-                  Birth Date
+                  Birth Date *
                 </Label>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
@@ -567,7 +590,7 @@ export default function CustomersPage() {
                 {[...IDexistingImages, ...IDnewImages].map((img, index) => (
                   <div
                     key={index}
-                    className="relative w-20 h-20 border rounded overflow-hidden"
+                    className="relative w-20 h-20 border rounded overflow-hidden flex items-center justify-center bg-gray-100"
                   >
                     <img
                       src={typeof img === "string" ? img : URL.createObjectURL(img)}
@@ -584,6 +607,7 @@ export default function CustomersPage() {
                   </div>
                 ))}
               </div>
+
               {editingCustomer?.isMarried && (
                 <>
                   <div
