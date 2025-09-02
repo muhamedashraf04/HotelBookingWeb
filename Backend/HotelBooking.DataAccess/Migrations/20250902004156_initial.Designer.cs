@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250831080400_Remove-Things")]
-    partial class RemoveThings
+    [Migration("20250902004156_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,67 +24,6 @@ namespace HotelBooking.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("HotelBooking.Models.Auth.Admin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<float>("DiscountLimit")
-                        .HasColumnType("real");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("createdBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("updatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("updatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DiscountLimit = 0f,
-                            Email = "Admin@HMS.com",
-                            PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
-                            Role = "Admin",
-                            UserName = "Admin",
-                            createdAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            createdBy = "Server",
-                            updatedAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedBy = "Server"
-                        });
-                });
 
             modelBuilder.Entity("HotelBooking.Models.Auth.User", b =>
                 {
@@ -106,6 +45,7 @@ namespace HotelBooking.DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
@@ -133,6 +73,52 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DiscountLimit = 0f,
+                            Email = "Admin@HMS.com",
+                            PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
+                            PhoneNumber = "01021565688",
+                            Role = "Admin",
+                            UserName = "Admin",
+                            createdAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "Server",
+                            updatedAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedBy = "Server"
+                        });
+                });
+
+            modelBuilder.Entity("HotelBooking.Models.Models.Configuration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("configurations");
                 });
 
             modelBuilder.Entity("HotelBooking.Models.Models.Customer", b =>
@@ -322,6 +308,14 @@ namespace HotelBooking.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("badgeBg")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("badgeText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("createdAt")
                         .HasColumnType("datetime2");
 
@@ -346,6 +340,8 @@ namespace HotelBooking.DataAccess.Migrations
                             Id = 1,
                             Price = 1000f,
                             Type = "Single",
+                            badgeBg = "",
+                            badgeText = "",
                             createdAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             createdBy = "Server",
                             updatedAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -356,6 +352,8 @@ namespace HotelBooking.DataAccess.Migrations
                             Id = 2,
                             Price = 1500f,
                             Type = "Double",
+                            badgeBg = "",
+                            badgeText = "",
                             createdAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             createdBy = "Server",
                             updatedAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -366,6 +364,8 @@ namespace HotelBooking.DataAccess.Migrations
                             Id = 3,
                             Price = 3000f,
                             Type = "Suite",
+                            badgeBg = "",
+                            badgeText = "",
                             createdAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             createdBy = "Server",
                             updatedAt = new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),

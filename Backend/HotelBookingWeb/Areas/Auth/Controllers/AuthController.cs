@@ -17,32 +17,27 @@ public class AuthController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _config;
+
     public AuthController(IUnitOfWork unitOfWork, IConfiguration config)
     {
         _config = config;
         _unitOfWork = unitOfWork;
-        _config = config;
     }
 
-    [HttpPost("register")]
+    // ---------------- REGISTER USER (Admins only) ----------------
+    [HttpPost("register-user")]
     [Authorize(Roles = "Admin")]
-    public IActionResult Register(RegisterDto dto)
+    public IActionResult RegisterUser(RegisterDto dto)
     {
-        // check username
-        var usernameTaken =
-            _unitOfWork.Users.Get(u => u.UserName == dto.UserName) != null ||
-            _unitOfWork.Admins.Get(a => a.UserName == dto.UserName) != null;
-
+        var usernameTaken = _unitOfWork.Users.Get(u => u.UserName == dto.UserName) != null;
         if (usernameTaken)
             return BadRequest("Username is already taken.");
 
-        // check email
-        var emailTaken =
-            _unitOfWork.Users.Get(u => u.Email == dto.Email) != null ||
-            _unitOfWork.Admins.Get(a => a.Email == dto.Email) != null;
-
+        var emailTaken = _unitOfWork.Users.Get(u => u.Email == dto.Email) != null;
         if (emailTaken)
             return BadRequest("Email is already taken.");
+
+        string createdBy = User.Identity?.Name ?? "System";
 
         var user = new User
         {
@@ -51,7 +46,8 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
             PasswordHash = PasswordHasher.Hash(dto.Password),
             Role = "User",
-            createdBy = "Self"
+            DiscountLimit = dto.discountLimit,
+            createdBy = createdBy
         };
 
         _unitOfWork.Users.Create(user);
@@ -59,138 +55,145 @@ public class AuthController : ControllerBase
 
         return Ok("User registered successfully.");
     }
+
+    // ---------------- REGISTER ADMIN (Admins only) ----------------
     [HttpPost("register-admin")]
     [Authorize(Roles = "Admin")]
     public IActionResult RegisterAdmin(RegisterDto dto)
     {
-        var usernameTaken =
-            _unitOfWork.Admins.Get(a => a.UserName == dto.UserName) != null ||
-            _unitOfWork.Users.Get(u => u.UserName == dto.UserName) != null;
-
+        var usernameTaken = _unitOfWork.Users.Get(u => u.UserName == dto.UserName) != null;
         if (usernameTaken)
             return BadRequest("Username is already taken.");
 
-        var emailTaken =
-            _unitOfWork.Admins.Get(a => a.Email == dto.Email) != null ||
-            _unitOfWork.Users.Get(u => u.Email == dto.Email) != null;
-
+        var emailTaken = _unitOfWork.Users.Get(u => u.Email == dto.Email) != null;
         if (emailTaken)
             return BadRequest("Email is already taken.");
-        string currentAdminUserName = User.Identity?.Name;
-        var admin = new HotelBooking.Models.Auth.Admin
+
+        string createdBy = User.Identity?.Name ?? "System";
+
+        var admin = new User
         {
             UserName = dto.UserName,
             Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
             PasswordHash = PasswordHasher.Hash(dto.Password),
             Role = "Admin",
-            createdBy = currentAdminUserName
+            DiscountLimit = dto.discountLimit,
+            createdBy = createdBy
         };
 
-        _unitOfWork.Admins.Create(admin);
+        _unitOfWork.Users.Create(admin);
         _unitOfWork.Save();
 
         return Ok("Admin registered successfully.");
     }
+
+    // ---------------- LOGIN ----------------
     [HttpPost("login")]
     [AllowAnonymous]
     public IActionResult Login(LoginDto dto)
     {
-        var try1 = _unitOfWork.Users.Get(u => u.UserName == dto.UserName);
-        HotelBooking.Models.Auth.Admin try2 = null;
-
-        var user = null as BaseUser;
-
-        if (try1 == null)
+        try
         {
-            try2 = _unitOfWork.Admins.Get(u => u.UserName == dto.UserName);
-            if (try2 == null)
+            var user = _unitOfWork.Users.Get(u => u.UserName == dto.UserName);
+
+            if (user == null)
             {
-                return Unauthorized("Invalid username or email.");
+                return Unauthorized("Invalid username or password.");
             }
-            else
+
+            if (!PasswordHasher.Verify(dto.Password, user.PasswordHash))
             {
-                user = try2 as HotelBooking.Models.Auth.Admin;
+                return Unauthorized("Invalid username or password.");
             }
+
+            var claims = new List<Claim>
+            {
+                new Claim("id", user.Id.ToString()),
+                new Claim("username", user.UserName),
+                new Claim("email", user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(_config["Jwt:AccessTokenMinutes"]!)),
+                signingCredentials: creds
+            );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return Ok(new { token = jwt });
         }
-        else
+        catch (Exception ex)
         {
-            user = try1 as User;
+            return BadRequest(new { error = ex.Message, stackTrace = ex.StackTrace });
         }
-
-        if (user == null || !PasswordHasher.Verify(dto.Password, user.PasswordHash))
-            return Unauthorized("Invalid password.");
-
-        var claims = new List<Claim>
-    {
-        new Claim("id", user.Id.ToString()),
-        new Claim("username", user.UserName),
-        new Claim("email", user.Email),
-        new Claim("role", user.Role)
-    };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(double.Parse(_config["Jwt:AccessTokenMinutes"]!)),
-            signingCredentials: creds
-        );
-
-        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-        return Ok(new { token = jwt });
     }
+
+    // ---------------- DISCOUNT LIMIT ----------------
     [HttpGet("getdiscountlimit")]
     [Authorize]
     public IActionResult GetDiscountLimit()
     {
-        // Get the 'id' claim from the authenticated user's token.
         var userIdClaim = User.FindFirst("id");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
             return BadRequest("User ID claim not found or is invalid.");
-        }
 
         var user = _unitOfWork.Users.Get(u => u.Id == userId);
-        var admin = _unitOfWork.Admins.Get(a => a.Id == userId);
-        BaseUser foundUser = null as BaseUser;
-        if (user != null)
-        {
-            foundUser = user;
-        }
-        else if (admin != null)
-        {
-            foundUser = admin as BaseUser;
-        }
-
-        if (foundUser == null)
-        {
+        if (user == null)
             return NotFound("User not found.");
-        }
 
-        // Return the user's specific discount limit.
-        return Ok(new { limit = foundUser.DiscountLimit });
+        return Ok(new { limit = user.DiscountLimit });
     }
+
+    // ---------------- GET CURRENT USER INFO ----------------
+    [HttpGet("me")]
+    [Authorize]
+    public IActionResult GetCurrentUser()
+    {
+        var userIdClaim = User.FindFirst("id");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return BadRequest("User ID claim not found or is invalid.");
+
+        var user = _unitOfWork.Users.Get(u => u.Id == userId);
+        if (user == null)
+            return NotFound("User not found.");
+
+        return Ok(new
+        {
+            id = user.Id,
+            userName = user.UserName,
+            email = user.Email,
+            phoneNumber = user.PhoneNumber,
+            role = user.Role,
+            discountLimit = user.DiscountLimit
+        });
+    }
+
+    // ---------------- LIST USERS / ADMINS ----------------
     [HttpGet("getalladmins")]
     [Authorize(Roles = "Admin")]
-    public IActionResult getalladmins()
+    public IActionResult GetAllAdmins()
     {
-        var admins = _unitOfWork.Admins.GetAll().ToList();
-        // No need to check for null here. ToList() will return an empty list if no data is found.
+        var admins = _unitOfWork.Users.GetAll().Where(u => u.Role == "Admin").ToList();
         return Ok(admins);
     }
 
     [HttpGet("getallusers")]
     [Authorize(Roles = "Admin")]
-    public IActionResult getallusers()
+    public IActionResult GetAllUsers()
     {
-        var users = _unitOfWork.Users.GetAll().ToList(); // Corrected variable name
-                                                         // No need to check for null here. ToList() will return an empty list if no data is found.
+        var users = _unitOfWork.Users.GetAll().Where(u => u.Role == "User").ToList();
         return Ok(users);
     }
+
+    // ---------------- UPDATE / DELETE ----------------
     [HttpPut("update-user/{id}")]
     [Authorize(Roles = "Admin")]
     public IActionResult UpdateUser(int id, RegisterDto dto)
@@ -201,6 +204,7 @@ public class AuthController : ControllerBase
         user.UserName = dto.UserName;
         user.Email = dto.Email;
         user.PhoneNumber = dto.PhoneNumber;
+        user.DiscountLimit = dto.discountLimit;
         if (!string.IsNullOrEmpty(dto.Password))
             user.PasswordHash = PasswordHasher.Hash(dto.Password);
 
@@ -221,19 +225,23 @@ public class AuthController : ControllerBase
         return Ok("User deleted successfully.");
     }
 
+    // ---------------- ADMIN MANAGEMENT ----------------
     [HttpPut("update-admin/{id}")]
     [Authorize(Roles = "Admin")]
     public IActionResult UpdateAdmin(int id, RegisterDto dto)
     {
-        var admin = _unitOfWork.Admins.Get(a => a.Id == id);
+        var admin = _unitOfWork.Users.Get(u => u.Id == id);
         if (admin == null) return NotFound("Admin not found.");
+        if (admin.Role != "Admin") return BadRequest("User is not an admin.");
 
         admin.UserName = dto.UserName;
         admin.Email = dto.Email;
+        admin.PhoneNumber = dto.PhoneNumber;
+        admin.DiscountLimit = dto.discountLimit;
         if (!string.IsNullOrEmpty(dto.Password))
             admin.PasswordHash = PasswordHasher.Hash(dto.Password);
 
-        _unitOfWork.Admins.Edit(admin);
+        _unitOfWork.Users.Edit(admin);
         _unitOfWork.Save();
         return Ok("Admin updated successfully.");
     }
@@ -242,10 +250,11 @@ public class AuthController : ControllerBase
     [Authorize(Roles = "Admin")]
     public IActionResult DeleteAdmin(int id)
     {
-        var admin = _unitOfWork.Admins.Get(a => a.Id == id);
+        var admin = _unitOfWork.Users.Get(u => u.Id == id);
         if (admin == null) return NotFound("Admin not found.");
+        if (admin.Role != "Admin") return BadRequest("User is not an admin.");
 
-        _unitOfWork.Admins.Remove(id);
+        _unitOfWork.Users.Remove(id);
         _unitOfWork.Save();
         return Ok("Admin deleted successfully.");
     }

@@ -22,67 +22,6 @@ namespace HotelBooking.DataAccess.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HotelBooking.Models.Auth.Admin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<float>("DiscountLimit")
-                        .HasColumnType("real");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("createdBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("updatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("updatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DiscountLimit = 0f,
-                            Email = "Admin@HMS.com",
-                            PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
-                            Role = "Admin",
-                            UserName = "Admin",
-                            createdAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            createdBy = "Server",
-                            updatedAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            updatedBy = "Server"
-                        });
-                });
-
             modelBuilder.Entity("HotelBooking.Models.Auth.User", b =>
                 {
                     b.Property<int>("Id")
@@ -103,6 +42,7 @@ namespace HotelBooking.DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
@@ -130,6 +70,22 @@ namespace HotelBooking.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DiscountLimit = 0f,
+                            Email = "Admin@HMS.com",
+                            PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
+                            PhoneNumber = "01021565688",
+                            Role = "Admin",
+                            UserName = "Admin",
+                            createdAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "Server",
+                            updatedAt = new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            updatedBy = "Server"
+                        });
                 });
 
             modelBuilder.Entity("HotelBooking.Models.Models.Configuration", b =>

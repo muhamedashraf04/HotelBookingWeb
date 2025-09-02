@@ -17,7 +17,6 @@ namespace HotelBooking.DataAccess.Data
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<Admin> Admins { get; set; }
         public DbSet<Rate> Rates { get; set; }
         //public DbSet<OldReservations> OldReservations { get; set; }
         public DbSet<Configuration> configurations { get; set; }
@@ -180,9 +179,22 @@ namespace HotelBooking.DataAccess.Data
             modelBuilder.Entity<Room>().HasData(singleRooms);
             modelBuilder.Entity<Room>().HasData(doubleRooms);
             modelBuilder.Entity<Room>().HasData(suites);
-            modelBuilder.Entity<Admin>().HasData(
-                new Admin { Id = 1,Role = "Admin", Email = "Admin@HMS.com", createdBy = "Server", createdAt =  new DateTime(2025, 4, 25, 0, 0, 0) , updatedAt = new DateTime(2025, 4, 25, 0, 0, 0), updatedBy = "Server", UserName = "Admin", PasswordHash = "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8" }
-                );
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = 1,
+                    Role = "Admin",
+                    Email = "Admin@HMS.com",
+                    PhoneNumber = "01021565688",
+                    createdBy = "Server",
+                    createdAt = new DateTime(2025, 4, 25, 0, 0, 0),
+                    updatedAt = new DateTime(2025, 4, 25, 0, 0, 0),
+                    updatedBy = "Server",
+                    UserName = "Admin",
+                    PasswordHash = "5e884898da28047151d0e56f8dc6292773603d0d6aabdd62a11ef721d1542d8",
+                    DiscountLimit = 100
+                }
+            );
             modelBuilder.Entity<Customer>().HasData(
 
     new Customer
@@ -198,7 +210,9 @@ namespace HotelBooking.DataAccess.Data
         BirthDate = new DateOnly(1995, 3, 12),
         Email = "john.ahmady@gmail.com",
         IsMarried = false,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedBy = "Server"
     },
     new Customer
     {
@@ -213,7 +227,9 @@ namespace HotelBooking.DataAccess.Data
         BirthDate = new DateOnly(1997, 7, 21),
         Email = "sara.mahmoud@gmail.com",
         IsMarried = false,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedBy = "Server"
     },
     new Customer
     {
@@ -228,7 +244,9 @@ namespace HotelBooking.DataAccess.Data
         BirthDate = new DateOnly(1990, 11, 4),
         Email = "m.smith@example.com",
         IsMarried = false,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedBy = "Server"
     },
     new Customer
     {
@@ -243,7 +261,9 @@ namespace HotelBooking.DataAccess.Data
         BirthDate = new DateOnly(1998, 1, 1),
         Email = "fatima.ali@example.com",
         IsMarried = false,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedBy = "Server"
     },
     new Customer
     {
@@ -259,7 +279,9 @@ namespace HotelBooking.DataAccess.Data
         Email = "david.johnson@example.co.uk",
         IsMarried = false,
         MarriedToCustomerId = null,
-        createdAt = new DateTime(2025, 8, 25, 0, 0, 0)
+        createdAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedAt = new DateTime(2025, 8, 25, 0, 0, 0),
+        updatedBy = "Server"
     }
 );
         }

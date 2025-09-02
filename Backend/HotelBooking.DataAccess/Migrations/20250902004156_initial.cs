@@ -8,30 +8,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBooking.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveThings : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Admins",
+                name: "configurations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    IconUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DiscountLimit = table.Column<float>(type: "real", nullable: false)
+                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Admins", x => x.Id);
+                    table.PrimaryKey("PK_configurations", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -73,6 +69,8 @@ namespace HotelBooking.DataAccess.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
+                    badgeBg = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    badgeText = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -160,26 +158,21 @@ namespace HotelBooking.DataAccess.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DiscountLimit = table.Column<float>(type: "real", nullable: false)
+                    DiscountLimit = table.Column<float>(type: "real", nullable: false),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    createdBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    updatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
-
-            migrationBuilder.InsertData(
-                table: "Admins",
-                columns: new[] { "Id", "DiscountLimit", "Email", "PasswordHash", "Role", "UserName", "createdAt", "createdBy", "updatedAt", "updatedBy" },
-                values: new object[] { 1, 0f, "Admin@HMS.com", "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8", "Admin", "Admin", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" });
 
             migrationBuilder.InsertData(
                 table: "Customers",
@@ -195,12 +188,12 @@ namespace HotelBooking.DataAccess.Migrations
 
             migrationBuilder.InsertData(
                 table: "Rates",
-                columns: new[] { "Id", "Price", "Type", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                columns: new[] { "Id", "Price", "Type", "badgeBg", "badgeText", "createdAt", "createdBy", "updatedAt", "updatedBy" },
                 values: new object[,]
                 {
-                    { 1, 1000f, "Single", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" },
-                    { 2, 1500f, "Double", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" },
-                    { 3, 3000f, "Suite", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" }
+                    { 1, 1000f, "Single", "", "", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" },
+                    { 2, 1500f, "Double", "", "", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" },
+                    { 3, 3000f, "Suite", "", "", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" }
                 });
 
             migrationBuilder.InsertData(
@@ -250,13 +243,18 @@ namespace HotelBooking.DataAccess.Migrations
                     { 209, 4, 4, "", 0f, "SU009", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
                     { 210, 4, 4, "", 0f, "SU010", "Suite", new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 8, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "DiscountLimit", "Email", "PasswordHash", "PhoneNumber", "Role", "UserName", "createdAt", "createdBy", "updatedAt", "updatedBy" },
+                values: new object[] { 1, 0f, "Admin@HMS.com", "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8", "01021565688", "Admin", "Admin", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server", new DateTime(2025, 4, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Server" });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Admins");
+                name: "configurations");
 
             migrationBuilder.DropTable(
                 name: "Customers");

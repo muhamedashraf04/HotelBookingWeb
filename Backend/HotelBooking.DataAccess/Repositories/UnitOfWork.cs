@@ -1,6 +1,5 @@
 ﻿
 using HotelBooking.DataAccess.Data;
-using HotelBooking.DataAccess.Repositories.HotelBooking.DataAccess.Repositories;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 
 namespace HotelBooking.DataAccess.Repositories
@@ -15,7 +14,6 @@ namespace HotelBooking.DataAccess.Repositories
 
         public IUserRepository Users { get; set; }
 
-        public IAdminRepository Admins { get; set; }
 
         public IRateRepository Rates { get; set; }
         public IConfigutaionRepository Configurations { get; set; }
@@ -27,7 +25,6 @@ namespace HotelBooking.DataAccess.Repositories
             DbContext = dBContext;
             Reservations = new ReservationRepository(DbContext);
             Customers = new CustomerRepository(DbContext);
-            Admins = new AdminRepository(DbContext);
             Users = new UserRepository(DbContext);
             Rooms = new RoomRepository(DbContext);
             Rates = new RateRepository(DbContext);
