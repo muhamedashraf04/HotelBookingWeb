@@ -200,7 +200,7 @@ export default function App() {
       }
     } catch (err: any) {
       if (err.response?.status === 400) {
-        ErrorToast("Invalid reservation ID");
+        ErrorToast("Failed to delete reservation");
       } else if (err.response?.status === 404) {
         ErrorToast("Reservation not found");
       } else {

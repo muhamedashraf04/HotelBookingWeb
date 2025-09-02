@@ -114,9 +114,9 @@ export default function CreateRoom() {
         setExistingImages(
           typeof room.images === "string" && room.images.trim().length > 0
             ? room.images
-              .split(",")
-              .map((img: string) => img.trim())
-              .filter((img: string) => img.length > 0)
+                .split(",")
+                .map((img: string) => img.trim())
+                .filter((img: string) => img.length > 0)
             : []
         );
       })
@@ -136,7 +136,6 @@ export default function CreateRoom() {
       msg = "Required";
     } else if (typeof value === "number" && value < 1) {
       msg = "Must be ≥ 1";
-      
     } else if (typeof value === "number" && !Number.isInteger(value)) {
       msg = "Must be an integer";
     }
@@ -347,6 +346,7 @@ export default function CreateRoom() {
               name="floor"
               type="number"
               min={1}
+              max={4}
               step={1}
               value={formData.floor}
               onChange={handleChange}
@@ -366,6 +366,7 @@ export default function CreateRoom() {
               name="capacity"
               type="number"
               min={1}
+              max={5}
               step={1}
               value={formData.capacity}
               onChange={handleChange}
@@ -446,8 +447,8 @@ export default function CreateRoom() {
               ? "Updating..."
               : "Creating..."
             : id
-              ? "Update Room"
-              : "Create Room"}
+            ? "Update Room"
+            : "Create Room"}
         </Button>
       </form>
     </>

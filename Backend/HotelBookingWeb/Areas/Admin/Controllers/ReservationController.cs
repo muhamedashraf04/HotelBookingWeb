@@ -308,12 +308,16 @@ public class ReservationController : Controller
     {
         if (id <= 0)
         {
-            return BadRequest("Invalid reservation ID.");
+            return BadRequest("Omda");
         }
         var reservation = _unitOfWork.Reservations.Get(r => r.Id == id);
         if (reservation == null)
         {
-            return NotFound("Reservation not found.");
+            return BadRequest("Reservation not found.");
+        }
+        if(reservation.Status == "Checked-In")
+        {
+            return BadRequest("Cannot delete a reservation that is currently checked in.");
         }
         _unitOfWork.Reservations.Remove(id);
         _unitOfWork.Save();

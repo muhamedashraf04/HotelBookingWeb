@@ -45,8 +45,6 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import countries from "world-countries";
 
-
-
 type Customer = {
   id: number;
   name: string;
@@ -61,7 +59,6 @@ type Customer = {
   identificationAttachment: string | null;
   marriageCertificateAttachment: string | null;
 };
-
 
 function Booking() {
   const location = useLocation();
@@ -91,7 +88,9 @@ function Booking() {
   const [MARexistingImages, setMARExistingImages] = useState<string[]>([]);
   const [MARnewImages, setMARNewImages] = useState<File[]>([]);
   const [MARdeletedImages, setMARDeletedImages] = useState<string[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
@@ -129,7 +128,6 @@ function Booking() {
     .filter((v, i, arr) => arr.indexOf(v) === i)
     .sort((a, b) => a.localeCompare(b));
 
-
   const fetchCustomers = async () => {
     try {
       const res = await fetch(
@@ -148,21 +146,21 @@ function Booking() {
   useEffect(() => {
     fetchCustomers();
     setIDExistingImages(
-      typeof newCustomer.identificationAttachment === "string" && newCustomer.identificationAttachment
-        .trim().length > 0
+      typeof newCustomer.identificationAttachment === "string" &&
+        newCustomer.identificationAttachment.trim().length > 0
         ? newCustomer.identificationAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
     setMARExistingImages(
-      typeof newCustomer.marriageCertificateAttachment === "string" && newCustomer.marriageCertificateAttachment
-        .trim().length > 0
+      typeof newCustomer.marriageCertificateAttachment === "string" &&
+        newCustomer.marriageCertificateAttachment.trim().length > 0
         ? newCustomer.marriageCertificateAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
   }, []);
@@ -313,7 +311,10 @@ function Booking() {
         "customer.IdentificationType",
         newCustomer.identificationType
       );
-      customerFormData.append("customer.IsMarried", String(newCustomer.isMarried));
+      customerFormData.append(
+        "customer.IsMarried",
+        String(newCustomer.isMarried)
+      );
       customerFormData.append(
         "customer.IdentificationNumber",
         newCustomer.identificationNumber
@@ -366,7 +367,6 @@ function Booking() {
       setIsCreating(false);
     }
   };
-
 
   return (
     <>
@@ -486,6 +486,7 @@ function Booking() {
                   id="adults"
                   type="number"
                   min="1"
+                  max="3"
                   value={adults}
                   onChange={(e) => setAdults(Number(e.target.value))}
                   className="border p-2 w-full rounded"
@@ -497,6 +498,7 @@ function Booking() {
                   id="children"
                   type="number"
                   min="0"
+                  max="5"
                   value={children}
                   onChange={(e) => setChildren(Number(e.target.value))}
                   className="border p-2 w-full rounded"
@@ -508,6 +510,7 @@ function Booking() {
                   id="extraBeds"
                   type="number"
                   min="0"
+                  max="2"
                   value={extraBeds}
                   onChange={(e) => setExtraBeds(Number(e.target.value))}
                   className="border p-2 w-full rounded"
@@ -559,7 +562,10 @@ function Booking() {
               <Input
                 value={newCustomer.phoneNumber ?? ""}
                 onChange={(e) =>
-                  setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })
+                  setNewCustomer({
+                    ...newCustomer,
+                    phoneNumber: e.target.value,
+                  })
                 }
               />
             </div>
@@ -576,10 +582,7 @@ function Booking() {
                 </SelectTrigger>
                 <SelectContent className="max-h-60" position="popper">
                   {sortedNationalities.map((nat, idx) => (
-                    <SelectItem
-                      key={idx}
-                      value={nat}
-                    >
+                    <SelectItem key={idx} value={nat}>
                       {nat}
                     </SelectItem>
                   ))}
@@ -594,7 +597,8 @@ function Booking() {
                 value={newCustomer.identificationType}
                 onValueChange={(value) =>
                   setNewCustomer({ ...newCustomer, identificationType: value })
-                }>
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a type..." />
                 </SelectTrigger>
@@ -651,14 +655,16 @@ function Booking() {
                     <Calendar
                       mode="single"
                       captionLayout="dropdown"
-
                       selected={birthDate}
                       onSelect={(date) => {
                         if (!date) return;
 
                         // Format as YYYY-MM-DD in local timezone
                         const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, "0");
+                        const month = String(date.getMonth() + 1).padStart(
+                          2,
+                          "0"
+                        );
                         const day = String(date.getDate()).padStart(2, "0");
                         const formatted = `${year}-${month}-${day}`;
 
@@ -719,11 +725,11 @@ function Booking() {
               </div>
             </div>
 
-
             {/* File uploads */}
             <div
               onClick={() => idFileInputRef.current?.click()}
-              className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50">
+              className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50"
+            >
               <Label className="text-sm text-gray-600">
                 Identification File
               </Label>
@@ -746,7 +752,9 @@ function Booking() {
                   className="relative w-20 h-20 border rounded overflow-hidden"
                 >
                   <img
-                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                    src={
+                      typeof img === "string" ? img : URL.createObjectURL(img)
+                    }
                     alt="preview"
                     className="object-cover w-full h-full"
                   />
@@ -788,7 +796,11 @@ function Booking() {
                       className="relative w-20 h-20 border rounded overflow-hidden"
                     >
                       <img
-                        src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                        src={
+                          typeof img === "string"
+                            ? img
+                            : URL.createObjectURL(img)
+                        }
                         alt="preview"
                         className="object-cover w-full h-full"
                       />
@@ -808,8 +820,6 @@ function Booking() {
               </>
             )}
 
-
-
             <DialogFooter className="block">
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <Button
@@ -827,7 +837,7 @@ function Booking() {
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog >
+      </Dialog>
     </>
   );
 }

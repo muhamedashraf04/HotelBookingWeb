@@ -210,11 +210,15 @@ const EditReservation = () => {
                 <Calendar
                   mode="single"
                   selected={checkInDate}
+                  captionLayout="dropdown"
                   onSelect={(date) => {
                     setCheckInDate(date);
                     setCheckOutDate(undefined);
                     setCheckInOpen(false);
                   }}
+                  disabled={(date) =>
+                    date < new Date(new Date().setHours(0, 0, 0, 0))
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -247,9 +251,18 @@ const EditReservation = () => {
                 <Calendar
                   mode="single"
                   selected={checkOutDate}
+                  captionLayout="dropdown"
                   onSelect={(date) => {
                     setCheckOutDate(date);
                     setCheckOutOpen(false);
+                  }}
+                  disabled={(date) => {
+                    if (!checkInDate) return true; // disable all until check-in is chosen
+
+                    const minDate = new Date(checkInDate);
+                    minDate.setDate(minDate.getDate() + 1); // check-out must be at least next day
+
+                    return date < minDate; // disable anything before minDate
                   }}
                 />
               </PopoverContent>

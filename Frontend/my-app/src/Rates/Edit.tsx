@@ -346,7 +346,8 @@ const EditRates = () => {
                           <div className="mt-2 flex gap-2 items-center">
                             <Input
                               type="number"
-                              step="0.01"
+                              step="10"
+                              min={1000}
                               value={draft?.price ?? 0}
                               onChange={(e) =>
                                 setDraft((d) =>
