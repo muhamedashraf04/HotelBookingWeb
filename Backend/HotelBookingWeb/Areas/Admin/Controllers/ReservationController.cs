@@ -86,7 +86,7 @@ public class ReservationController : Controller
         }
 
         var reservations = _unitOfWork.Reservations.GetAll(
-            r => r.RoomType == rsd.RoomType && r.Status != "Checked-Out"
+            r => r.RoomType == rsd.RoomType && r.Status != "Checked-Out" && r.Id != rsd.ReservationId
         );
         var roomReservations = reservations
             .GroupBy(r => r.RoomId)
@@ -274,29 +274,34 @@ public class ReservationController : Controller
     }
 
 
-    [HttpPatch]
-    public IActionResult Edit([FromBody] Reservation reservation)
+    [HttpPost]
+    public IActionResult Edit([FromBody] ReservationEditDTO dto)
     {
-        if (reservation == null)
-        {
-            return BadRequest("Reservation data is required.");
-        }
-        if (reservation.CheckInDate >= reservation.CheckOutDate)
+        if (dto.CheckInDate >= dto.CheckOutDate)
         {
             return BadRequest("Check-in date must be before Check-out date.");
         }
-        if (ModelState.IsValid)
-        {
-            var room = _unitOfWork.Rooms.Get(r => r.Id == reservation.RoomId);
-            int numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days + 1;
-            reservation.Dues = (room.Price * numberOfNights);
 
-            _unitOfWork.Reservations.Edit(reservation);
-            _unitOfWork.Save();
-            return Ok("Reservation updated successfully.");
+        var reservation = _unitOfWork.Reservations.Get(r => r.Id == dto.Id);
+        if (reservation == null)
+        {
+            return NotFound("Reservation not found.");
         }
-        return BadRequest("Invalid reservation data. Please check the input and try again.");
+
+        reservation.CheckInDate = dto.CheckInDate;
+        reservation.CheckOutDate = dto.CheckOutDate;
+        reservation.RoomId = dto.RoomId;
+
+        var room = _unitOfWork.Rooms.Get(r => r.Id == dto.RoomId);
+        int numberOfNights = (dto.CheckOutDate.Date - dto.CheckInDate.Date).Days;
+        reservation.Dues = room.Price * numberOfNights;
+
+        _unitOfWork.Reservations.Edit(reservation);
+        _unitOfWork.Save();
+
+        return Ok("Reservation updated successfully.");
     }
+
 
     [HttpDelete]
     public IActionResult Delete(int id)

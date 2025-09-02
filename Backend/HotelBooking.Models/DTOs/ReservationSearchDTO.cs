@@ -11,5 +11,6 @@ namespace HotelBooking.Models.DTOs
         public DateTime? CheckInDate { get; set; }
         public DateTime? CheckOutDate { get; set; }
         public string RoomType { get; set; } = "";
+        public int? ReservationId { get; set; }
     }
 }

@@ -44,10 +44,11 @@ type Room = {
 };
 
 interface ReservationUpdateDto {
-  id: number;
-  checkIn: string; // use ISO string for dates
-  checkOut: string;
+  Id: number;
+  CheckInDate: string;
+  CheckOutDate: string;
   roomId: number;
+  ReservationId?: number;
 }
 
 const roomTypes = [
@@ -89,6 +90,14 @@ const EditReservation = () => {
         })
       : "12:00"
   );
+  const formatDateTimeLocal = (date: Date | string | undefined): string => {
+    if (!date) return "";
+    const d = new Date(date);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+      d.getDate()
+    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
   const [checkOutTime, setCheckOutTime] = React.useState(
     reservationState
       ? new Date(reservationState.checkOutDate).toLocaleTimeString("en-GB", {
@@ -119,9 +128,14 @@ const EditReservation = () => {
     }
 
     const body = {
-      checkIn: new Date(`${checkInDate.toDateString()} ${checkInTime}`),
-      checkOut: new Date(`${checkOutDate.toDateString()} ${checkOutTime}`),
+      CheckInDate: formatDateTimeLocal(
+        `${checkInDate.toDateString()} ${checkInTime}`
+      ),
+      CheckOutDate: formatDateTimeLocal(
+        `${checkOutDate.toDateString()} ${checkOutTime}`
+      ),
       roomType: roomType,
+      reservationId: Number(id),
     };
 
     setLoading(true);
@@ -145,17 +159,19 @@ const EditReservation = () => {
   const updateReservation = async (room: Room) => {
     try {
       const dto: ReservationUpdateDto = {
-        id: Number(id),
-        checkIn: new Date(
+        Id: Number(id),
+        CheckInDate: formatDateTimeLocal(
           `${checkInDate?.toDateString()} ${checkInTime}`
-        ).toISOString(),
-        checkOut: new Date(
+        ),
+        CheckOutDate: formatDateTimeLocal(
           `${checkOutDate?.toDateString()} ${checkOutTime}`
-        ).toISOString(),
+        ),
         roomId: room.id,
       };
+      console.log("Checkin: " + dto.CheckInDate);
 
-      await axios.put(`${Url}/Admin/Reservation/Update`, dto);
+      console.log("Checkin: " + dto.CheckOutDate);
+      await axios.post(`${Url}/Admin/Reservation/Edit`, dto);
 
       toast.success(`Reservation updated for Room ${room.roomNumber}`);
 
@@ -358,7 +374,7 @@ const EditReservation = () => {
                       className={`w-full ${"cursor-pointer"}`}
                       onClick={() => updateReservation(room)}
                     >
-                      "Update Reservation"
+                      Update Reservation
                     </Button>
                   </AccordionContent>
                 </AccordionItem>
