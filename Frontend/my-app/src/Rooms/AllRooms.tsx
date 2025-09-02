@@ -56,66 +56,79 @@ export type Room = {
   images: string;
 };
 
-interface Rate {
+type Rate = {
   id?: number;
   type: string;
   price: number;
-}
+  badgeBg?: string; // saved from Rates page (hex)
+  badgeText?: string; // saved from Rates page (hex)
+};
 
 const ITEMS_PER_PAGE = 70;
 
+// Fallback colors if a rate doesn't have custom colors
+const DEFAULT_BADGE_BG = "#e5e7eb"; // gray-200
+const DEFAULT_BADGE_FG = "#1f2937"; // gray-800
+
 const AllRooms = () => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  // data
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomTypes, setRoomTypes] = useState<string[]>([]);
+  const [rateColors, setRateColors] = useState<
+    Record<string, { bg: string; fg: string }>
+  >({});
+
+  // ui
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [typesLoading, setTypesLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [roomTypes, setRoomTypes] = useState<string[]>([]);
-  const [typesLoading, setTypesLoading] = useState(true);
 
-  // Function to fetch room types from Rates API
-  const fetchRoomTypes = async (): Promise<string[]> => {
-    try {
-      const response = await axios.get(`${Url}/Admin/Rate/GetAll`);
-      const rates: Rate[] = response.data;
-
-      // Extract unique room types
-      const types = [...new Set(rates.map((rate: Rate) => rate.type))];
-
-      // Sort types based on price (cheapest first)
-      const sortedTypes = types.sort((a, b) => {
-        const rateA = rates.find((r: Rate) => r.type === a);
-        const rateB = rates.find((r: Rate) => r.type === b);
-        return (rateA?.price || 0) - (rateB?.price || 0);
-      });
-
-      return sortedTypes;
-    } catch (error) {
-      console.error("Failed to fetch room types:", error);
-      return ["Single", "Double", "Suite"]; // Fallback to default
-    }
-  };
-
+  // Fetch rooms + rates (with colors)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setTypesLoading(true);
-
       try {
-        // Fetch rooms
-        const roomsResponse = await axios.get(`${Url}/Admin/Room/GetAll`);
-        if (roomsResponse.status !== 200)
-          throw new Error("Failed to fetch rooms");
-        setRooms(roomsResponse.data as Room[]);
+        const [roomsRes, ratesRes] = await Promise.all([
+          axios.get(`${Url}/Admin/Room/GetAll`),
+          axios.get(`${Url}/Admin/Rate/GetAll`),
+        ]);
 
-        // Fetch room types from Rates
-        const types = await fetchRoomTypes();
-        setRoomTypes(types);
+        if (roomsRes.status !== 200) throw new Error("Failed to fetch rooms");
+        const roomsData = roomsRes.data as Room[];
+        setRooms(roomsData);
+
+        const rates = (ratesRes.data as Rate[]) ?? [];
+
+        // Determine type order by price (cheapest first)
+        const sortedTypes = [...new Set(rates.map((r) => r.type))].sort(
+          (a, b) => {
+            const pa = rates.find((r) => r.type === a)?.price ?? 0;
+            const pb = rates.find((r) => r.type === b)?.price ?? 0;
+            return pa - pb;
+          }
+        );
+        setRoomTypes(sortedTypes);
+
+        // Build color map: type -> { bg, fg }
+        const colorMap: Record<string, { bg: string; fg: string }> = {};
+        for (const r of rates) {
+          colorMap[r.type] = {
+            bg: r.badgeBg || DEFAULT_BADGE_BG,
+            fg: r.badgeText || DEFAULT_BADGE_FG,
+          };
+        }
+        setRateColors(colorMap);
       } catch (err: any) {
-        toast.error(err?.message || "Something went wrong while fetching data");
+        console.error("Fetch error:", err);
+        toast.error(err?.message || "Failed to fetch rooms/rates");
+        // reasonable fallback order so UI is usable
         setRoomTypes(["Single", "Double", "Suite"]);
       } finally {
         setLoading(false);
@@ -126,31 +139,27 @@ const AllRooms = () => {
     fetchData();
   }, []);
 
-  // Function to sort rooms by type in consistent order
+  // Sort rooms by the price order of types (from rates)
   const sortRoomsByType = (roomsToSort: Room[]): Room[] => {
     if (roomTypes.length === 0) return roomsToSort;
-
     return [...roomsToSort].sort((a, b) => {
-      const indexA = roomTypes.indexOf(a.roomType);
-      const indexB = roomTypes.indexOf(b.roomType);
-
-      if (indexA !== -1 && indexB !== -1) {
-        return indexA - indexB;
-      }
-
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
-
+      const ia = roomTypes.indexOf(a.roomType);
+      const ib = roomTypes.indexOf(b.roomType);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
       return a.roomType.localeCompare(b.roomType);
     });
   };
 
+  // Filter + sort view data
   const filteredRooms = useMemo(() => {
     let result = rooms;
 
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       result = result.filter((room) =>
-        room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase())
+        room.roomNumber.toLowerCase().includes(q)
       );
     }
 
@@ -161,6 +170,7 @@ const AllRooms = () => {
     return sortRoomsByType(result);
   }, [rooms, searchTerm, filterType, roomTypes]);
 
+  // Pagination
   const totalPages = Math.ceil(filteredRooms.length / ITEMS_PER_PAGE);
   const paginatedRooms = useMemo(
     () =>
@@ -171,35 +181,16 @@ const AllRooms = () => {
     [filteredRooms, currentPage]
   );
 
-  // Updated badge classes to handle dynamic types
-  const getRoomBadgeClasses = (type: string) => {
-    const typeIndex = roomTypes.indexOf(type);
-
-    switch (typeIndex) {
-      case 0: // First type (usually cheapest)
-        return "bg-blue-100 text-blue-900";
-      case 1: // Second type
-        return "bg-blue-300 text-blue-900";
-      case 2: // Third type
-        return "bg-sky-700 text-blue-100";
-      case 3: // Fourth type
-        return "bg-blue-900 text-blue-200";
-      default: // Any additional types
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   return (
     <>
       <Header />
       <div className="p-8">
         <Toaster />
 
-        {/* Search and Filter Bar */}
+        {/* Search + Filter */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               type="text"
               placeholder="Search by room number..."
@@ -212,7 +203,6 @@ const AllRooms = () => {
             />
           </div>
 
-          {/* Filter Bar */}
           <div className="w-full sm:w-auto">
             <Select
               value={filterType}
@@ -241,7 +231,7 @@ const AllRooms = () => {
           </div>
         </div>
 
-        {/* Search results counter */}
+        {/* Counter */}
         {(searchTerm || filterType !== "all") && (
           <p className="text-sm text-muted-foreground mt-2 mb-4">
             Found {filteredRooms.length} rooms
@@ -269,28 +259,38 @@ const AllRooms = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-10 gap-6">
-            {paginatedRooms.map((room) => (
-              <div
-                key={room.id}
-                className="border rounded-xl shadow cursor-pointer hover:bg-muted/30 flex items-center justify-center"
-                onClick={() => {
-                  setSelectedRoom(room);
-                  setOpenDrawerId(room.id);
-                  console.log("Selected room:", room);
-                }}
-              >
-                <div className="flex flex-col items-center justify-center p-4">
-                  <h2 className="text-2xl font-bold mb-2 text-center">
-                    {room.roomNumber}
-                  </h2>
-                  <Badge
-                    className={`text-lg ${getRoomBadgeClasses(room.roomType)}`}
-                  >
-                    {room.roomType}
-                  </Badge>
+            {paginatedRooms.map((room) => {
+              const colors = rateColors[room.roomType] ?? {
+                bg: DEFAULT_BADGE_BG,
+                fg: DEFAULT_BADGE_FG,
+              };
+
+              return (
+                <div
+                  key={room.id}
+                  className="border rounded-xl shadow cursor-pointer hover:bg-muted/30 flex items-center justify-center"
+                  onClick={() => {
+                    setSelectedRoom(room);
+                    setOpenDrawerId(room.id);
+                  }}
+                >
+                  <div className="flex flex-col items-center justify-center p-4">
+                    <h2 className="text-2xl font-bold mb-2 text-center">
+                      {room.roomNumber}
+                    </h2>
+
+                    {/* Badge styled from Rate colors */}
+                    <Badge
+                      className="text-lg"
+                      style={{ backgroundColor: colors.bg, color: colors.fg }}
+                      title={`${room.roomType} (${colors.bg} / ${colors.fg})`}
+                    >
+                      {room.roomType}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -319,10 +319,10 @@ const AllRooms = () => {
                       <Carousel className="w-full max-w-lg">
                         <CarouselContent>
                           {(Array.isArray(selectedRoom.images)
-                            ? selectedRoom.images
+                            ? (selectedRoom.images as unknown as string[])
                             : selectedRoom.images.split(",")
                           )
-                            .map((img) => img.trim())
+                            .map((img) => String(img).trim())
                             .filter((img) => img.length > 0)
                             .map((src, index) => (
                               <CarouselItem key={index}>
@@ -349,11 +349,25 @@ const AllRooms = () => {
                   <div className="flex flex-col md:flex-row items-center w-full">
                     <div className="hidden md:block w-px bg-gray-300 mx-6 h-full"></div>
                     <div className="space-y-2 text-2xl flex-1 font-[inter]">
-                      <p className="font-extrabold text-5xl mt-0 mb-25"><span className="font-extrabold"></span> {selectedRoom.roomNumber}</p>
-                      <p><span className="font-bold">Type:</span> {selectedRoom.roomType}</p>
-                      <p><span className="font-bold">Floor:</span> {selectedRoom.floor}</p>
-                      <p><span className="font-bold">Capacity:</span> {selectedRoom.capacity}</p>
-                      <p><span className="font-bold">Price per night:</span> {selectedRoom.price} EGP</p>
+                      <p className="font-extrabold text-5xl mt-0 mb-25">
+                        {selectedRoom.roomNumber}
+                      </p>
+                      <p>
+                        <span className="font-bold">Type:</span>{" "}
+                        {selectedRoom.roomType}
+                      </p>
+                      <p>
+                        <span className="font-bold">Floor:</span>{" "}
+                        {selectedRoom.floor}
+                      </p>
+                      <p>
+                        <span className="font-bold">Capacity:</span>{" "}
+                        {selectedRoom.capacity}
+                      </p>
+                      <p>
+                        <span className="font-bold">Price per night:</span> $
+                        {selectedRoom.price}
+                      </p>
                     </div>
                   </div>
                 </div>
