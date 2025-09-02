@@ -183,8 +183,8 @@ namespace HotelBooking.DataAccess.Data
                 new User
                 {
                     Id = 1,
-                    Role = "Admin",
                     Email = "Admin@HMS.com",
+                    Role = "Admin",
                     PhoneNumber = "01021565688",
                     createdBy = "Server",
                     createdAt = new DateTime(2025, 4, 25, 0, 0, 0),

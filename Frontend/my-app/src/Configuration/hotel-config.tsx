@@ -182,7 +182,7 @@ export default function ConfigurationPage(): JSX.Element {
           discountLimit: formState.discountLimit,
         };
         const endpoint =
-          formState.role === "Admin" ? `register-admin` : `register`;
+          formState.role === "Admin" ? `register-admin` : `register-user`;
         await api.post(endpoint, dto);
         toast.success("Created successfully");
       }

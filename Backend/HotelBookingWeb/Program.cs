@@ -1,7 +1,6 @@
 using CloudinaryDotNet;
 using HotelBooking.DataAccess.Data;
 using HotelBooking.DataAccess.Repositories;
-using HotelBooking.DataAccess.Repositories.HotelBooking.DataAccess.Repositories;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBookingWeb;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
