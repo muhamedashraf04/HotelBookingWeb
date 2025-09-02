@@ -248,7 +248,7 @@ public class AuthController : ControllerBase
         {
             admin.PasswordHash = PasswordHasher.Hash(dto.Password);
 
-        _unitOfWork.Admins.Edit(admin);
+        _unitOfWork.Users.Edit(admin);
         _unitOfWork.Save();
         return Ok("Admin updated successfully.");
     }
