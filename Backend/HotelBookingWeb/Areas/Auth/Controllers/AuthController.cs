@@ -46,7 +46,7 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
             DiscountLimit = dto.DicountLimit,
             PasswordHash = PasswordHasher.Hash(dto.Password),
-            Role = "User",
+            Role = dto.role,
             DiscountLimit = dto.discountLimit,
             createdBy = createdBy
         };
@@ -112,6 +112,7 @@ public class AuthController : ControllerBase
             var claims = new List<Claim>
             {
                 new Claim("id", user.Id.ToString()),
+                new Claim(("role"),user.Role),
                 new Claim("username", user.UserName),
                 new Claim("email", user.Email),
                 new Claim(ClaimTypes.Role, user.Role)
