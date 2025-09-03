@@ -40,16 +40,15 @@ export default function CheckoutListPage() {
   const [loading, setLoading] = useState(false);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const navigate = useNavigate();
-
   useEffect(() => {
-    useEffect(() => {
-      const token = Cookies.get("token");
-      const { role } = parseTokenRoleAndUser(token);
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
 
-      if (!(role === "Admin" || role === "Receptionist")) {
-        navigate("/login");
-      }
-    }, []);
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+  }, []);
+  useEffect(() => {
     const fetchReservations = async () => {
       try {
         setLoading(true);
