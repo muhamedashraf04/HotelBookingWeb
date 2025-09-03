@@ -3,9 +3,10 @@ using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
-using HotelBooking.Utilities;
-using Microsoft.AspNetCore.Mvc;
 using HotelBooking.Models.RoomModels;
+using HotelBooking.Utilities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 namespace HotelBookingWeb.Areas.Admin.Controllers;
 
 [Area("Admin")]
@@ -22,6 +23,8 @@ public class CheckinController : Controller
         _logger = logger;
     }
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetToday()
     {
         var today = DateTime.Today;
@@ -38,6 +41,8 @@ public class CheckinController : Controller
         return Ok(reservations);
     }
     [HttpDelete]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Remove(int? id)
     {
         if (id == null)
@@ -58,7 +63,8 @@ public class CheckinController : Controller
 
 
     [HttpPatch]
-    
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult In( [FromForm]CheckInDTO inDTO, [FromForm] List<IFormFile>? uploadedFiles)
     {
         var reservation = null as Reservation;

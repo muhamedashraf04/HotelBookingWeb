@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.Models;
 using HotelBooking.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace HotelBookingWeb.Areas.Admin.Controllers;
 
@@ -20,6 +21,8 @@ public class CheckOutController : Controller
         _logger = logger;
     }
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetCheckOutToday()
     {
         var today = DateTime.Today;
@@ -36,6 +39,8 @@ public class CheckOutController : Controller
         return Ok(reservations);
     }
     [HttpDelete]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Remove(int? id)
     {
         if (id == null)
@@ -56,6 +61,7 @@ public class CheckOutController : Controller
 
 
     [HttpPatch]
+    [Authorize(Roles = "Admin,Receptionist")]
 
     public IActionResult Out(int? id, [FromForm] List<IFormFile>? uploadedFiles)
     {

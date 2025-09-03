@@ -4,6 +4,7 @@ using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
 using HotelBooking.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Area("Admin")]
@@ -23,6 +24,8 @@ public class CustomerController : Controller
 
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Register([FromForm] RegisterCustomerDTO registerCustomerDTO)
     {
         Customer? customer = registerCustomerDTO.customer;
@@ -125,6 +128,8 @@ public class CustomerController : Controller
         return Ok("All Done Ya Kbeer");
     }
     [HttpPost]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Edit([FromForm] RegisterCustomerDTO registerCustomerDTO)
     {
         Customer? customer = _unitOfWork.Customers.Get(u => u.Id == registerCustomerDTO.customer.Id);
@@ -286,6 +291,8 @@ public class CustomerController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetCustomers()
     {
         IList<Customer> customers = _unitOfWork.Customers.GetAll().ToList();
@@ -325,6 +332,8 @@ public class CustomerController : Controller
         }
     }
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Get(int id)
     {
         var customer = _unitOfWork.Customers.Get(c => c.Id == id);

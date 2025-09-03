@@ -152,6 +152,9 @@ public class RoomController : Controller
         }
         return BadRequest();
     }
+    [HttpGet]
+
+    [Authorize(Roles = "Admin,Receptionist")]
 
     public IActionResult GetAll()
     {
@@ -159,6 +162,8 @@ public class RoomController : Controller
         return Ok(rooms.ToList());
     }
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetRoom(int id)
     {
 
