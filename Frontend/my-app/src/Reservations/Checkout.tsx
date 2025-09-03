@@ -49,6 +49,14 @@ export default function CheckoutListPage() {
     }
   }, []);
   useEffect(() => {
+    useEffect(() => {
+      const token = Cookies.get("token");
+      const { role } = parseTokenRoleAndUser(token);
+
+      if (!(role === "Admin" || role === "Receptionist")) {
+        navigate("/login");
+      }
+    }, []);
     const fetchReservations = async () => {
       try {
         setLoading(true);
