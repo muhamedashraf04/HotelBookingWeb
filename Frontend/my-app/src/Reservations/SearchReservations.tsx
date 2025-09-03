@@ -582,7 +582,7 @@ const SearchReservations = () => {
               )}
               days={days}
               onEventClick={handleEventClick}
-              onEventRightClick={() => {}}
+              onEventRightClick={() => { }}
             />
           </div>
         </div>

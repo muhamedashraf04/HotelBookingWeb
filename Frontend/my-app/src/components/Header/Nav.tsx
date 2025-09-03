@@ -80,8 +80,6 @@ const COOLDOWN_KEY = "roomRefreshCooldownExpiresAt"; // stores epoch ms
 
 const Nav: React.FC = () => {
   const token = Cookies.get("token");
-  console.log("Token in cookie:", Cookies.get("token"));
-  console.log("Decoded:", parseTokenRoleAndUser(Cookies.get("token")));
 
   const { role } = parseTokenRoleAndUser(token);
 
