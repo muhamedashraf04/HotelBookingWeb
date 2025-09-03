@@ -79,6 +79,7 @@ export default function App() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reservationToDelete, setReservationToDelete] =
     useState<Reservation | null>(null);
+    
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
