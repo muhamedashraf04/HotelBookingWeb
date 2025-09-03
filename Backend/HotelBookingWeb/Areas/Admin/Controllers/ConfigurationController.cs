@@ -2,6 +2,7 @@
 using CloudinaryDotNet.Actions;
 using HotelBooking.DataAccess.Repositories.Interfaces;
 using HotelBooking.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBookingWeb.Areas.Admin.Controllers;
@@ -18,6 +19,8 @@ public class ConfigurationController : Controller
         _cloudinary = cloudinary;
     }
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetImageUrl()
     {
         var image = _unitOfWork.Configurations.GetAll().ToList();
@@ -29,6 +32,8 @@ public class ConfigurationController : Controller
 
     }
     [HttpPost]
+    [Authorize(Roles = "Admin")]
+
     public IActionResult Upsert(IFormFile uploadedFile)
     {
         if (uploadedFile == null) return BadRequest("No file uploaded");
