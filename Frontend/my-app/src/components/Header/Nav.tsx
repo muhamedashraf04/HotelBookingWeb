@@ -30,10 +30,12 @@ export { parseTokenRoleAndUser };
 /* ----------------------------- small components --------------------------- */
 
 const triggerClass =
-  "bg-transparent text-xl font-bold px-3 py-2 rounded-md transition-colors hover:bg-blue-300/20 hover:backdrop-blur-sm";
+  "bg-transparent text-xl font-bold px-3 py-2 rounded-md transition-colors hover:bg-blue-300/5 hover:backdrop-blur-sm";
+
 const contentClass =
-  "group-data-[viewport=false]/navigation-menu:bg-blue-300/20 group-data-[viewport=false]/navigation-menu:backdrop-blur-[12px] rounded-md p-2";
-const linkClass = "font-semibold block px-3 py-2 rounded hover:bg-blue-300/30";
+  "group-data-[viewport=false]/navigation-menu:bg-blue-100/90 group-data-[viewport=false]/navigation-menu:backdrop-blur-[12px] rounded-md p-2";
+
+const linkClass = "font-semibold block px-3 py-2 rounded hover:bg-blue-300/5";
 
 const Nav: React.FC = () => {
   const token = Cookies.get("token") || localStorage.getItem("token") || "";
