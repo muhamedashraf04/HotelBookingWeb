@@ -46,7 +46,7 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
             DiscountLimit = dto.discountLimit,
             PasswordHash = PasswordHasher.Hash(dto.Password),
-            Role = dto.role,
+            Role = "Receptionist",
             createdBy = createdBy
         };
 
@@ -190,7 +190,7 @@ public class AuthController : ControllerBase
     [Authorize(Roles = "Admin")]
     public IActionResult GetAllUsers()
     {
-        var users = _unitOfWork.Users.GetAll().Where(u => u.Role == "User").ToList();
+        var users = _unitOfWork.Users.GetAll().Where(u => u.Role == "Receptionist").ToList();
         return Ok(users);
     }
 

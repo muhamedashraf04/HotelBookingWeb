@@ -44,18 +44,22 @@ function Checkin() {
       try {
         setLoading(true);
         const response = await axios.get(`${Url}/Admin/Checkin/GetToday`);
-        setReservations(response.data);
+        setReservations(response.data || []);
       } catch (err: any) {
-        ErrorToast(
-          err.message || "Something went wrong while fetching reservations"
-        );
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          ErrorToast("No reservations found for today.");
+        } else {
+          ErrorToast(
+            err.message || "Something went wrong while fetching checkouts"
+          );
+        }
       } finally {
         setLoading(false);
       }
     };
+
     fetchReservations();
   }, []);
-
   const getStatusBadgeClasses = (status: string) => {
     switch (status) {
       case "Checked-In":
