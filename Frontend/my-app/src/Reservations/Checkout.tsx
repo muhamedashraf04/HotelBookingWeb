@@ -42,9 +42,8 @@ export default function CheckoutListPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    useEffect(() => {
-      const token = Cookies.get("token");
-      const { role } = parseTokenRoleAndUser(token);
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
 
     if (!(role === "Admin" || role === "Receptionist")) {
       navigate("/login");
