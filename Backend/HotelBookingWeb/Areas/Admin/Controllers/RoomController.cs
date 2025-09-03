@@ -168,6 +168,8 @@ public class RoomController : Controller
 
     }
     [HttpDelete]
+    [Authorize(Roles = "Admin")]
+
     public IActionResult Remove(int? Id)
     {
         if (Id == null)
@@ -197,6 +199,8 @@ public class RoomController : Controller
     }
 
     [HttpPatch]
+    [Authorize(Roles = "Admin")]
+
     public async Task<IActionResult> Refresh()
     {
         var rooms = await _unitOfWork.Rooms.GetAllAsync(); // should return Task<IEnumerable<Room>>
@@ -216,7 +220,7 @@ public class RoomController : Controller
     }
 
     private string GetUsernameFromToken()
-    {
+    {   
         return User.Claims.FirstOrDefault(c => c.Type == "name")?.Value
             ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
             ?? "Unknown";
