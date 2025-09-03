@@ -21,7 +21,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Droplet } from "lucide-react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { useNavigate } from "react-router-dom";
 
@@ -51,20 +50,6 @@ function ColorPopover({
 }) {
   const [open, setOpen] = useState(false);
 
-  const handleEyedropper = async () => {
-    if ("EyeDropper" in window) {
-      try {
-        const eyeDropper = new (window as any).EyeDropper();
-        const result = await eyeDropper.open();
-        if (result?.sRGBHex) onChange(result.sRGBHex);
-      } catch (e) {
-        console.error("Eyedropper cancelled or failed:", e);
-      }
-    } else {
-      alert("Your browser does not support the EyeDropper API.");
-    }
-  };
-
   return (
     <div>
       <div className="text-sm mb-1">{label}</div>
@@ -81,29 +66,18 @@ function ColorPopover({
           {/* Color Picker */}
           <HexColorPicker color={value} onChange={onChange} />
 
-          {/* Input + Eyedropper */}
-          <div className="flex items-center gap-2">
-            <HexColorInput
-              color={value}
-              onChange={onChange}
-              prefixed
-              className="border rounded px-2 py-1 w-24"
-            />
-            <button
-              type="button"
-              onClick={handleEyedropper}
-              className="p-2 border rounded shadow-sm hover:bg-accent"
-              title="Pick from screen"
-            >
-              <Droplet className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Input only */}
+          <HexColorInput
+            color={value}
+            onChange={onChange}
+            prefixed
+            className="border rounded px-2 py-1 w-24"
+          />
         </PopoverContent>
       </Popover>
     </div>
   );
 }
-
 const EditRates = () => {
   const navigate = useNavigate();
   useEffect(() => {
@@ -362,24 +336,27 @@ const EditRates = () => {
                           <div className="mt-2 flex gap-2 items-center">
                             <Input
                               type="number"
-                              step="10"
+                              step="1"
                               min={1000}
+                              max={20000}
                               value={draft?.price ?? 0}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const rawValue = e.target.value;
+                                const numeric = parseFloat(rawValue || "0");
+
                                 setDraft((d) =>
                                   d
                                     ? {
-                                        ...d,
-                                        price: parseFloat(
-                                          e.target.value || "0"
-                                        ),
-                                      }
+                                      ...d,
+                                      price: Math.min(20000, Math.max(1000, numeric)), // clamp to min & max
+                                    }
                                     : d
-                                )
-                              }
+                                );
+                              }}
                             />
                             <span className="text-sm">EGP</span>
                           </div>
+
 
                           {/* Two popover color pickers; close by clicking outside */}
                           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
