@@ -69,6 +69,8 @@ public class RateController : Controller
 
     // Get all rates
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetAll()
     {
         var rates = _unitOfWork.Rates.GetAll();
@@ -77,6 +79,8 @@ public class RateController : Controller
 
     // Get single rate by id
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetRate(int id)
     {
         var rate = _unitOfWork.Rates.Get(u => u.Id == id);
@@ -86,6 +90,8 @@ public class RateController : Controller
 
     // Remove a rate - prevent deletion if any room uses this rate Type
     [HttpDelete]
+    [Authorize(Roles = "Admin")]
+
     public IActionResult Remove(int? Id)
     {
         if (Id == null) return BadRequest();
@@ -107,6 +113,8 @@ public class RateController : Controller
 
     // Refresh: apply current rates to rooms (used by frontend PATCH Admin/Rate/Refresh)
     [HttpPatch]
+    [Authorize(Roles = "Admin")]
+
     public async Task<IActionResult> Refresh()
     {
         var rooms = await _unitOfWork.Rooms.GetAllAsync();

@@ -2,6 +2,7 @@
 using HotelBooking.Models.DTOs;
 using HotelBooking.Models.Models;
 using HotelBooking.Models.RoomModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelManagment.Controllers;
@@ -22,6 +23,8 @@ public class ReservationController : Controller
 
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetAll()
     {
         var reservations = _unitOfWork.Reservations.GetAll();
@@ -51,6 +54,8 @@ public class ReservationController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult GetByDate([FromBody] GetByDateDTO Date)
     {
         if (Date == null)
@@ -68,6 +73,8 @@ public class ReservationController : Controller
 
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Search([FromBody] ReservationSearchDTO rsd)
     {
         if (string.IsNullOrEmpty(rsd.RoomType) || !rsd.CheckInDate.HasValue || !rsd.CheckOutDate.HasValue)
@@ -156,6 +163,8 @@ public class ReservationController : Controller
 
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult SearchByName([FromBody] GuestName Name)
     {
         if (string.IsNullOrEmpty(Name.Name))
@@ -173,6 +182,8 @@ public class ReservationController : Controller
     private static readonly SemaphoreSlim _reservationLock = new SemaphoreSlim(1, 1);
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public async Task<IActionResult> Create([FromBody] Reservation reservation)
     {
         if (reservation == null)
@@ -275,6 +286,8 @@ public class ReservationController : Controller
 
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Edit([FromBody] ReservationEditDTO dto)
     {
         if (dto.CheckInDate >= dto.CheckOutDate)
@@ -304,6 +317,8 @@ public class ReservationController : Controller
 
 
     [HttpDelete]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Delete(int id)
     {
         if (id <= 0)
@@ -325,6 +340,8 @@ public class ReservationController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
+
     public IActionResult Get(int id)
     {
 
