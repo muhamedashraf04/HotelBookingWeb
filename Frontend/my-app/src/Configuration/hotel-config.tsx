@@ -1,8 +1,9 @@
 "use client";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import Cookies from "js-cookie";
 import React, { useEffect, useState, type DragEvent, type JSX } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +22,17 @@ type User = {
 
 export default function ConfigurationPage(): JSX.Element {
   const navigate = useNavigate();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
 
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+    if (!(role === "Admin")) {
+      navigate("/app");
+    }
+  }, []);
   const [users, setUsers] = useState<User[]>([]);
   const [admins, setAdmins] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,8 +58,8 @@ export default function ConfigurationPage(): JSX.Element {
     discountLimit: 0,
   });
 
-  // axios instance
-  const api = axios.create({
+  // axiosInstance instance
+  const api = axiosInstance.create({
     baseURL: `${Url}/api/auth`,
     headers: {
       Authorization: `Bearer ${Cookies.get("token") ?? ""}`,
@@ -75,7 +86,9 @@ export default function ConfigurationPage(): JSX.Element {
   // sync logo (backend vs localStorage)
   async function syncLogo() {
     try {
-      const res = await axios.get(`${Url}/admin/configuration/getimageurl`);
+      const res = await axiosInstance.get(
+        `${Url}/admin/configuration/getimageurl`
+      );
       const latestUrl = res.data;
       const storedUrl = localStorage.getItem("hotelLogo");
       if (latestUrl !== storedUrl) {
@@ -224,17 +237,21 @@ export default function ConfigurationPage(): JSX.Element {
     setUploadProgress(0);
 
     try {
-      const res = await axios.post(`${Url}/admin/configuration/upsert`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress(percent);
-          }
-        },
-      });
+      const res = await axiosInstance.post(
+        `${Url}/admin/configuration/upsert`,
+        fd,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(percent);
+            }
+          },
+        }
+      );
       const newUrl = res.data;
       localStorage.setItem("hotelLogo", newUrl);
       toast.success("Logo uploaded");

@@ -1,8 +1,9 @@
 "use client";
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -38,6 +39,14 @@ interface Room {
 }
 
 export default function CheckInPage() {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+  }, []);
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -78,11 +87,14 @@ export default function CheckInPage() {
     const fetchDiscountLimit = async () => {
       setIsDiscountLimitLoading(true);
       try {
-        const res = await axios.get(`${Url}/api/Auth/GetDiscountLimit`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
+        const res = await axiosInstance.get(
+          `${Url}/api/Auth/GetDiscountLimit`,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          }
+        );
 
         setDiscountLimit(res.data.limit);
       } catch (err) {
@@ -103,16 +115,18 @@ export default function CheckInPage() {
 
       try {
         if (!reservation) {
-          const res = await axios.get(`${Url}/Admin/Reservation/Get/?id=${id}`);
+          const res = await axiosInstance.get(
+            `${Url}/Admin/Reservation/Get/?id=${id}`
+          );
           setReservation(res.data);
           if (res.data?.customerId) {
-            const customerRes = await axios.get(
+            const customerRes = await axiosInstance.get(
               `${Url}/Admin/Customer/Get/?id=${res.data.customerId}`
             );
             setCustomer(customerRes.data);
           }
           if (res.data?.roomId) {
-            const roomRes = await axios.get(
+            const roomRes = await axiosInstance.get(
               `${Url}/Admin/Room/GetRoom/?id=${res.data.roomId}`
             );
             setRoom(roomRes.data);
@@ -258,7 +272,7 @@ export default function CheckInPage() {
 
       newImages.forEach((f) => formData.append("uploadedFiles", f));
 
-      await axios.patch(`${Url}/Admin/Checkin/In`, formData, {
+      await axiosInstance.patch(`${Url}/Admin/Checkin/In`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

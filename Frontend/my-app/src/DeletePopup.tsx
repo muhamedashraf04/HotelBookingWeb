@@ -1,4 +1,5 @@
 "use client";
+import axiosInstance from "@/AxiosInstance.tsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,8 +12,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import Cookies from "js-cookie";
+
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Url } from "../GlobalVariables";
+import { parseTokenRoleAndUser } from "./components/Header/Nav";
 import ErrorToast from "./Toasts/ErrorToast";
 import LoadingToast from "./Toasts/LoadingToast";
 import SuccessToast from "./Toasts/SuccessToast";
@@ -29,6 +34,15 @@ type data = {
 function DeletePopup(Data: data) {
   const { id, message, Area, Controller, Action, onDeleted } = Data;
   const request = `${Url}/${Area}/${Controller}/${Action}?id=${id}`;
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "SuperAdmin")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+  }, []);
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -50,7 +64,7 @@ function DeletePopup(Data: data) {
             onClick={async () => {
               LoadingToast(`Deleting ${Controller}`);
               try {
-                const response = await axios.delete(request);
+                const response = await axiosInstance.delete(request);
 
                 if (response.status != 200) throw new Error("Failed to delete");
                 onDeleted?.();

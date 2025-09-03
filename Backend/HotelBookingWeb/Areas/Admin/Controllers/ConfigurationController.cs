@@ -19,7 +19,6 @@ public class ConfigurationController : Controller
         _cloudinary = cloudinary;
     }
     [HttpGet]
-    [Authorize(Roles = "Admin,Receptionist")]
 
     public IActionResult GetImageUrl()
     {

@@ -1,10 +1,10 @@
 "use client";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
 import Cookies from "js-cookie";
 import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
@@ -28,7 +28,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${Url}/api/auth/login`, form);
+      const res = await axiosInstance.post(`${Url}/api/auth/login`, form);
 
       Cookies.set("token", res.data.token, { expires: 1 });
       toast.success("Login successful 🎉", {
@@ -100,13 +100,6 @@ function Login() {
           >
             {loading ? "Logging in..." : "Login"}
           </Button>
-
-          <p className="text-sm text-gray-500 text-center">
-            Don&apos;t have an account?{" "}
-            <a href="/register" className="text-gray-900 hover:underline">
-              Register
-            </a>
-          </p>
         </form>
         <Toaster richColors />
       </div>

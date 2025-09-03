@@ -1,4 +1,3 @@
-
 import Header from "@/components/Header/Header";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
 
+import axiosInstance from "@/AxiosInstance.tsx";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import {
   Popover,
   PopoverContent,
@@ -19,16 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import Cookies from "js-cookie";
+
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
-import { Url } from "../../GlobalVariables";
 import countries from "world-countries";
-
-
+import { Url } from "../../GlobalVariables";
 
 type Customer = {
   id: number;
@@ -45,9 +45,15 @@ type Customer = {
   marriageCertificateAttachment: string | null;
 };
 
-
 const Create = () => {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
 
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+  }, []);
   const [newCustomer, setNewCustomer] = useState<Customer>({
     id: 0,
     name: "",
@@ -93,30 +99,27 @@ const Create = () => {
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-
   // Use a useEffect hook to update formData.BirthDate whenever the birthDate state changes
   useEffect(() => {
     setIDExistingImages(
-      typeof newCustomer.identificationAttachment === "string" && newCustomer.identificationAttachment
-        .trim().length > 0
+      typeof newCustomer.identificationAttachment === "string" &&
+        newCustomer.identificationAttachment.trim().length > 0
         ? newCustomer.identificationAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
     setMARExistingImages(
-      typeof newCustomer.marriageCertificateAttachment === "string" && newCustomer.marriageCertificateAttachment
-        .trim().length > 0
+      typeof newCustomer.marriageCertificateAttachment === "string" &&
+        newCustomer.marriageCertificateAttachment.trim().length > 0
         ? newCustomer.marriageCertificateAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
   }, []);
-
-
 
   const handleIdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -194,17 +197,22 @@ const Create = () => {
     e.preventDefault();
     if (isLoading) return;
 
-
     const newErrors: { [key: string]: string } = {};
 
     if (!newCustomer.name.trim()) newErrors.name = "Name is required";
     if (!newCustomer.email.trim()) newErrors.email = "Email is required";
-    if (!newCustomer.identificationType) newErrors.identificationType = "ID type is required";
-    if (!newCustomer.identificationNumber.trim()) newErrors.identificationNumber = "ID number is required";
-    if (!newCustomer.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-    if (!newCustomer.nationality.trim()) newErrors.nationality = "Nationality is required";
-    if (IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
-    if (newCustomer.isMarried && MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
+    if (!newCustomer.identificationType)
+      newErrors.identificationType = "ID type is required";
+    if (!newCustomer.identificationNumber.trim())
+      newErrors.identificationNumber = "ID number is required";
+    if (!newCustomer.phoneNumber.trim())
+      newErrors.phoneNumber = "Phone number is required";
+    if (!newCustomer.nationality.trim())
+      newErrors.nationality = "Nationality is required";
+    if (IDnewImages.length === 0)
+      newErrors.identificationFiles = "At least one ID file is required";
+    if (newCustomer.isMarried && MARnewImages.length === 0)
+      newErrors.marriageFiles = "Marriage certificate is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -235,7 +243,10 @@ const Create = () => {
         "customer.IdentificationType",
         newCustomer.identificationType
       );
-      customerFormData.append("customer.IsMarried", String(newCustomer.isMarried));
+      customerFormData.append(
+        "customer.IsMarried",
+        String(newCustomer.isMarried)
+      );
       customerFormData.append(
         "customer.IdentificationNumber",
         newCustomer.identificationNumber
@@ -251,7 +262,7 @@ const Create = () => {
         });
       }
 
-      await axios.post(
+      await axiosInstance.post(
         `${Url}/Admin/Customer/Register`,
         customerFormData,
         {
@@ -279,7 +290,6 @@ const Create = () => {
       });
       setIDNewImages([]);
       setMARNewImages([]);
-
     } catch (err: any) {
       toast.error(err?.response?.data);
     } finally {
@@ -312,7 +322,9 @@ const Create = () => {
                 }
                 className={errors.name ? "border-red-500" : ""}
               />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-500 text-sm">{errors.name}</p>
+              )}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="BirthDate">
@@ -337,14 +349,16 @@ const Create = () => {
                     <Calendar
                       mode="single"
                       captionLayout="dropdown"
-
                       selected={birthDate}
                       onSelect={(date) => {
                         if (!date) return;
 
                         // Format as YYYY-MM-DD in local timezone
                         const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, "0");
+                        const month = String(date.getMonth() + 1).padStart(
+                          2,
+                          "0"
+                        );
                         const day = String(date.getDate()).padStart(2, "0");
                         const formatted = `${year}-${month}-${day}`;
 
@@ -385,7 +399,9 @@ const Create = () => {
                 }
                 className={errors.email ? "border-red-500" : ""}
               />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email}</p>
+              )}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Nationality">
@@ -402,16 +418,15 @@ const Create = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-60" position="popper">
                   {sortedNationalities.map((nat, idx) => (
-                    <SelectItem
-                      key={idx}
-                      value={nat}
-                    >
+                    <SelectItem key={idx} value={nat}>
                       {nat}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
+              {errors.nationality && (
+                <p className="text-red-500 text-sm">{errors.nationality}</p>
+              )}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="Address">
@@ -431,11 +446,16 @@ const Create = () => {
               <Input
                 value={newCustomer.phoneNumber ?? ""}
                 onChange={(e) =>
-                  setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })
+                  setNewCustomer({
+                    ...newCustomer,
+                    phoneNumber: e.target.value,
+                  })
                 }
                 className={errors.phoneNumber ? "border-red-500" : ""}
               />
-              {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+              )}
             </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="IdentificationType">
@@ -445,7 +465,8 @@ const Create = () => {
                 value={newCustomer.identificationType}
                 onValueChange={(value) =>
                   setNewCustomer({ ...newCustomer, identificationType: value })
-                }>
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a type..." />
                 </SelectTrigger>
@@ -457,7 +478,12 @@ const Create = () => {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}            </div>
+              {errors.identificationType && (
+                <p className="text-red-500 text-sm">
+                  {errors.identificationType}
+                </p>
+              )}{" "}
+            </div>
             <div>
               <Label className="pl-1 mb-2.5" htmlFor="IdentificationNumber">
                 Identification Number *
@@ -472,7 +498,11 @@ const Create = () => {
                 }
                 className={errors.identificationNumber ? "border-red-500" : ""}
               />
-              {errors.identificationNumber && <p className="text-red-500 text-sm">{errors.identificationNumber}</p>}
+              {errors.identificationNumber && (
+                <p className="text-red-500 text-sm">
+                  {errors.identificationNumber}
+                </p>
+              )}
             </div>
             <div className="md:col-span-2">
               <Label>Marriage Status</Label>
@@ -511,7 +541,8 @@ const Create = () => {
             {/* {images} */}
             <div
               onClick={() => idFileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer justify-center">
+              className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer justify-center"
+            >
               <Upload className="w-6 h-6 mx-auto mb-2" />
 
               <Label className="text-sm text-gray-600 justify-center">
@@ -534,7 +565,9 @@ const Create = () => {
                   className="relative w-20 h-20 border rounded overflow-hidden"
                 >
                   <img
-                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                    src={
+                      typeof img === "string" ? img : URL.createObjectURL(img)
+                    }
                     alt="preview"
                     className="object-cover w-full h-full"
                   />
@@ -552,10 +585,12 @@ const Create = () => {
               <>
                 <div
                   onClick={() => marFileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer justify-center">
+                  className="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer justify-center"
+                >
                   <Upload className="w-6 h-6 mx-auto mb-2" />
                   <Label className="text-sm text-gray-600 justify-center">
-                    Marriage Certificates              </Label>
+                    Marriage Certificates{" "}
+                  </Label>
                   <input
                     ref={marFileInputRef}
                     type="file"
@@ -574,7 +609,11 @@ const Create = () => {
                       className="relative w-20 h-20 border rounded overflow-hidden"
                     >
                       <img
-                        src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                        src={
+                          typeof img === "string"
+                            ? img
+                            : URL.createObjectURL(img)
+                        }
                         alt="preview"
                         className="object-cover w-full h-full"
                       />
@@ -596,8 +635,9 @@ const Create = () => {
           </div>
           <Button
             type="submit"
-            className={`w-full ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
+            className={`w-full ${
+              !isLoading ? "cursor-pointer" : "cursor-not-allowed"
+            }`}
             disabled={isLoading}
           >
             {isLoading ? "Registering..." : "Register"}

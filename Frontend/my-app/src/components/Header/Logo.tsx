@@ -1,6 +1,6 @@
 "use client";
 
-import axios from "axios";
+import axiosInstance from "@/AxiosInstance.tsx";
 import { useEffect, useState } from "react";
 import { Url } from "../../../GlobalVariables"; // backend base URL
 
@@ -19,7 +19,9 @@ const Logo = () => {
         }
 
         // always fetch the latest logo
-        const res = await axios.get(`${Url}/admin/configuration/getimageurl`);
+        const res = await axiosInstance.get(
+          `${Url}/admin/configuration/getimageurl`
+        );
         const latestUrl = res.data;
 
         if (!storedLogo || storedLogo !== latestUrl) {

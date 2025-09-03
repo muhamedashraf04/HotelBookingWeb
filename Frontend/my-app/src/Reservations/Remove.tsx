@@ -1,5 +1,7 @@
 "use client";
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -12,8 +14,10 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
-import axios from "axios";
+import Cookies from "js-cookie";
+
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 import { Url } from "../../GlobalVariables";
 import DeletePopup from "../DeletePopup";
@@ -31,6 +35,15 @@ type Reservation = {
 };
 
 const RemoveReservation = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+  }, []);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
   const [openDrawerId, setOpenDrawerId] = useState<number | null>(null);
@@ -39,7 +52,9 @@ const RemoveReservation = () => {
     const fetchReservations = async () => {
       setLoading(true);
       try {
-        const reservation = await axios.get(`${Url}/Admin/Reservation/GetAll`);
+        const reservation = await axiosInstance.get(
+          `${Url}/Admin/Reservation/GetAll`
+        );
         if (reservation.status != 200)
           throw new Error("Failed to fetch reservations");
         const data: Reservation[] = await reservation.data;

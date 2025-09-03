@@ -1,5 +1,6 @@
 "use client";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
 import {
   AlertDialog,
@@ -21,13 +22,14 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import axios from "axios";
+import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 import { Url } from "../GlobalVariables";
 import ErrorToast from "../src/Toasts/ErrorToast";
 import "../styles/defaultschedule.css";
+import { parseTokenRoleAndUser } from "./components/Header/Nav";
 import Schedule from "./Schedule/Schedule";
 
 type Reservation = {
@@ -68,6 +70,14 @@ function createData(id: number, customerName: string): Data {
 }
 
 export default function App() {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+  }, []);
   const [resources, setResources] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [days, setDays] = useState(30);
@@ -79,7 +89,6 @@ export default function App() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reservationToDelete, setReservationToDelete] =
     useState<Reservation | null>(null);
-    
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -89,15 +98,15 @@ export default function App() {
 
   const fetchData = async () => {
     try {
-      const roomRes = await axios.get(`${Url}/Admin/Room/GetAll`);
+      const roomRes = await axiosInstance.get(`${Url}/Admin/Room/GetAll`);
       const formattedRooms = roomRes.data.map((room: any) => ({
         id: room.id,
         name: `${room.roomNumber} (${room.roomType})`,
       }));
       setResources(formattedRooms);
 
-      const resRes = await axios.get(`${Url}/Admin/Reservation/GetAll`);
-      const customersRes = await axios.get(
+      const resRes = await axiosInstance.get(`${Url}/Admin/Reservation/GetAll`);
+      const customersRes = await axiosInstance.get(
         `${Url}/Admin/Customer/GetCustomers`
       );
       const customers: Customer[] = customersRes.data;
@@ -184,7 +193,7 @@ export default function App() {
 
     try {
       // Call your API to delete the reservation
-      const response = await axios.delete(
+      const response = await axiosInstance.delete(
         `${Url}/Admin/Reservation/Delete?id=${reservationToDelete.id}`
       );
 

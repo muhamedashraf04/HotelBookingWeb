@@ -1,6 +1,9 @@
 "use client";
+import Cookies from "js-cookie";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav"; // reuse your helper
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,12 +41,12 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeletePopup from "@/DeletePopup";
-import axios from "axios";
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 import { Url } from "../../GlobalVariables.tsx";
+("use client");
 
 // Types
 export type Room = {
@@ -73,6 +76,17 @@ const DEFAULT_BADGE_FG = "#1f2937"; // gray-800
 const AllRooms = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+    if (!(role === "Admin")) {
+      navigate("/app"); // or a 403 page if you have one
+    }
+  }, []);
   // data
   const [rooms, setRooms] = useState<Room[]>([]);
   const [roomTypes, setRoomTypes] = useState<string[]>([]);
@@ -96,8 +110,8 @@ const AllRooms = () => {
       setTypesLoading(true);
       try {
         const [roomsRes, ratesRes] = await Promise.all([
-          axios.get(`${Url}/Admin/Room/GetAll`),
-          axios.get(`${Url}/Admin/Rate/GetAll`),
+          axiosInstance.get(`${Url}/Admin/Room/GetAll`),
+          axiosInstance.get(`${Url}/Admin/Rate/GetAll`),
         ]);
 
         if (roomsRes.status !== 200) throw new Error("Failed to fetch rooms");

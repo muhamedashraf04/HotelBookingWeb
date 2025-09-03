@@ -1,4 +1,6 @@
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import {
   Accordion,
   AccordionContent,
@@ -9,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ErrorToast from "@/Toasts/ErrorToast";
 import axios from "axios";
+import Cookies from "js-cookie";
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -35,6 +39,14 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 function Checkin() {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const navigate = useNavigate();
@@ -43,7 +55,9 @@ function Checkin() {
     const fetchReservations = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${Url}/Admin/Checkin/GetToday`);
+        const response = await axiosInstance.get(
+          `${Url}/Admin/Checkin/GetToday`
+        );
         setReservations(response.data || []);
       } catch (err: any) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
@@ -183,7 +197,7 @@ function Checkin() {
                             reservation.id.toString()
                           );
 
-                          axios
+                          axiosInstance
                             .post(
                               `${Url}/Admin/Checkin/UploadProof`,
                               formData,

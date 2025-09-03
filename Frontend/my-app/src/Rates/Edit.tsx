@@ -9,12 +9,13 @@ import DeletePopup from "@/DeletePopup";
 import ErrorToast from "@/Toasts/ErrorToast";
 import LoadingToast from "@/Toasts/LoadingToast";
 import SuccessToast from "@/Toasts/SuccessToast";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { useEffect, useMemo, useState } from "react";
 import { Url } from "../../GlobalVariables.tsx";
 
 // shadcn popover + react-colorful
+import axiosInstance from "@/AxiosInstance.tsx";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav.tsx";
 import {
   Popover,
   PopoverContent,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/popover";
 import { Droplet } from "lucide-react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
+import { useNavigate } from "react-router-dom";
 
 // Types
 export type Rate = {
@@ -64,7 +66,7 @@ function ColorPopover({
   };
 
   return (
-    <div> 
+    <div>
       <div className="text-sm mb-1">{label}</div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -103,6 +105,18 @@ function ColorPopover({
 }
 
 const EditRates = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+    if (!(role === "Admin")) {
+      navigate("/app");
+    }
+  }, []);
   const [rates, setRates] = useState<Rate[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -110,13 +124,15 @@ const EditRates = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
 
-  // set axios auth header from cookie once on mount
+  // set axiosInstance auth header from cookie once on mount
   useEffect(() => {
     const token = Cookies.get("token");
     if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${token}`;
     } else {
-      delete axios.defaults.headers.common["Authorization"];
+      delete axiosInstance.defaults.headers.common["Authorization"];
     }
     fetchRates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,7 +143,7 @@ const EditRates = () => {
     setLoading(true);
     LoadingToast("Loading rates...");
     try {
-      const res = await axios.get(`${Url}/Admin/Rate/GetAll`, {
+      const res = await axiosInstance.get(`${Url}/Admin/Rate/GetAll`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`,
         },
@@ -190,7 +206,7 @@ const EditRates = () => {
         badgeBg: draft.badgeBg || DEFAULT_BG,
         badgeText: draft.badgeText || DEFAULT_TEXT,
       };
-      const res = await axios.post(`${Url}/Admin/Rate/Upsert`, payload);
+      const res = await axiosInstance.post(`${Url}/Admin/Rate/Upsert`, payload);
       if (res?.data && res.data.id) {
         const returned = res.data as Rate;
         setRates((prev) => prev.map((x) => (x.id === draft.id ? returned : x)));
@@ -234,7 +250,7 @@ const EditRates = () => {
     setIsSaving(true);
     LoadingToast("Creating rate...");
     try {
-      const res = await axios.post(`${Url}/Admin/Rate/Upsert`, {
+      const res = await axiosInstance.post(`${Url}/Admin/Rate/Upsert`, {
         type: draft.type,
         price: draft.price,
         badgeBg: draft.badgeBg || DEFAULT_BG,
@@ -264,7 +280,7 @@ const EditRates = () => {
     setIsSaving(true);
     LoadingToast("Refreshing prices...");
     try {
-      await axios.patch(`${Url}/Admin/Rate/Refresh`);
+      await axiosInstance.patch(`${Url}/Admin/Rate/Refresh`);
       SuccessToast("Room prices refreshed according to rates.");
       await fetchRates();
     } catch (e: any) {
