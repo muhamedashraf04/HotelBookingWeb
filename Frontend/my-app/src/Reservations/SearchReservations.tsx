@@ -1,7 +1,9 @@
 "use client";
 import Cookies from "js-cookie";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav.tsx";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,7 +40,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ErrorToast from "@/Toasts/ErrorToast.tsx";
-import axios from "axios";
 import { Check, ChevronDownIcon, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
@@ -92,6 +93,14 @@ const DEFAULT_BADGE_BG = "#e5e7eb";
 const DEFAULT_BADGE_FG = "#1f2937";
 
 const SearchReservations = () => {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+  }, []);
   const [checkInDate, setCheckInDate] = React.useState<Date | undefined>();
   const [checkOutDate, setCheckOutDate] = React.useState<Date | undefined>();
   const [checkInOpen, setCheckInOpen] = React.useState(false);
@@ -125,7 +134,7 @@ const SearchReservations = () => {
   useEffect(() => {
     const loadRateColors = async () => {
       try {
-        const res = await axios.get(`${Url}/Admin/Rate/GetAll`);
+        const res = await axiosInstance.get(`${Url}/Admin/Rate/GetAll`);
         const rates = (res.data as Rate[]) ?? [];
         const map: Record<string, { bg: string; fg: string }> = {};
         for (const r of rates) {
@@ -144,13 +153,15 @@ const SearchReservations = () => {
   const getTypeColors = (type: string) =>
     rateColors[type] ?? { bg: DEFAULT_BADGE_BG, fg: DEFAULT_BADGE_FG };
 
-  // set axios auth header from cookie once on mount
+  // set axiosInstance auth header from cookie once on mount
   useEffect(() => {
     const token = Cookies.get("token");
     if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${token}`;
     } else {
-      delete axios.defaults.headers.common["Authorization"];
+      delete axiosInstance.defaults.headers.common["Authorization"];
     }
     fetchRates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,7 +171,7 @@ const SearchReservations = () => {
   const fetchRates = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${Url}/Admin/Rate/GetAll`, {
+      const res = await axiosInstance.get(`${Url}/Admin/Rate/GetAll`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`, // if your endpoint requires auth
         },
@@ -240,7 +251,7 @@ const SearchReservations = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${Url}/Admin/Reservation/Search`,
         body
       );
@@ -289,15 +300,15 @@ const SearchReservations = () => {
   };
   const fetchData = async () => {
     try {
-      const roomRes = await axios.get(`${Url}/Admin/Room/GetAll`);
+      const roomRes = await axiosInstance.get(`${Url}/Admin/Room/GetAll`);
       const formattedRooms = roomRes.data.map((room: any) => ({
         id: room.id,
         name: `${room.roomNumber} (${room.roomType})`,
       }));
       setResources(formattedRooms);
 
-      const resRes = await axios.get(`${Url}/Admin/Reservation/GetAll`);
-      const customersRes = await axios.get(
+      const resRes = await axiosInstance.get(`${Url}/Admin/Reservation/GetAll`);
+      const customersRes = await axiosInstance.get(
         `${Url}/Admin/Customer/GetCustomers`
       );
       const customers: Customer[] = customersRes.data;
@@ -582,7 +593,7 @@ const SearchReservations = () => {
               )}
               days={days}
               onEventClick={handleEventClick}
-              onEventRightClick={() => { }}
+              onEventRightClick={() => {}}
             />
           </div>
         </div>

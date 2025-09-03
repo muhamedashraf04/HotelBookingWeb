@@ -33,6 +33,7 @@ function parseTokenRoleAndUser(token?: string | undefined): {
     return { username: null, role: null };
   }
 }
+export { parseTokenRoleAndUser };
 
 /* ----------------------------- small components --------------------------- */
 

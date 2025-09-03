@@ -1,18 +1,22 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
-import { Url } from "../../GlobalVariables";
+import axiosInstance from "@/AxiosInstance.tsx";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -21,24 +25,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { CalendarIcon } from "@radix-ui/react-icons";
+import { format } from "date-fns";
+import React, { useEffect, useRef, useState } from "react";
+import { Url } from "../../GlobalVariables";
 
-import SuccessToast from "../Toasts/SuccessToast";
-import ErrorToast from "../Toasts/ErrorToast";
-import LoadingToast from "../Toasts/LoadingToast";
 import Header from "@/components/Header/Header";
-import countries from "world-countries";
-import { Upload, X } from "lucide-react";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
+import Cookies from "js-cookie";
+import { Upload } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
-
-
+import countries from "world-countries";
+import ErrorToast from "../Toasts/ErrorToast";
+import SuccessToast from "../Toasts/SuccessToast";
 
 type Customer = {
   id: number;
@@ -56,7 +57,15 @@ type Customer = {
 };
 
 export default function CustomersPage() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
 
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+  }, []);
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -68,11 +77,12 @@ export default function CustomersPage() {
 
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(
+    null
+  );
 
   const idFileInputRef = useRef<HTMLInputElement>(null);
   const marFileInputRef = useRef<HTMLInputElement>(null);
-
 
   const [IDexistingImages, setIDExistingImages] = useState<string[]>([]);
   const [IDnewImages, setIDNewImages] = useState<File[]>([]);
@@ -100,7 +110,7 @@ export default function CustomersPage() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${Url}/Admin/Customer/GetCustomers`);
+      const res = await axiosInstance.get(`${Url}/Admin/Customer/GetCustomers`);
       setCustomers(res.data || []);
     } catch (err: any) {
       ErrorToast(err?.message || "Failed to load customers");
@@ -110,23 +120,24 @@ export default function CustomersPage() {
     }
   };
 
-
   useEffect(() => {
     void fetchCustomers();
     setIDExistingImages(
-      typeof editingCustomer?.identificationAttachment === "string" && editingCustomer?.identificationAttachment.trim().length > 0
+      typeof editingCustomer?.identificationAttachment === "string" &&
+        editingCustomer?.identificationAttachment.trim().length > 0
         ? editingCustomer?.identificationAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
     setMARExistingImages(
-      typeof editingCustomer?.marriageCertificateAttachment === "string" && editingCustomer?.marriageCertificateAttachment.trim().length > 0
+      typeof editingCustomer?.marriageCertificateAttachment === "string" &&
+        editingCustomer?.marriageCertificateAttachment.trim().length > 0
         ? editingCustomer?.marriageCertificateAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
   }, []);
@@ -135,7 +146,9 @@ export default function CustomersPage() {
     if (!deletingCustomer) return;
 
     try {
-      await axios.delete(`${Url}/Admin/Customer/Remove/${deletingCustomer.id}`);
+      await axiosInstance.delete(
+        `${Url}/Admin/Customer/Remove/${deletingCustomer.id}`
+      );
       SuccessToast("Customer deleted successfully!");
       setDeletingCustomer(null);
       await fetchCustomers(); // refresh table
@@ -143,7 +156,6 @@ export default function CustomersPage() {
       toast.error(err?.response?.data || "Error deleting customer");
     }
   };
-
 
   const handleIdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -221,13 +233,22 @@ export default function CustomersPage() {
     setIsEditing(true);
     const newErrors: { [key: string]: string } = {};
 
-    if (editingCustomer.email?.trim() === "") newErrors.email = "Email is required";
-    if (!editingCustomer.identificationType) newErrors.identificationType = "ID type is required";
-    if (editingCustomer.phoneNumber?.trim() === "") newErrors.phoneNumber = "Phone number is required";
-    if (!editingCustomer.nationality) newErrors.nationality = "Nationality is required";
+    if (editingCustomer.email?.trim() === "")
+      newErrors.email = "Email is required";
+    if (!editingCustomer.identificationType)
+      newErrors.identificationType = "ID type is required";
+    if (editingCustomer.phoneNumber?.trim() === "")
+      newErrors.phoneNumber = "Phone number is required";
+    if (!editingCustomer.nationality)
+      newErrors.nationality = "Nationality is required";
 
-    if (IDexistingImages.length + IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
-    if (editingCustomer.isMarried && MARexistingImages.length + MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
+    if (IDexistingImages.length + IDnewImages.length === 0)
+      newErrors.identificationFiles = "At least one ID file is required";
+    if (
+      editingCustomer.isMarried &&
+      MARexistingImages.length + MARnewImages.length === 0
+    )
+      newErrors.marriageFiles = "Marriage certificate is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -252,22 +273,40 @@ export default function CustomersPage() {
       formData.append("customer.Name", editingCustomer.name || "");
       formData.append("customer.BirthDate", editingCustomer.birthDate || "");
       formData.append("customer.Email", editingCustomer.email || "");
-      formData.append("customer.Nationality", editingCustomer.nationality || "");
+      formData.append(
+        "customer.Nationality",
+        editingCustomer.nationality || ""
+      );
       formData.append("customer.Address", editingCustomer.address || "");
-      formData.append("customer.PhoneNumber", editingCustomer.phoneNumber || "");
-      formData.append("customer.IdentificationType", editingCustomer.identificationType || "");
-      formData.append("customer.IdentificationNumber", editingCustomer.identificationNumber || "");
-      formData.append("customer.IsMarried", editingCustomer.isMarried ? "true" : "false");
+      formData.append(
+        "customer.PhoneNumber",
+        editingCustomer.phoneNumber || ""
+      );
+      formData.append(
+        "customer.IdentificationType",
+        editingCustomer.identificationType || ""
+      );
+      formData.append(
+        "customer.IdentificationNumber",
+        editingCustomer.identificationNumber || ""
+      );
+      formData.append(
+        "customer.IsMarried",
+        editingCustomer.isMarried ? "true" : "false"
+      );
 
-      IDnewImages.forEach((file) => formData.append("IdentificationFiles", file));
-      MARnewImages.forEach((file) => formData.append("MarriageCertificates", file));
-
+      IDnewImages.forEach((file) =>
+        formData.append("IdentificationFiles", file)
+      );
+      MARnewImages.forEach((file) =>
+        formData.append("MarriageCertificates", file)
+      );
 
       const allDeletedImages = [...IDdeletedImages, ...MARdeletedImages];
       if (allDeletedImages.length > 0) {
         formData.append("DeletedImages", JSON.stringify(allDeletedImages));
       }
-      await axios.post(`${Url}/Admin/Customer/Edit`, formData, {
+      await axiosInstance.post(`${Url}/Admin/Customer/Edit`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -275,7 +314,6 @@ export default function CustomersPage() {
 
       SuccessToast("Customer updated successfully!");
       setEditOpen(false);
-
 
       setIDNewImages([]);
       setMARNewImages([]);
@@ -296,8 +334,12 @@ export default function CustomersPage() {
     setEditingCustomer({ ...c });
     setBirthDate(c.birthDate ? new Date(c.birthDate) : undefined);
     setMARDeletedImages([]);
-    setIDExistingImages(c.identificationAttachment?.split(",").map(s => s.trim()) || []);
-    setMARExistingImages(c.marriageCertificateAttachment?.split(",").map(s => s.trim()) || []);
+    setIDExistingImages(
+      c.identificationAttachment?.split(",").map((s) => s.trim()) || []
+    );
+    setMARExistingImages(
+      c.marriageCertificateAttachment?.split(",").map((s) => s.trim()) || []
+    );
     setIDNewImages([]);
     setMARNewImages([]);
     setIDDeletedImages([]);
@@ -340,7 +382,11 @@ export default function CustomersPage() {
                       <Button size="sm" onClick={() => openEdit(c)}>
                         Edit
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => setDeletingCustomer(c)}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeletingCustomer(c)}
+                      >
                         Remove
                       </Button>
                     </div>
@@ -368,8 +414,13 @@ export default function CustomersPage() {
                   disabled
                   value={editingCustomer?.name}
                   onChange={(e) => {
-                    if (!editingCustomer) { return };
-                    setEditingCustomer({ ...editingCustomer, name: e.target.value });
+                    if (!editingCustomer) {
+                      return;
+                    }
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      name: e.target.value,
+                    });
                   }}
                 />
               </div>
@@ -379,31 +430,48 @@ export default function CustomersPage() {
                   type="email"
                   value={editingCustomer?.email ?? ""}
                   onChange={(e) => {
-                    if (!editingCustomer) { return };
-                    setEditingCustomer({ ...editingCustomer, email: e.target.value })
+                    if (!editingCustomer) {
+                      return;
+                    }
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      email: e.target.value,
+                    });
                   }}
                   className={errors.email ? "border-red-500" : ""}
                 />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
               </div>
               <div>
                 <Label>Phone Number *</Label>
                 <Input
                   value={editingCustomer?.phoneNumber ?? ""}
                   onChange={(e) => {
-                    if (!editingCustomer) { return };
-                    setEditingCustomer({ ...editingCustomer, phoneNumber: e.target.value })
+                    if (!editingCustomer) {
+                      return;
+                    }
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      phoneNumber: e.target.value,
+                    });
                   }}
                   className={errors.phoneNumber ? "border-red-500" : ""}
                 />
-                {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
+                {errors.phoneNumber && (
+                  <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+                )}
               </div>
               <div>
                 <Label>Nationality *</Label>
                 <Select
                   onValueChange={(value) => {
                     if (!editingCustomer) return;
-                    setEditingCustomer({ ...editingCustomer, nationality: value });
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      nationality: value,
+                    });
                   }}
                   value={editingCustomer?.nationality}
                 >
@@ -412,16 +480,15 @@ export default function CustomersPage() {
                   </SelectTrigger>
                   <SelectContent className="max-h-60" position="popper">
                     {sortedNationalities.map((nat, idx) => (
-                      <SelectItem
-                        key={idx}
-                        value={nat}
-                      >
+                      <SelectItem key={idx} value={nat}>
                         {nat}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
+                {errors.nationality && (
+                  <p className="text-red-500 text-sm">{errors.nationality}</p>
+                )}
               </div>
               <div>
                 <Label className="pl-1" htmlFor="IdentificationType">
@@ -430,9 +497,15 @@ export default function CustomersPage() {
                 <Select
                   value={editingCustomer?.identificationType}
                   onValueChange={(value) => {
-                    if (!editingCustomer) { return };
-                    setEditingCustomer({ ...editingCustomer, identificationType: value })
-                  }}>
+                    if (!editingCustomer) {
+                      return;
+                    }
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      identificationType: value,
+                    });
+                  }}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a type..." />
                   </SelectTrigger>
@@ -444,7 +517,11 @@ export default function CustomersPage() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}
+                {errors.identificationType && (
+                  <p className="text-red-500 text-sm">
+                    {errors.identificationType}
+                  </p>
+                )}
               </div>
               <div>
                 <Label className="">Identification Number *</Label>
@@ -452,11 +529,13 @@ export default function CustomersPage() {
                   disabled
                   value={editingCustomer?.identificationNumber ?? ""}
                   onChange={(e) => {
-                    if (!editingCustomer) { return };
+                    if (!editingCustomer) {
+                      return;
+                    }
                     setEditingCustomer({
                       ...editingCustomer,
                       identificationNumber: e.target.value,
-                    })
+                    });
                   }}
                 />
               </div>
@@ -465,8 +544,13 @@ export default function CustomersPage() {
                 <Input
                   value={editingCustomer?.address ?? ""}
                   onChange={(e) => {
-                    if (!editingCustomer) { return };
-                    setEditingCustomer({ ...editingCustomer, address: e.target.value })
+                    if (!editingCustomer) {
+                      return;
+                    }
+                    setEditingCustomer({
+                      ...editingCustomer,
+                      address: e.target.value,
+                    });
                   }}
                 />
               </div>
@@ -493,20 +577,24 @@ export default function CustomersPage() {
                       <Calendar
                         mode="single"
                         captionLayout="dropdown"
-
                         selected={birthDate}
                         onSelect={(date) => {
                           if (!date) return;
 
                           // Format as YYYY-MM-DD in local timezone
                           const year = date.getFullYear();
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0"
+                          );
                           const day = String(date.getDate()).padStart(2, "0");
                           const formatted = `${year}-${month}-${day}`;
 
                           setBirthDate(date);
                           {
-                            if (!editingCustomer) { return };
+                            if (!editingCustomer) {
+                              return;
+                            }
                             setEditingCustomer({
                               ...editingCustomer,
                               birthDate: formatted,
@@ -539,11 +627,13 @@ export default function CustomersPage() {
                       name="IsMarried"
                       checked={editingCustomer?.isMarried === true}
                       onChange={() => {
-                        if (!editingCustomer) { return };
+                        if (!editingCustomer) {
+                          return;
+                        }
                         setEditingCustomer({
                           ...editingCustomer,
                           isMarried: true,
-                        })
+                        });
                       }}
                     />
                     Married
@@ -554,11 +644,13 @@ export default function CustomersPage() {
                       name="IsMarried"
                       checked={editingCustomer?.isMarried === false}
                       onChange={() => {
-                        if (!editingCustomer) { return };
+                        if (!editingCustomer) {
+                          return;
+                        }
                         setEditingCustomer({
                           ...editingCustomer,
                           isMarried: false,
-                        })
+                        });
                       }}
                     />
                     Single
@@ -566,11 +658,11 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-
               {/* File uploads */}
               <div
                 onClick={() => idFileInputRef.current?.click()}
-                className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50">
+                className="flex items-center justify-between border-2 border-dashed border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-50"
+              >
                 <Label className="text-sm text-gray-600">
                   Identification File
                 </Label>
@@ -593,7 +685,9 @@ export default function CustomersPage() {
                     className="relative w-20 h-20 border rounded overflow-hidden flex items-center justify-center bg-gray-100"
                   >
                     <img
-                      src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                      src={
+                        typeof img === "string" ? img : URL.createObjectURL(img)
+                      }
                       alt="preview"
                       className="object-cover w-full h-full"
                     />
@@ -630,28 +724,34 @@ export default function CustomersPage() {
 
                   {/* Preview List */}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {[...MARexistingImages, ...MARnewImages].map((img, index) => (
-                      <div
-                        key={index}
-                        className="relative w-20 h-20 border rounded overflow-hidden"
-                      >
-                        <img
-                          src={typeof img === "string" ? img : URL.createObjectURL(img)}
-                          alt="preview"
-                          className="object-cover w-full h-full"
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteImage(img, "MAR");
-                          }}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                    {[...MARexistingImages, ...MARnewImages].map(
+                      (img, index) => (
+                        <div
+                          key={index}
+                          className="relative w-20 h-20 border rounded overflow-hidden"
                         >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
+                          <img
+                            src={
+                              typeof img === "string"
+                                ? img
+                                : URL.createObjectURL(img)
+                            }
+                            alt="preview"
+                            className="object-cover w-full h-full"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteImage(img, "MAR");
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )
+                    )}
                   </div>
                 </>
               )}
@@ -673,8 +773,11 @@ export default function CustomersPage() {
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog >
-        <Dialog open={!!deletingCustomer} onOpenChange={() => setDeletingCustomer(null)}>
+        </Dialog>
+        <Dialog
+          open={!!deletingCustomer}
+          onOpenChange={() => setDeletingCustomer(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Confirm Delete</DialogTitle>
@@ -682,11 +785,13 @@ export default function CustomersPage() {
             <p>Are you sure you want to delete {deletingCustomer?.name}?</p>
             <DialogFooter>
               <Button onClick={() => setDeletingCustomer(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleDeleteCustomer}>Delete</Button>
+              <Button variant="destructive" onClick={handleDeleteCustomer}>
+                Delete
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div >
+      </div>
     </>
   );
 }

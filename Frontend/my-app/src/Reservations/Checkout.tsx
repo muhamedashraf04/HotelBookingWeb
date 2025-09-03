@@ -1,5 +1,7 @@
 "use client";
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ErrorToast from "@/Toasts/ErrorToast";
 import axios from "axios";
+import Cookies from "js-cookie";
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -38,10 +42,18 @@ export default function CheckoutListPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    useEffect(() => {
+      const token = Cookies.get("token");
+      const { role } = parseTokenRoleAndUser(token);
+
+      if (!(role === "Admin" || role === "Receptionist")) {
+        navigate("/login");
+      }
+    }, []);
     const fetchReservations = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
+        const response = await axiosInstance.get(
           `${Url}/Admin/CheckOut/GetCheckOutToday`
         );
         setReservations(response.data || []);

@@ -1,5 +1,7 @@
 "use client";
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav.tsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -35,6 +36,17 @@ interface Rate {
 }
 
 export default function CreateRoom() {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+    if (!(role === "Admin")) {
+      navigate("/app"); // or a 403 page if you have one
+    }
+  }, []);
   const [formData, setFormData] = useState<RoomFormState>({
     roomNumber: "",
     roomType: "Single",
@@ -65,7 +77,7 @@ export default function CreateRoom() {
   useEffect(() => {
     const fetchrates = async () => {
       try {
-        const response = await axios.get(`${Url}/Admin/Rate/Getall`, {
+        const response = await axiosInstance.get(`${Url}/Admin/Rate/Getall`, {
           headers: {
             Authorization: `Bearer ${Cookies.get("token")}`,
           },
@@ -86,7 +98,7 @@ export default function CreateRoom() {
   useEffect(() => {
     if (!id) return;
 
-    axios
+    axiosInstance
       .get(`${Url}/Admin/Room/GetRoom?id=${id}`)
       .then((res) => {
         const room = res.data;
@@ -250,7 +262,7 @@ export default function CreateRoom() {
         imageFormData.append("deletedImages", JSON.stringify(deletedImages));
       }
 
-      await axios.post(`${Url}/Admin/Room/Upsert`, imageFormData, {
+      await axiosInstance.post(`${Url}/Admin/Room/Upsert`, imageFormData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${Cookies.get("token")}`,

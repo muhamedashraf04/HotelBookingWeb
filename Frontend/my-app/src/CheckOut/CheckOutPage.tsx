@@ -1,9 +1,11 @@
 "use client";
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav.tsx";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import axios from "axios";
+import Cookies from "js-cookie";
 import { Upload, X } from "lucide-react";
+
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast, Toaster } from "sonner";
@@ -37,6 +39,14 @@ interface Room {
 }
 
 export default function CheckoutPage() {
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login"); // or a 403 page if you have one
+    }
+  }, []);
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,7 +64,7 @@ export default function CheckoutPage() {
   // Fetch reservation if not passed
   useEffect(() => {
     if (!reservation && id) {
-      axios
+      axiosInstance
         .get(`${Url}/Admin/Reservation/Get/?id=${id}`)
         .then((res) => setReservation(res.data))
         .catch(() => toast.error("Failed to load reservation"));
@@ -64,7 +74,7 @@ export default function CheckoutPage() {
   // Fetch customer
   useEffect(() => {
     if (reservation?.customerId) {
-      axios
+      axiosInstance
         .get(`${Url}/Admin/Customer/Get/?id=${reservation.customerId}`)
         .then((res) => setCustomer(res.data))
         .catch(() => toast.error("Failed to load customer"));
@@ -74,7 +84,7 @@ export default function CheckoutPage() {
   // Fetch room
   useEffect(() => {
     if (reservation?.roomId) {
-      axios
+      axiosInstance
         .get(`${Url}/Admin/Room/GetRoom/?id=${reservation.roomId}`)
         .then((res) => setRoom(res.data))
         .catch(() => toast.error("Failed to load room"));
@@ -108,7 +118,7 @@ export default function CheckoutPage() {
       formData.append("dues", reservation.dues.toString());
       images.forEach((file) => formData.append("uploadedFiles", file));
 
-      await axios.patch(`${Url}/Admin/Checkout/Out`, formData, {
+      await axiosInstance.patch(`${Url}/Admin/Checkout/Out`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

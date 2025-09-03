@@ -1,5 +1,6 @@
 "use client";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
 import {
   Accordion,
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import { Check, ChevronDownIcon, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 import { toast, Toaster } from "sonner";
@@ -140,7 +140,7 @@ const EditReservation = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${Url}/Admin/Reservation/Search`,
         body
       );
@@ -171,7 +171,7 @@ const EditReservation = () => {
       console.log("Checkin: " + dto.CheckInDate);
 
       console.log("Checkin: " + dto.CheckOutDate);
-      await axios.post(`${Url}/Admin/Reservation/Edit`, dto);
+      await axiosInstance.post(`${Url}/Admin/Reservation/Edit`, dto);
 
       toast.success(`Reservation updated for Room ${room.roomNumber}`);
 

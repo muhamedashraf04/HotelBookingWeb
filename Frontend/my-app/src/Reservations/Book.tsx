@@ -1,7 +1,10 @@
 "use client";
 
+import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -10,7 +13,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -26,22 +35,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import axios from "axios";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Toaster, toast } from "sonner";
 import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import Cookies from "js-cookie";
+import { Check, ChevronsUpDown, Plus, Upload } from "lucide-react";
+
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import countries from "world-countries";
 
 type Customer = {
@@ -149,22 +151,29 @@ function Booking() {
       typeof newCustomer.identificationAttachment === "string" &&
         newCustomer.identificationAttachment.trim().length > 0
         ? newCustomer.identificationAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
     setMARExistingImages(
       typeof newCustomer.marriageCertificateAttachment === "string" &&
         newCustomer.marriageCertificateAttachment.trim().length > 0
         ? newCustomer.marriageCertificateAttachment
-          .split(",")
-          .map((img: string) => img.trim())
-          .filter((img: string) => img.length > 0)
+            .split(",")
+            .map((img: string) => img.trim())
+            .filter((img: string) => img.length > 0)
         : []
     );
   }, []);
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
 
+    if (!(role === "Admin" || role === "Receptionist")) {
+      navigate("/login");
+    }
+  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -291,12 +300,18 @@ function Booking() {
 
     if (!newCustomer.name.trim()) newErrors.name = "Name is required";
     if (!newCustomer.email.trim()) newErrors.email = "Email is required";
-    if (!newCustomer.identificationType) newErrors.identificationType = "ID type is required";
-    if (!newCustomer.identificationNumber.trim()) newErrors.identificationNumber = "ID number is required";
-    if (!newCustomer.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-    if (!newCustomer.nationality.trim()) newErrors.nationality = "Nationality is required";
-    if (IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
-    if (newCustomer.isMarried && MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
+    if (!newCustomer.identificationType)
+      newErrors.identificationType = "ID type is required";
+    if (!newCustomer.identificationNumber.trim())
+      newErrors.identificationNumber = "ID number is required";
+    if (!newCustomer.phoneNumber.trim())
+      newErrors.phoneNumber = "Phone number is required";
+    if (!newCustomer.nationality.trim())
+      newErrors.nationality = "Nationality is required";
+    if (IDnewImages.length === 0)
+      newErrors.identificationFiles = "At least one ID file is required";
+    if (newCustomer.isMarried && MARnewImages.length === 0)
+      newErrors.marriageFiles = "Marriage certificate is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -337,7 +352,7 @@ function Booking() {
         });
       }
 
-      await axios.post(
+      await axiosInstance.post(
         "http://localhost:5002/Admin/Customer/Register",
         customerFormData,
         {
@@ -554,7 +569,9 @@ function Booking() {
                 }
                 className={errors.name ? "border-red-500" : ""}
               />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-500 text-sm">{errors.name}</p>
+              )}
             </div>
             <div>
               <Label>Email *</Label>
@@ -566,7 +583,9 @@ function Booking() {
                 }
                 className={errors.email ? "border-red-500" : ""}
               />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email}</p>
+              )}
             </div>
             <div>
               <Label>Phone Number *</Label>
@@ -580,7 +599,9 @@ function Booking() {
                 }
                 className={errors.phoneNumber ? "border-red-500" : ""}
               />
-              {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+              )}
             </div>
             <div>
               <Label>Nationality *</Label>
@@ -601,7 +622,9 @@ function Booking() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
+              {errors.nationality && (
+                <p className="text-red-500 text-sm">{errors.nationality}</p>
+              )}
             </div>
             <div>
               <Label className="pl-1" htmlFor="IdentificationType">
@@ -624,7 +647,11 @@ function Booking() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}
+              {errors.identificationType && (
+                <p className="text-red-500 text-sm">
+                  {errors.identificationType}
+                </p>
+              )}
             </div>
             <div>
               <Label>Identification Number *</Label>
@@ -638,7 +665,11 @@ function Booking() {
                 }
                 className={errors.identificationNumber ? "border-red-500" : ""}
               />
-              {errors.identificationNumber && <p className="text-red-500 text-sm">{errors.identificationNumber}</p>}
+              {errors.identificationNumber && (
+                <p className="text-red-500 text-sm">
+                  {errors.identificationNumber}
+                </p>
+              )}
             </div>
             <div>
               <Label>Address (optional)</Label>
@@ -767,8 +798,11 @@ function Booking() {
                 <div
                   key={index}
                   className="relative w-20 h-20 border rounded overflow-hidden"
-                ><img
-                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                >
+                  <img
+                    src={
+                      typeof img === "string" ? img : URL.createObjectURL(img)
+                    }
                     alt="preview"
                     className="object-cover w-full h-full"
                   />

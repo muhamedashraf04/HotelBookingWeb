@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import App from "./App.tsx";
 import Login from "./Auth/Login.tsx";
-import Register from "./Auth/Register.tsx";
 import CheckInPage from "./Checkin/CheckinPage.tsx";
 import CheckOutPage from "./CheckOut/CheckOutPage.tsx";
 import ConfigurationPage from "./Configuration/hotel-config.tsx";
@@ -33,7 +32,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/Reservations/Booking" element={<Booking />} />
         <Route path="/Reservations/Remove" element={<RemoveReservation />} />
         <Route path="/reservation/edit/:id" element={<EditReservation />} />
-        <Route path="/Register" element={<Register />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/checkin/:id" element={<CheckInPage />} />
         <Route path="/Customer/Remove" element={<RemoveCustomer />} />
