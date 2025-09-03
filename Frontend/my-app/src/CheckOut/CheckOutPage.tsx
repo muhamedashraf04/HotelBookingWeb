@@ -236,7 +236,12 @@ export default function CheckoutPage() {
           <div className="flex justify-between items-center text-sm mb-1">
             <span className="text-gray-600">Subtotal:</span>
             <span className="font-mono text-gray-800">
-              EGP {format((reservation?.paid || 0) + (reservation?.dues || 0))}
+              EGP{" "}
+              {format(
+                (reservation?.paid || 0) +
+                  (reservation?.dues || 0) +
+                  (reservation?.discount || 0)
+              )}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm text-red-600 mb-2">
@@ -266,23 +271,8 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between items-center text-lg font-semibold">
               <span className="text-gray-600">Remaining Due:</span>
-              <span
-                className={`font-mono ${
-                  (reservation?.paid || 0) +
-                    (reservation?.dues || 0) -
-                    (reservation?.discount || 0) <=
-                  0
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
-              >
-                EGP{" "}
-                {format(
-                  Math.max(
-                    0,
-                    (reservation?.dues || 0) - (reservation?.discount || 0)
-                  )
-                )}
+              <span className="font-mono text-red-600">
+                EGP {format(reservation?.dues || 0)}
               </span>
             </div>
           </div>
