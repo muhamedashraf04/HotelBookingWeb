@@ -271,8 +271,23 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between items-center text-lg font-semibold">
               <span className="text-gray-600">Remaining Due:</span>
-              <span className="font-mono text-red-600">
-                EGP {format(reservation?.dues || 0)}
+              <span
+                className={`font-mono ${
+                  (reservation?.paid || 0) +
+                    (reservation?.dues || 0) -
+                    (reservation?.discount || 0) <=
+                  0
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                EGP{" "}
+                {format(
+                  Math.max(
+                    0,
+                    (reservation?.dues || 0) - (reservation?.discount || 0)
+                  )
+                )}
               </span>
             </div>
           </div>
