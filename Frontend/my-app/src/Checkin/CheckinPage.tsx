@@ -462,11 +462,13 @@ export default function CheckInPage() {
                   max={originalTotal}
                   step="0.01"
                   value={discountValue}
+                  // In the amount mode input section, change to:
                   onChange={(e) =>
                     setDiscountValue(
                       Number(
-                        Number(e.target.value) > discountLimit
-                          ? discountLimit
+                        Number(e.target.value) >
+                          (originalTotal * discountLimit) / 100
+                          ? (originalTotal * discountLimit) / 100
                           : e.target.value || 0
                       )
                     )

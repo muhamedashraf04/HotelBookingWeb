@@ -129,14 +129,20 @@ public class CheckinController : Controller
 
         float numberOfNights = (reservation.CheckOutDate.Date - reservation.CheckInDate.Date).Days ;
         float totalCost = room.Price * numberOfNights;
-        float totalAfterDisount = totalCost - (totalCost * (inDTO.Discount / 100));
         reservation.ProofOfPayment = ro.GetImagesFromFolder(folderPath);
         reservation.Status = "Checked-In";
 
-        
+        Console.WriteLine("NEW COST");
+        Console.WriteLine(totalCost);
+        Console.WriteLine("NEW PAID");
+        Console.WriteLine(inDTO.Paid);
+        Console.WriteLine("NEW DISCOUNT");
+        Console.WriteLine(inDTO.Discount);
+        Console.WriteLine("NEW DUES");
+        Console.WriteLine(reservation.Dues - inDTO.Paid - inDTO.Discount);
         reservation.Paid += inDTO.Paid;
         reservation.Discount = inDTO.Discount;
-        reservation.Dues = totalAfterDisount - reservation.Paid;
+        reservation.Dues = reservation.Dues - reservation.Paid - inDTO.Discount;
 
         var customer = _unitOfWork.Customers.Get(u => u.Id == reservation.CustomerId);
         customer.status = reservation.Status;
