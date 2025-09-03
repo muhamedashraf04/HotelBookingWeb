@@ -6,9 +6,9 @@ import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import { Button } from "@/components/ui/button";
 import Cookies from "js-cookie";
 import React, { useEffect, useState, type DragEvent, type JSX } from "react";
-import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { Url } from "../../GlobalVariables";
+import { useNavigate } from "react-router-dom";
 
 type User = {
   id: number;
@@ -33,6 +33,9 @@ export default function ConfigurationPage(): JSX.Element {
       navigate("/app");
     }
   }, []);
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
   const [users, setUsers] = useState<User[]>([]);
   const [admins, setAdmins] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -108,11 +111,11 @@ export default function ConfigurationPage(): JSX.Element {
   }, []);
 
   // delete user/admin
-  async function handleDelete(type: "user" | "admin", id: number) {
+  async function handleDelete(type: "User" | "admin", id: number) {
     if (!confirm("Are you sure?")) return;
     try {
       const endpoint =
-        type === "user" ? `delete-user/${id}` : `delete-admin/${id}`;
+        type === "User" ? `delete-user/${id}` : `delete-admin/${id}`;
       await api.delete(endpoint);
       toast.success("Deleted successfully");
       await fetchAll();
@@ -159,7 +162,16 @@ export default function ConfigurationPage(): JSX.Element {
       toast.error("Please provide a valid email");
       return false;
     }
-    if (!editing && (!formState.password || formState.password.length < 6)) {
+    if (!formState.phoneNumber || formState.phoneNumber.length !== 11) {
+      toast.error("Phone number must be exactly 11 digits");
+      return false;
+    }
+    if (!editing) {
+      if (!formState.password || formState.password.length < 6) {
+        toast.error("Password must be at least 6 characters");
+        return false;
+      }
+    } else if (formState.password && formState.password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return false;
     }
@@ -210,6 +222,14 @@ export default function ConfigurationPage(): JSX.Element {
   // handle logo file selection
   function handleFile(file: File) {
     setSelectedFile(file);
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File must be less than 5 MB");
+      return;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(`❌ ${file.name} is not a valid image type.`);
+      return;
+    }
     if (file) {
       const reader = new FileReader();
       reader.onload = () => setLogoPreview(reader.result as string);
@@ -219,7 +239,8 @@ export default function ConfigurationPage(): JSX.Element {
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
-    setIsDragging(false);
+    if (e.dataTransfer)
+      setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) handleFile(file);
   }
@@ -228,6 +249,14 @@ export default function ConfigurationPage(): JSX.Element {
   async function uploadLogoToBackend() {
     if (!selectedFile) {
       toast.error("No file selected");
+      return;
+    }
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      toast.error("File must be less than 5 MB");
+      return;
+    }
+    if (!allowedTypes.includes(selectedFile.type)) {
+      toast.error(`❌ ${selectedFile.name} is not a valid image type.`);
       return;
     }
     const fd = new FormData();
@@ -273,7 +302,7 @@ export default function ConfigurationPage(): JSX.Element {
 
         {/* Hotel Logo */}
         <section className="mb-6 border rounded p-4">
-          <h2 className="text-xl font-semibold mb-2">Hotel Logo</h2>
+          <h2 className="text-xl font-bold mb-2">Hotel Logo</h2>
           <div className="flex items-center gap-4">
             {logoPreview ? (
               <img
@@ -289,9 +318,8 @@ export default function ConfigurationPage(): JSX.Element {
             <div className="flex-1">
               {/* Drop Area */}
               <div
-                className={`border-2 border-dashed rounded p-6 text-center cursor-pointer ${
-                  isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-                }`}
+                className={`border-2 border-dashed rounded p-6 text-center cursor-pointer ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                  }`}
                 onDragOver={(e) => {
                   e.preventDefault();
                   setIsDragging(true);
@@ -310,7 +338,7 @@ export default function ConfigurationPage(): JSX.Element {
                 <input
                   id="hiddenFileInput"
                   type="file"
-                  accept="image/png,image/jpeg,image/gif,image/webp"
+                  accept="image/*"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -400,7 +428,7 @@ export default function ConfigurationPage(): JSX.Element {
         {/* Users */}
         <section className="mb-6 border rounded p-4">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-semibold">Users</h2>
+            <h2 className="text-xl font-semibold">User</h2>
             <Button onClick={() => openCreate("User")}>Add User</Button>
           </div>
           {loading ? (
@@ -440,7 +468,7 @@ export default function ConfigurationPage(): JSX.Element {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => handleDelete("user", u.id)}
+                            onClick={() => handleDelete("User", u.id)}
                           >
                             Delete
                           </Button>
@@ -458,10 +486,11 @@ export default function ConfigurationPage(): JSX.Element {
         {isFormOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="bg-white rounded p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-lg font-semibold mb-4 text-center">
                 {editing ? "Edit" : "Add"} {formState.role}
               </h3>
               <form onSubmit={(e) => void handleFormSubmit(e)}>
+                <label className="pl-1 mb-2.5">Username</label>
                 <input
                   className="w-full border p-2 mb-3"
                   placeholder="Username"
@@ -470,22 +499,26 @@ export default function ConfigurationPage(): JSX.Element {
                     setFormState((s) => ({ ...s, userName: e.target.value }))
                   }
                 />
+                <label className="pl-1 mb-2.5">Email</label>
                 <input
                   className="w-full border p-2 mb-3"
                   placeholder="Email"
+                  type="email"
                   value={formState.email}
                   onChange={(e) =>
                     setFormState((s) => ({ ...s, email: e.target.value }))
                   }
                 />
+                <label className="pl-1 mb-2.5">Phone Number</label>
                 <input
                   className="w-full border p-2 mb-3"
-                  placeholder="Phone"
+                  placeholder="Phone Number"
                   value={formState.phoneNumber}
                   onChange={(e) =>
                     setFormState((s) => ({ ...s, phoneNumber: e.target.value }))
                   }
                 />
+                <label className="pl-1 mb-2.5">Password</label>
                 <input
                   type="password"
                   className="w-full border p-2 mb-3"
@@ -495,10 +528,14 @@ export default function ConfigurationPage(): JSX.Element {
                     setFormState((s) => ({ ...s, password: e.target.value }))
                   }
                 />
+                <label className="pl-1 mb-2.5">Discount Limit</label>
                 <input
                   type="number"
                   className="w-full border p-2 mb-3"
                   placeholder="Discount Limit"
+                  min={0}
+                  max={100}
+                  step={1}
                   value={formState.discountLimit}
                   onChange={(e) =>
                     setFormState((s) => ({
@@ -507,16 +544,6 @@ export default function ConfigurationPage(): JSX.Element {
                     }))
                   }
                 />
-                <select
-                  className="w-full border p-2 mb-4"
-                  value={formState.role}
-                  onChange={(e) =>
-                    setFormState((s) => ({ ...s, role: e.target.value }))
-                  }
-                >
-                  <option>User</option>
-                  <option>Admin</option>
-                </select>
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
