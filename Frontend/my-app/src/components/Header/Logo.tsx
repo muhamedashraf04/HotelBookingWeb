@@ -41,7 +41,7 @@ const Logo = () => {
 
   return (
     <div className="logo w-auto max-w-xs h-22 p-2 ">
-      <a href="/app" target="_blank" rel="noopener noreferrer">
+      <a href="/app" rel="noopener noreferrer">
         {loading && !storedLogo ? (
           // Spinner if nothing stored and still fetching
           <div className="w-10 h-10 border-4 mt-4 ml-8 border-black border-t-transparent rounded-full animate-spin" />

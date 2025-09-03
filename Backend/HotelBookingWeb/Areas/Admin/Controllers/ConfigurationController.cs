@@ -35,6 +35,9 @@ public class ConfigurationController : Controller
 
         var folderPath = "hotel_booking/Configuration/Image";
 
+        var prefix = $"hotel_booking/Configuration/Image/";
+        _cloudinary.DeleteResourcesByPrefix(prefix);
+
         using var stream = uploadedFile.OpenReadStream();
         var uploadResult = _cloudinary.Upload(new ImageUploadParams
         {
