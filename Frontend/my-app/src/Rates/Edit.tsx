@@ -467,7 +467,7 @@ const EditRates = () => {
               Prev
             </Button>
             <div className="px-4 py-2 border rounded">
-              {currentPage} / {totalPages}
+              {currentPage} / {totalaPages}
             </div>
             <Button
               variant="outline"
