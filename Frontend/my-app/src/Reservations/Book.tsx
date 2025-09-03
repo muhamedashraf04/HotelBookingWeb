@@ -68,7 +68,6 @@ function Booking() {
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerId, setCustomerId] = useState<number | null>(null);
@@ -150,18 +149,18 @@ function Booking() {
       typeof newCustomer.identificationAttachment === "string" &&
         newCustomer.identificationAttachment.trim().length > 0
         ? newCustomer.identificationAttachment
-            .split(",")
-            .map((img: string) => img.trim())
-            .filter((img: string) => img.length > 0)
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
         : []
     );
     setMARExistingImages(
       typeof newCustomer.marriageCertificateAttachment === "string" &&
         newCustomer.marriageCertificateAttachment.trim().length > 0
         ? newCustomer.marriageCertificateAttachment
-            .split(",")
-            .map((img: string) => img.trim())
-            .filter((img: string) => img.length > 0)
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
         : []
     );
   }, []);
@@ -304,32 +303,6 @@ function Booking() {
       toast.error("Please fill all required fields");
       return;
     }
-    const newErrors: { [key: string]: string } = {};
-
-    if (!newCustomer.name.trim()) newErrors.name = "Name is required";
-    if (!newCustomer.email.trim()) newErrors.email = "Email is required";
-    if (!newCustomer.identificationType) newErrors.identificationType = "ID type is required";
-    if (!newCustomer.identificationNumber.trim()) newErrors.identificationNumber = "ID number is required";
-    if (!newCustomer.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-    if (!newCustomer.nationality.trim()) newErrors.nationality = "Nationality is required";
-    if (IDnewImages.length === 0) newErrors.identificationFiles = "At least one ID file is required";
-    if (newCustomer.isMarried && MARnewImages.length === 0) newErrors.marriageFiles = "Marriage certificate is required";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      toast.error("Please fill all required fields");
-      return;
-    }
-    if (IDnewImages.length === 0) {
-      toast.error("At least one Identification file is required");
-      return;
-    }
-    if (newCustomer.isMarried && MARnewImages.length === 0) {
-      toast.error("Marriage certificate is required for married customers");
-      return;
-    }
-
-    setErrors({});
     setErrors({});
     setIsCreating(true);
     try {
@@ -574,20 +547,16 @@ function Booking() {
           >
             <div>
               <Label>Name *</Label>
-              <Label>Name *</Label>
               <Input
                 value={newCustomer.name}
                 onChange={(e) =>
                   setNewCustomer({ ...newCustomer, name: e.target.value })
                 }
                 className={errors.name ? "border-red-500" : ""}
-                className={errors.name ? "border-red-500" : ""}
               />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
               {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
             </div>
             <div>
-              <Label>Email *</Label>
               <Label>Email *</Label>
               <Input
                 type="email"
@@ -596,13 +565,10 @@ function Booking() {
                   setNewCustomer({ ...newCustomer, email: e.target.value })
                 }
                 className={errors.email ? "border-red-500" : ""}
-                className={errors.email ? "border-red-500" : ""}
               />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
               {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
             <div>
-              <Label>Phone Number *</Label>
               <Label>Phone Number *</Label>
               <Input
                 value={newCustomer.phoneNumber ?? ""}
@@ -613,13 +579,10 @@ function Booking() {
                   })
                 }
                 className={errors.phoneNumber ? "border-red-500" : ""}
-                className={errors.phoneNumber ? "border-red-500" : ""}
               />
-              {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
               {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
             </div>
             <div>
-              <Label>Nationality *</Label>
               <Label>Nationality *</Label>
               <Select
                 onValueChange={(value) =>
@@ -639,11 +602,9 @@ function Booking() {
                 </SelectContent>
               </Select>
               {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
-              {errors.nationality && <p className="text-red-500 text-sm">{errors.nationality}</p>}
             </div>
             <div>
               <Label className="pl-1" htmlFor="IdentificationType">
-                Identification Type *
                 Identification Type *
               </Label>
               <Select
@@ -664,11 +625,9 @@ function Booking() {
                 </SelectContent>
               </Select>
               {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}
-              {errors.identificationType && <p className="text-red-500 text-sm">{errors.identificationType}</p>}
             </div>
             <div>
-              <Label className="">Identification Number *</Label>
-              <Label className="">Identification Number *</Label>
+              <Label>Identification Number *</Label>
               <Input
                 value={newCustomer.identificationNumber ?? ""}
                 onChange={(e) =>
@@ -678,13 +637,10 @@ function Booking() {
                   })
                 }
                 className={errors.identificationNumber ? "border-red-500" : ""}
-                className={errors.identificationNumber ? "border-red-500" : ""}
               />
-              {errors.identificationNumber && <p className="text-red-500 text-sm">{errors.identificationNumber}</p>}
               {errors.identificationNumber && <p className="text-red-500 text-sm">{errors.identificationNumber}</p>}
             </div>
             <div>
-              <Label>Address (optional)</Label>
               <Label>Address (optional)</Label>
               <Input
                 value={newCustomer.address ?? ""}
@@ -695,7 +651,6 @@ function Booking() {
             </div>
             <div>
               <Label className="pl-1" htmlFor="BirthDate">
-                Birth Date *
                 Birth Date *
               </Label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
