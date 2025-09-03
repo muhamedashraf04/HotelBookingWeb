@@ -2,16 +2,27 @@
 
 import axiosInstance from "@/AxiosInstance.tsx";
 import Header from "@/components/Header/Header";
+import { parseTokenRoleAndUser } from "@/components/Header/Nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Cookies from "js-cookie";
 import type { ChangeEvent, FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { Url } from "../../GlobalVariables";
 
 function Login() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const { role } = parseTokenRoleAndUser(token);
+
+    if (role === "Admin" || role === "Receptionist") {
+      navigate("/app");
+    }
+  }, []);
   const [form, setForm] = useState({
     userName: "",
     password: "",
