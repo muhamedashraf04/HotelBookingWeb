@@ -537,13 +537,17 @@ export default function ConfigurationPage(): JSX.Element {
                   max={100}
                   step={1}
                   value={formState.discountLimit}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const rawValue = e.target.value;
+                    const num = Number(rawValue);
+
                     setFormState((s) => ({
                       ...s,
-                      discountLimit: Number(e.target.value),
-                    }))
-                  }
+                      discountLimit: Math.min(100, Math.max(0, isNaN(num) ? 0 : num)), // clamp 0–100
+                    }));
+                  }}
                 />
+
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
