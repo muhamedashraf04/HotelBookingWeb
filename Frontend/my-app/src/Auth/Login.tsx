@@ -37,7 +37,7 @@ function Login() {
 
       setTimeout(() => {
         window.location.href = "/";
-      }, 5000);
+      }, 10);
     } catch (err: any) {
       if (err.response) {
         toast.error("Login failed", {

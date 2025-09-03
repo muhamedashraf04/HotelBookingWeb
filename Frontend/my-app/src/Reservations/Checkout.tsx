@@ -44,15 +44,20 @@ export default function CheckoutListPage() {
         const response = await axios.get(
           `${Url}/Admin/CheckOut/GetCheckOutToday`
         );
-        setReservations(response.data);
+        setReservations(response.data || []);
       } catch (err: any) {
-        ErrorToast(
-          err.message || "Something went wrong while fetching checkouts"
-        );
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          ErrorToast("No reservations found for today.");
+        } else {
+          ErrorToast(
+            err.message || "Something went wrong while fetching checkouts"
+          );
+        }
       } finally {
         setLoading(false);
       }
     };
+
     fetchReservations();
   }, []);
 
