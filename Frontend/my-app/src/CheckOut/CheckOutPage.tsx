@@ -28,7 +28,7 @@ interface Customer {
   identificationNumber: number;
   name: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
 }
 
 interface Room {
@@ -173,7 +173,7 @@ export default function CheckoutPage() {
                     </p>
                     <p>
                       <span className="font-medium">Phone:</span>{" "}
-                      {customer.phone}
+                      {customer.phoneNumber}
                     </p>
                   </div>
                 ) : (
@@ -239,8 +239,8 @@ export default function CheckoutPage() {
               EGP{" "}
               {format(
                 (reservation?.paid || 0) +
-                  (reservation?.dues || 0) +
-                  (reservation?.discount || 0)
+                (reservation?.dues || 0) +
+                (reservation?.discount || 0)
               )}
             </span>
           </div>
@@ -257,8 +257,8 @@ export default function CheckoutPage() {
               EGP{" "}
               {format(
                 (reservation?.paid || 0) +
-                  (reservation?.dues || 0) -
-                  (reservation?.discount || 0)
+                (reservation?.dues || 0) -
+                (reservation?.discount || 0)
               )}
             </span>
           </div>
