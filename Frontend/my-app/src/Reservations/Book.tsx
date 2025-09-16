@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
+import { Url } from "../../GlobalVariables";
 import Cookies from "js-cookie";
 import { Check, ChevronsUpDown, Plus, Upload } from "lucide-react";
 
@@ -132,12 +133,21 @@ function Booking() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:5002/Admin/Customer/GetCustomers"
+      const customersRes = await axiosInstance.get(
+        `${Url}/Admin/Customer/GetCustomers`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
       );
-      if (!res.ok) throw new Error("Failed to fetch customers");
-      const data = await res.json();
-      setCustomers(data);
+
+      if (customersRes.status !== 200) {
+        throw new Error("Failed to fetch customers");
+      }
+
+      // ✅ Use the data property directly
+      setCustomers(customersRes.data);
     } catch (err: any) {
       toast.error(
         err.message || "Something went wrong while fetching customers"
@@ -145,24 +155,25 @@ function Booking() {
     }
   };
 
+
   useEffect(() => {
     fetchCustomers();
     setIDExistingImages(
       typeof newCustomer.identificationAttachment === "string" &&
         newCustomer.identificationAttachment.trim().length > 0
         ? newCustomer.identificationAttachment
-            .split(",")
-            .map((img: string) => img.trim())
-            .filter((img: string) => img.length > 0)
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
         : []
     );
     setMARExistingImages(
       typeof newCustomer.marriageCertificateAttachment === "string" &&
         newCustomer.marriageCertificateAttachment.trim().length > 0
         ? newCustomer.marriageCertificateAttachment
-            .split(",")
-            .map((img: string) => img.trim())
-            .filter((img: string) => img.length > 0)
+          .split(",")
+          .map((img: string) => img.trim())
+          .filter((img: string) => img.length > 0)
         : []
     );
   }, []);
@@ -199,7 +210,8 @@ function Booking() {
         "http://localhost:5002/Admin/Reservation/Create",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${Cookies.get("token")}`, },
+
           body: JSON.stringify(reservation),
         }
       );
@@ -358,7 +370,10 @@ function Booking() {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${Cookies.get("token")}`,
           },
+
+
         }
       );
 

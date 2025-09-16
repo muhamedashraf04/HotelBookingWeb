@@ -252,16 +252,16 @@ public class AuthController : ControllerBase
         }
         return Ok("No changes made to admin."); // man3rfsh kan feh eh "bad or ok" ya ga7sh 
     }
-        [HttpDelete("delete-admin/{id}")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult DeleteAdmin(int id)
-        {
-            var admin = _unitOfWork.Users.Get(u => u.Id == id);
-            if (admin == null) return NotFound("Admin not found.");
-            if (admin.Role != "Admin") return BadRequest("User is not an admin.");
+    [HttpDelete("delete-admin/{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult DeleteAdmin(int id)
+    {
+        var admin = _unitOfWork.Users.Get(u => u.Id == id);
+        if (admin == null) return NotFound("Admin not found.");
+        if (admin.Role != "Admin") return BadRequest("User is not an admin.");
 
-            _unitOfWork.Users.Remove(id);
-            _unitOfWork.Save();
-            return Ok("Admin deleted successfully.");
-        }
+        _unitOfWork.Users.Remove(id);
+        _unitOfWork.Save();
+        return Ok("Admin deleted successfully.");
     }
+}

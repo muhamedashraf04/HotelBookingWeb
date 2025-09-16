@@ -309,7 +309,12 @@ const SearchReservations = () => {
 
       const resRes = await axiosInstance.get(`${Url}/Admin/Reservation/GetAll`);
       const customersRes = await axiosInstance.get(
-        `${Url}/Admin/Customer/GetCustomers`
+        `${Url}/Admin/Customer/GetCustomers`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
       );
       const customers: Customer[] = customersRes.data;
 
@@ -593,7 +598,7 @@ const SearchReservations = () => {
               )}
               days={days}
               onEventClick={handleEventClick}
-              onEventRightClick={() => {}}
+              onEventRightClick={() => { }}
             />
           </div>
         </div>
